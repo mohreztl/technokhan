@@ -1,0 +1,127 @@
+{
+  "name": "اتولانژ - AutoLounge",
+  "short_name": "اتولانژ",
+  "description": "مرکز تخصصی مراقبت و زیبایی خودرو - دیتیلینگ، سرامیک کوتینگ، رپ خودرو",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#0a0a0a",
+  "theme_color": "#001F3F",
+  "orientation": "portrait-primary",
+  "dir": "rtl",
+  "lang": "fa-IR",
+  "scope": "/",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["automotive", "business", "shopping", "lifestyle"],
+  "screenshots": [
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "صفحه اصلی اتولانژ"
+    },
+    {
+      "src": "/screenshots/desktop-1.png",
+      "sizes": "1920x1080",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "نمایش دسکتاپ"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "محصولات",
+      "short_name": "محصولات",
+      "description": "مشاهده همه محصولات دیتیلینگ",
+      "url": "/products",
+      "icons": [{ "src": "/icons/shortcut-products.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "خدمات",
+      "short_name": "خدمات",
+      "description": "خدمات مراقبت از خودرو",
+      "url": "/services",
+      "icons": [{ "src": "/icons/shortcut-services.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "رزرو نوبت",
+      "short_name": "رزرو",
+      "description": "رزرو وقت آنلاین",
+      "url": "/booking",
+      "icons": [{ "src": "/icons/shortcut-booking.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "سبد خرید",
+      "short_name": "سبد",
+      "description": "مشاهده سبد خرید",
+      "url": "/checkout",
+      "icons": [{ "src": "/icons/shortcut-cart.png", "sizes": "96x96" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "related_applications": [],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": ["navigate-existing", "auto"]
+  }
+}

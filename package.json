@@ -1,0 +1,25 @@
+{
+  "name": "autolounge",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AutoLounge (اتولانژ) - Premium Luxury Automotive Care Platform",
+  "author": "mohreztl",
+  "license": "MIT",
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/**\" dev",
+    "dev:web": "pnpm --filter web dev",
+    "dev:api": "pnpm --filter api dev",
+    "build": "pnpm --filter \"./apps/**\" build",
+    "build:web": "pnpm --filter web build",
+    "build:api": "pnpm --filter api build",
+    "start:web": "pnpm --filter web start",
+    "start:api": "pnpm --filter api start",
+    "lint": "pnpm --filter \"./apps/**\" lint",
+    "type-check": "pnpm --filter \"./apps/**\" type-check"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+}
