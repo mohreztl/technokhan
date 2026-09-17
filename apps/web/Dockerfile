@@ -1,80 +1,66 @@
-# Dependencies stage
-FROM node:18-alpine AS deps
+# syntax=docker/dockerfile:1
+# AutoLounge web (Next.js standalone) — build context is the repository root (pnpm workspace)
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
-
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat \
+  && corepack enable && corepack prepare pnpm@10.11.0 --activate
 WORKDIR /app
 
-# Copy workspace files
+# ---------------------------------------------------------------------------
+# Builder
+# ---------------------------------------------------------------------------
+FROM base AS builder
+
+# NEXT_PUBLIC_* values are inlined at build time
+ARG NEXT_PUBLIC_API_URL=http://localhost:5000
+ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_DEMO_MODE=false
+ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
+    NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE \
+    NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
+    NEXT_TELEMETRY_DISABLED=1
+
+# Workspace manifests first (cached install layer); all workspace package.json
+# files must exist for --frozen-lockfile to match pnpm-lock.yaml
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-
-# Copy packages
-COPY packages ./packages
-
-# Copy web application package.json
+COPY packages/shared/package.json ./packages/shared/
 COPY apps/web/package.json ./apps/web/
+COPY apps/api/package.json ./apps/api/
+RUN pnpm install --frozen-lockfile --filter web... --filter @autolounge/shared
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
-
-# Builder stage
-FROM node:18-alpine AS builder
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
-
-WORKDIR /app
-
-# Copy node_modules from deps
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/packages ./packages
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
-
-# Copy workspace files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY turbo.json ./
-
-# Copy web application
+# Sources
+COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 
-# Build the application
-WORKDIR /app/apps/web
+ENV NEXT_STANDALONE=true
+RUN pnpm --filter @autolounge/shared build
+RUN pnpm --filter web build
 
-# Set build environment variables
-ENV NEXT_TELEMETRY_DISABLED 1
-ENV NODE_ENV production
-
-RUN pnpm build
-
-# Runner stage
-FROM node:18-alpine AS runner
-
+# ---------------------------------------------------------------------------
+# Runner: Next.js standalone output (server.js lives at apps/web/server.js)
+# ---------------------------------------------------------------------------
+FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME=0.0.0.0
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs \
+  && adduser --system --uid 1001 nextjs
 
-# Copy necessary files from builder
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder /app/apps/web/package.json ./package.json
-
-# Automatically leverage output traces to reduce image size
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
 
 USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
-ENV HOSTNAME "0.0.0.0"
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1))"
 
 CMD ["node", "apps/web/server.js"]

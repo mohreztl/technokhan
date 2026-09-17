@@ -1,200 +1,133 @@
-# AutoLounge (اتولانژ) - Premium Automotive Care Platform
+# AutoLounge (اتولانژ) — Premium Automotive Care Platform
 
-A luxury web application for AutoLounge, specializing in paint restoration (detailing), car wraps, and detailing supplies.
+A mobile-first, Persian (fa-IR, RTL) web platform for AutoLounge: paint restoration and detailing, ceramic coating, PPF and car wrap, a detailing-products shop, SMS-OTP login, online booking with Jalali calendar, Zarinpal checkout, customer profile, and an admin dashboard.
 
-## 🚀 Tech Stack
+## Tech stack
 
-### Frontend
+| Layer | Stack |
+|---|---|
+| Web (`apps/web`) | Next.js 15 App Router, React 19, TypeScript strict, Tailwind CSS (HSL tokens, dark mode default), framer-motion, embla-carousel, TanStack Query, zustand (persisted stores), react-hook-form + zod, date-fns-jalali, sonner, next-pwa |
+| API (`apps/api`) | Fastify 4, Prisma 5, PostgreSQL, JWT auth, Zarinpal v4 (Toman / `IRT`), MeliPayamak SMS, Pino |
+| Shared (`packages/shared`) | Types, constants, zod schemas, pricing rules, and the bundled catalog content (products, services, gallery, team, FAQ, legal docs, wrap colors, vehicles) — built to `dist` and consumed by both apps |
 
-- **Next.js 15** (App Router) - React framework with SSR
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first CSS framework
-- **shadcn/ui** - High-quality UI components
-- **Framer Motion** - Smooth animations
-- **Zustand** - State management
-- **PWA** - Progressive Web App support
-
-### Backend
-
-- **Fastify** - High-performance Node.js API
-- **Prisma** - Modern ORM for PostgreSQL
-- **PostgreSQL** - Relational database
-- **JWT** - Authentication
-- **MeliPayamak** - Iranian SMS gateway for OTP
-
-## 📁 Project Structure
+## Project structure
 
 ```
 autolounge/
 ├── apps/
-│   ├── web/          # Next.js frontend application
-│   └── api/          # Fastify backend API
-├── packages/
-│   └── shared/       # Shared types, utilities, and constants
-├── pnpm-workspace.yaml
-└── package.json
+│   ├── web/                # Next.js app
+│   │   ├── src/app/        # routes (home, products, services, gallery, booking, cart, checkout, orders, profile, admin, …)
+│   │   ├── src/components/ # ui primitives, organisms (navbar, sheets, tab bar), creative (before/after, wrap visualizer, …)
+│   │   ├── src/lib/        # api client + demo transport, React Query hooks, stores, data repository, jalali helpers
+│   │   ├── scripts/        # generate-assets.ts (placeholder images, PWA icons, OG image)
+│   │   └── public/         # fonts, hero images, generated images/icons, manifest
+│   └── api/                # Fastify API (routes, plugins, services, prisma schema + migrations + seed)
+├── packages/shared/        # @autolounge/shared
+├── docs/
+│   ├── API.md              # API contract (/api/v1)
+│   └── FRONTEND-GUIDE.md   # frontend conventions and component APIs
+└── docker-compose*.yml
 ```
 
-## 🛠️ Setup & Installation
+## Getting started
 
-### Prerequisites
-
-- Node.js 18+ and pnpm 8+
-- PostgreSQL database
-- MeliPayamak account (for SMS)
-
-**OR use Docker (Recommended):**
-
-- Docker & Docker Compose
-- See [DOCKER.md](./DOCKER.md) for Docker setup
-
-### Local Development Setup
-
-### 1. Install dependencies
+Prerequisites: Node 20+, pnpm 9+, and PostgreSQL (or Docker) for the API.
 
 ```bash
 pnpm install
 ```
 
-### 2. Setup Backend
+### Run the web app only (demo mode, no backend)
 
 ```bash
-cd apps/api
-cp .env.example .env
-# Edit .env with your configuration
-
-# Setup database
-pnpm prisma:generate
-pnpm prisma:migrate
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-### 3. Setup Frontend
+Set `NEXT_PUBLIC_DEMO_MODE=true` in `.env.local` (or simply leave the API down — the app detects it), then:
 
 ```bash
-cd apps/web
-# Create .env.local if needed
+pnpm dev:web
 ```
 
-### 4. Run Development Servers
+Open http://localhost:3000. In demo mode every transactional flow (login, booking, orders, payment, addresses, contact, admin) runs against `localStorage`, a gold «حالت نمایشی» banner is shown, the OTP code is `123456`, payments go through an in-app mock gateway (`/payment/demo`), and the phone `09120000000` logs in as admin.
+
+### Run the full stack
 
 ```bash
-# From root directory - run both apps
+cp apps/api/.env.example apps/api/.env
+cp apps/web/.env.example apps/web/.env.local
+```
+
+Start PostgreSQL (for example `docker compose -f docker-compose.dev.yml up -d postgres`), then:
+
+```bash
+pnpm db:migrate
+```
+
+```bash
+pnpm db:seed
+```
+
+```bash
 pnpm dev
-
-# Or run individually
-pnpm dev:web   # Frontend on port 3000
-pnpm dev:api   # Backend on port 5000
 ```
 
-## 🐳 Docker Deployment
+The API listens on http://localhost:5000 (`/api/v1`, health at `/health`), the web app on http://localhost:3000. With `OTP_DEV_BYPASS_CODE=123456` and no SMS credentials, OTP codes are logged instead of sent and the bypass code always works outside production. With an empty `ZARINPAL_MERCHANT_ID` the API simulates the gateway (`DEMO-*` authorities).
 
-For Docker-based deployment, see the comprehensive guide: [DOCKER.md](./DOCKER.md)
-
-### Quick Start with Docker
+### Docker
 
 ```bash
-# Copy environment file
-cp .env.example .env
-
-# Edit .env with your configuration
-# Then start all services
-docker-compose up -d
+docker compose up -d --build
 ```
 
-**Using PowerShell (Windows):**
+The API container runs `prisma migrate deploy`, seeds the catalog when `SEED_ON_START=true`, then starts the server. See `docker-compose.yml` for the environment variables.
 
-```powershell
-.\docker.ps1 up
-```
+## Scripts (repo root)
 
-Access the application:
-- Web: http://localhost:3000
-- API: http://localhost:5000
+| Script | What it does |
+|---|---|
+| `pnpm dev` / `dev:web` / `dev:api` | Build shared, then start the dev servers |
+| `pnpm build` | Build every package (`pnpm -r build`) |
+| `pnpm type-check` | Build shared, then type-check all packages |
+| `pnpm lint` | Lint the apps |
+| `pnpm test` | Run the shared pricing/coupon unit tests |
+| `pnpm assets` | Regenerate placeholder images, PWA icons, screenshots and the OG image from the catalog (`--force` to overwrite) |
+| `pnpm db:migrate` / `db:seed` / `db:studio` | Prisma migrate dev, seed, studio |
 
-For more Docker commands and troubleshooting, see [DOCKER.md](./DOCKER.md).
+## Environment variables
 
-## 🎨 Design System
+Web (`apps/web/.env.local`): `NEXT_PUBLIC_API_URL`, `INTERNAL_API_URL`, `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_DEMO_MODE`, `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
 
-### Colors
+API (`apps/api/.env`): `PORT`, `DATABASE_URL`, `JWT_SECRET`, `ALLOWED_ORIGINS`, `WEB_URL`, `PAYMENT_CALLBACK_URL`, `ZARINPAL_MERCHANT_ID`, `ZARINPAL_SANDBOX`, `MELIPAYAMAK_USERNAME/PASSWORD/FROM`, `OTP_DEV_BYPASS_CODE`, `ADMIN_PHONE`, `SEED_ON_START`, `BOOKING_TIMEZONE`, rate-limit settings. Full list in `apps/api/.env.example` and `docs/API.md`.
 
-- **Background**: Deep blacks (#0a0a0a, #121212)
-- **Primary**: Metallic Blue (#00aaff)
-- **Accent**: Racing Red (#ff2d55)
-- **Text**: White/Gray scale
+## Design system
 
-### Typography
+- **Palette**: navy `#001F3F` (primary) and gold `#C2B280` (secondary); warm ivory `#F9F7F2` light theme, near-black `#0a0a0a` dark theme (default). Tokens live in `apps/web/src/app/globals.css` and `tailwind.config.ts`.
+- **Typography**: Shabnam-FD via `next/font/local`, RTL layout with logical CSS properties.
+- **Mobile shell**: bottom tab bar with a raised booking action, bottom sheets with drag-to-dismiss, sticky detail CTAs, safe-area insets, 44px touch targets.
+- **Signature interactions**: before/after slider, wrap color visualizer, instant quote configurator, scroll-driven process timeline, gallery lightbox, fly-to-cart, Iranian plate input, confetti on success, cinematic Ken Burns hero.
 
-- **Font**: Shabnam-FD (Persian/Farsi font)
-- **Direction**: RTL (Right-to-Left)
+## Features
 
-## 📱 Features
+- Catalog: products and services with filters, sorting, pagination, search (Ctrl/⌘K), reviews, related items, JSON-LD and sitemap.
+- Booking: 4-step wizard (service + vehicle size + add-ons → Jalali date and time slots → vehicle/garage/plate → review), inline OTP login, tracking code, `.ics` export, deposit payment.
+- Shop: cart with coupons and free-shipping progress, checkout with saved addresses, Zarinpal or cash-on-delivery, payment callback, order tracking.
+- Account: profile tabs (orders, bookings, addresses, garage, wishlist, settings).
+- Admin: dashboard, orders, bookings, products, services, users, contact inbox, review moderation.
+- PWA: installable manifest, offline fallback page, generated icons and screenshots.
 
-- ✅ **E-commerce**: Sell professional detailing products
-- ✅ **Service Booking**: Advanced booking system
-- ✅ **OTP Authentication**: SMS-based login
-- ✅ **PWA**: Progressive Web App
-- ✅ **SEO Optimized**: Server-side rendering
-- ✅ **Responsive**: Mobile-first design
-- ✅ **Dark Theme**: Luxury automotive aesthetics
+## Documentation
 
-## 🔐 Authentication
+- `docs/API.md` — endpoints, envelope, payment and demo rules.
+- `docs/FRONTEND-GUIDE.md` — conventions, data-access rules, and component APIs.
+- `ARCHITECTURE.md` — system overview.
+- `docs/CI.md` — the CI pipeline and the local equivalents of its checks.
 
-Using OTP-based authentication with MeliPayamak:
-
-1. User enters phone number
-2. Receives 6-digit OTP via SMS
-3. Verifies OTP and gets JWT token
-4. Token valid for 30 days
-
-## 📦 Available Scripts
-
-```bash
-# Development
-pnpm dev              # Run all apps
-pnpm dev:web          # Run frontend only
-pnpm dev:api          # Run backend only
-
-# Build
-pnpm build            # Build all apps
-pnpm build:web        # Build frontend
-pnpm build:api        # Build backend
-
-# Database
-pnpm prisma:generate  # Generate Prisma client
-pnpm prisma:migrate   # Run migrations
-pnpm prisma:studio    # Open Prisma Studio
-
-# Code Quality
-pnpm lint             # Lint all apps
-pnpm type-check       # Type check all apps
-```
-
-## 🌐 Environment Variables
-
-### Backend (.env)
-
-```
-DATABASE_URL="postgresql://..."
-JWT_SECRET="your-secret"
-MELIPAYAMAK_USERNAME="..."
-MELIPAYAMAK_PASSWORD="..."
-MELIPAYAMAK_FROM="..."
-PORT=5000
-ALLOWED_ORIGINS="http://localhost:3000"
-```
-
-### Frontend (.env.local)
-
-```
-NEXT_PUBLIC_API_URL="http://localhost:5000"
-NEXT_PUBLIC_SITE_URL="http://localhost:3000"
-```
-
-## 📄 License
+## License
 
 MIT License - see LICENSE file for details
 
-## 👤 Author
+## Author
 
 mohreztl
 

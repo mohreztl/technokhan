@@ -1,25 +1,17 @@
-import { MetadataRoute } from 'next';
-
-const BASE_URL = process.env.SITE_URL || 'https://autolounge.ir';
+import type { MetadataRoute } from 'next';
+import { siteUrl } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
+  const base = siteUrl();
   return {
     rules: [
       {
         userAgent: '*',
         allow: '/',
-        disallow: ['/api/', '/admin/', '/_next/', '/private/'],
-      },
-      {
-        userAgent: 'Googlebot',
-        allow: '/',
-      },
-      {
-        userAgent: 'Bingbot',
-        allow: '/',
+        disallow: ['/api/', '/admin', '/checkout', '/profile', '/orders', '/cart', '/wishlist', '/login', '/~offline', '/payment/'],
       },
     ],
-    sitemap: `${BASE_URL}/sitemap.xml`,
-    host: BASE_URL,
+    sitemap: `${base}/sitemap.xml`,
+    host: base,
   };
 }

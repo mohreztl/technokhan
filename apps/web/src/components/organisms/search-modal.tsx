@@ -1,138 +1,44 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, ArrowLeft, Sparkles, Package, Wrench, Clock, Trash2, TrendingUp, Star, Loader2 } from 'lucide-react';
-import Link from 'next/link';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Clock,
+  Loader2,
+  Package,
+  Search,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Wrench,
+  X,
+} from 'lucide-react';
+import {
+  ROUTES,
+  effectivePrice,
+  formatToman,
+  toPersianDigits,
+  type Product,
+} from '@autolounge/shared';
+import { cn } from '@/lib/utils';
+import { useCatalogSearch, useSearchState, type SearchResult } from '@/lib/hooks/use-search';
+import { useUIStore } from '@/lib/store/ui-store';
+import { useIsMobile } from '@/lib/hooks/use-media-query';
+import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
+import { useFocusTrap } from '@/components/ui/bottom-sheet';
+import { IconButton } from '@/components/ui/icon-button';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { ROUTES, ProductCategory, ServiceType } from '@autolounge/shared';
-import type { Product, Service } from '@autolounge/shared';
-import { useGlobalSearch, useSearchState } from '@/lib/hooks/use-search';
-import { formatPrice } from '@/lib/utils';
-
-interface SearchModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-// Mock data - در تولید از API دریافت کنید
-const MOCK_PRODUCTS: Product[] = [
-  {
-    id: '1',
-    name: 'واکس کارناوبا پریمیوم',
-    nameEn: 'Premium Carnauba Wax',
-    description: 'واکس طبیعی با درخشش فوق‌العاده',
-    descriptionEn: 'Natural wax with exceptional shine',
-    price: 2500000,
-    discountPrice: 2250000,
-    category: ProductCategory.DETAILING,
-    images: ['/images/products/wax1.jpg'],
-    stock: 15,
-    featured: true,
-    rating: 4.8,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'حوله میکروفایبر دوطرفه',
-    nameEn: 'Microfiber Towel',
-    description: 'حوله میکروفایبر با کیفیت بالا',
-    descriptionEn: 'High-quality microfiber towel',
-    price: 450000,
-    category: ProductCategory.ACCESSORIES,
-    images: ['/images/products/towel.jpg'],
-    stock: 50,
-    featured: false,
-    rating: 4.5,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'شامپو خودرو حرفه‌ای',
-    nameEn: 'Professional Car Shampoo',
-    description: 'شامپوی غلیظ با فوم فراوان',
-    descriptionEn: 'Concentrated shampoo with rich foam',
-    price: 380000,
-    category: ProductCategory.DETAILING,
-    images: ['/images/products/shampoo.jpg'],
-    stock: 30,
-    featured: true,
-    rating: 4.6,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '4',
-    name: 'پولیش کامپاوند',
-    nameEn: 'Compound Polish',
-    description: 'پولیش برای رفع خط و خش',
-    descriptionEn: 'Polish for scratch removal',
-    price: 1850000,
-    category: ProductCategory.DETAILING,
-    images: ['/images/products/polish.jpg'],
-    stock: 20,
-    featured: false,
-    rating: 4.7,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-const MOCK_SERVICES: Service[] = [
-  {
-    id: '1',
-    name: 'دیتیلینگ حرفه‌ای',
-    nameEn: 'Professional Detailing',
-    description: 'شست‌وشو و پولیش کامل داخل و خارج',
-    descriptionEn: 'Complete interior and exterior detailing',
-    price: 3500000,
-    duration: 240,
-    type: ServiceType.DETAILING,
-    images: ['/images/services/detailing.jpg'],
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '2',
-    name: 'سرامیک کوتینگ',
-    nameEn: 'Ceramic Coating',
-    description: 'پوشش سرامیکی با دوام ۳ سال',
-    descriptionEn: '3-year ceramic coating protection',
-    price: 12000000,
-    duration: 480,
-    type: ServiceType.CERAMIC_COATING,
-    images: ['/images/services/ceramic.jpg'],
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'PPF کاپوت',
-    nameEn: 'Hood PPF',
-    description: 'محافظ رنگ شفاف برای کاپوت',
-    descriptionEn: 'Clear paint protection film for hood',
-    price: 8500000,
-    duration: 360,
-    type: ServiceType.PPF,
-    images: ['/images/services/ppf.jpg'],
-    featured: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
+import { springSheet } from '@/lib/animation-variants';
 
 const POPULAR_SEARCHES = [
   'سرامیک کوتینگ',
   'واکس خودرو',
   'دیتیلینگ',
-  'رپینت',
   'PPF',
   'شامپو خودرو',
   'پولیش',
@@ -140,14 +46,33 @@ const POPULAR_SEARCHES = [
 ];
 
 const QUICK_LINKS = [
-  { title: 'خدمات محبوب', href: ROUTES.SERVICES, icon: '🚗' },
-  { title: 'محصولات پرفروش', href: ROUTES.PRODUCTS, icon: '🛒' },
-  { title: 'رزرو آنلاین', href: ROUTES.BOOKING, icon: '📅' },
-  { title: 'تماس با ما', href: ROUTES.CONTACT, icon: '📞' },
+  { title: 'خدمات', href: ROUTES.SERVICES, icon: Wrench },
+  { title: 'محصولات', href: ROUTES.PRODUCTS, icon: Package },
+  { title: 'رزرو آنلاین', href: ROUTES.BOOKING, icon: Sparkles },
+  { title: 'نمونه کارها', href: ROUTES.GALLERY, icon: Star },
 ];
 
-export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => {
+const resultHref = (r: SearchResult) =>
+  r.type === 'product' ? `${ROUTES.PRODUCTS}/${r.item.id}` : `${ROUTES.SERVICES}/${r.item.id}`;
+
+const searchHref = (q: string) => `${ROUTES.PRODUCTS}?search=${encodeURIComponent(q.trim())}`;
+
+/**
+ * Global search: full-screen sheet on mobile, centered command palette on
+ * desktop. Open state lives in `useUIStore.searchOpen` (navbar, Ctrl/Cmd+K).
+ */
+export const SearchModal: React.FC = () => {
+  const open = useUIStore((s) => s.searchOpen);
+  const setOpen = useUIStore((s) => s.setSearchOpen);
+  const isMobile = useIsMobile();
+  const router = useRouter();
+  const [mounted, setMounted] = useState(false);
+
   const inputRef = useRef<HTMLInputElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+  const listboxId = React.useId();
+
   const {
     query,
     setQuery,
@@ -159,33 +84,34 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
     removeRecentSearch,
   } = useSearchState();
 
-  const { search } = useGlobalSearch(MOCK_PRODUCTS, MOCK_SERVICES);
-  const [results, setResults] = useState<ReturnType<typeof search>>([]);
+  const { search } = useCatalogSearch(10);
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
-  // Focus input on open
+  const close = useCallback(() => setOpen(false), [setOpen]);
+
+  useEffect(() => setMounted(true), []);
+  useBodyScrollLock(open);
+  useFocusTrap(panelRef, open);
+
+  // Reset on close
   useEffect(() => {
-    if (isOpen) {
-      setTimeout(() => inputRef.current?.focus(), 100);
-    } else {
+    if (!open) {
       setQuery('');
       setResults([]);
+      setActiveIndex(-1);
     }
-  }, [isOpen, setQuery]);
+  }, [open, setQuery]);
 
-  // Handle escape key
+  // Escape closes
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') close();
     };
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
-    }
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, close]);
 
   // Debounced search
   useEffect(() => {
@@ -194,301 +120,378 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
       setIsSearching(false);
       return;
     }
-
     setIsSearching(true);
     const timer = setTimeout(() => {
-      const searchResults = search(query);
-      setResults(searchResults);
+      setResults(search(query));
+      setActiveIndex(-1);
       setIsSearching(false);
-    }, 300);
-
+    }, 200);
     return () => clearTimeout(timer);
   }, [query, search, setIsSearching]);
 
-  const handleSearchSubmit = useCallback((searchQuery: string) => {
-    if (searchQuery.trim()) {
-      addRecentSearch(searchQuery);
-      window.location.href = `/products?search=${encodeURIComponent(searchQuery)}`;
-    }
-  }, [addRecentSearch]);
+  const go = useCallback(
+    (href: string, term?: string) => {
+      if (term) addRecentSearch(term);
+      close();
+      router.push(href);
+    },
+    [addRecentSearch, close, router]
+  );
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && query.trim()) {
-      handleSearchSubmit(query);
+  const submit = useCallback(() => {
+    if (!query.trim()) return;
+    go(searchHref(query), query);
+  }, [query, go]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      if (results.length === 0) return;
+      e.preventDefault();
+      const delta = e.key === 'ArrowDown' ? 1 : -1;
+      const next = (activeIndex + delta + results.length) % results.length;
+      setActiveIndex(next);
+      const el = listRef.current?.children[next] as HTMLElement | undefined;
+      el?.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (activeIndex >= 0 && results[activeIndex]) {
+        const r = results[activeIndex];
+        go(resultHref(r), query);
+      } else {
+        submit();
+      }
     }
   };
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <>
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-md z-50"
-          />
+  const activeId = activeIndex >= 0 ? `${listboxId}-opt-${activeIndex}` : undefined;
+  const hasQuery = query.trim().length > 0;
 
-          {/* Modal */}
+  const panelClass = useMemo(
+    () =>
+      isMobile
+        ? 'fixed inset-0 flex flex-col bg-background pt-safe'
+        : 'fixed left-1/2 top-[8vh] flex max-h-[80vh] w-[min(95vw,42rem)] -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-border/50 bg-background shadow-luxury',
+    [isMobile]
+  );
+
+  if (!mounted) return null;
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <div className="fixed inset-0 z-50" dir="rtl">
+          {!isMobile && (
+            <motion.div
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={close}
+              aria-hidden="true"
+            />
+          )}
+
           <motion.div
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed top-[5%] sm:top-[10%] left-1/2 -translate-x-1/2 w-[95%] max-w-2xl bg-background rounded-2xl shadow-2xl z-50 overflow-hidden border border-border max-h-[85vh] flex flex-col"
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="جستجو در محصولات و خدمات"
+            tabIndex={-1}
+            className={cn(panelClass, 'outline-none')}
+            initial={isMobile ? { y: '100%' } : { opacity: 0, y: -16, scale: 0.98 }}
+            animate={isMobile ? { y: 0 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={isMobile ? { y: '100%' } : { opacity: 0, y: -16, scale: 0.98 }}
+            transition={springSheet}
           >
-            {/* Search Input */}
-            <div className="p-4 border-b border-border flex-shrink-0">
-              <div className="relative flex items-center gap-3">
-                {isSearching ? (
-                  <Loader2 className="absolute right-4 h-5 w-5 text-primary animate-spin" />
-                ) : (
-                  <Search className="absolute right-4 h-5 w-5 text-muted-foreground" />
-                )}
-                <Input
+            {/* Input row */}
+            <div className="flex shrink-0 items-center gap-2 border-b border-border/40 px-3 py-3 sm:px-4">
+              <IconButton label="بستن جستجو" icon={<X />} onClick={close} />
+              <div className="relative flex-1">
+                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  {isSearching ? (
+                    <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
+                  ) : (
+                    <Search className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </span>
+                <input
                   ref={inputRef}
-                  type="text"
+                  data-autofocus
+                  type="search" data-native-clear="off"
+                  enterKeyHint="search"
+                  autoComplete="off"
+                  autoCorrect="off"
+                  spellCheck={false}
                   placeholder="جستجوی محصولات و خدمات..."
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="pr-12 h-14 text-lg bg-muted border-0 focus:ring-2 focus:ring-primary"
+                  role="combobox"
+                  aria-expanded={results.length > 0}
+                  aria-controls={listboxId}
+                  aria-activedescendant={activeId}
+                  aria-autocomplete="list"
+                  className="h-12 w-full rounded-xl border-0 bg-muted ps-11 pe-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 />
-                <Button variant="ghost" size="icon" onClick={onClose}>
-                  <X className="h-5 w-5" />
-                </Button>
+                {hasQuery && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery('');
+                      inputRef.current?.focus();
+                    }}
+                    className="absolute end-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+                    aria-label="پاک کردن جستجو"
+                  >
+                    <X className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                )}
               </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-              {query.trim() ? (
-                // Search Results
+            {/* Body */}
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-safe sm:px-5">
+              {hasQuery ? (
                 <div className="space-y-4">
-                  {isSearching ? (
-                    <div className="text-center py-8">
-                      <Loader2 className="h-8 w-8 text-primary animate-spin mx-auto mb-3" />
-                      <p className="text-muted-foreground">در حال جستجو...</p>
+                  {isSearching && results.length === 0 ? (
+                    <div className="py-10 text-center text-muted-foreground">
+                      <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+                      در حال جستجو...
                     </div>
                   ) : results.length > 0 ? (
                     <>
-                      <p className="text-sm text-muted-foreground">
-                        {results.length} نتیجه برای &quot;{query}&quot;
+                      <p className="text-xs text-muted-foreground" aria-live="polite">
+                        {toPersianDigits(results.length)} نتیجه برای «{query}»
                       </p>
-                      <div className="space-y-3">
-                        {results.map((result) => (
-                          <Link
-                            key={`${result.type}-${result.item.id}`}
-                            href={
-                              result.type === 'product'
-                                ? `${ROUTES.PRODUCTS}/${result.item.id}`
-                                : `${ROUTES.SERVICES}/${result.item.id}`
-                            }
-                            onClick={() => {
-                              addRecentSearch(query);
-                              onClose();
-                            }}
-                          >
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              whileHover={{ scale: 1.01 }}
-                              className="flex items-center gap-4 p-3 rounded-xl bg-muted/50 hover:bg-muted transition-colors group"
+                      <ul
+                        ref={listRef}
+                        id={listboxId}
+                        role="listbox"
+                        aria-label="نتایج جستجو"
+                        className="space-y-2"
+                      >
+                        {results.map((result, index) => {
+                          const isProduct = result.type === 'product';
+                          const price = isProduct
+                            ? effectivePrice(result.item as Product)
+                            : result.item.price;
+                          const active = index === activeIndex;
+                          return (
+                            <li
+                              key={`${result.type}-${result.item.id}`}
+                              id={`${listboxId}-opt-${index}`}
+                              role="option"
+                              aria-selected={active}
                             >
-                              {/* Image */}
-                              <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-muted flex-shrink-0">
-                                <Image
-                                  src={result.item.images[0] || '/images/placeholder.jpg'}
-                                  alt={result.item.name}
-                                  fill
-                                  className="object-cover"
-                                />
-                              </div>
-
-                              {/* Info */}
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Badge variant="secondary" className="text-xs">
-                                    {result.type === 'product' ? (
-                                      <><Package className="h-3 w-3 ml-1" />محصول</>
-                                    ) : (
-                                      <><Wrench className="h-3 w-3 ml-1" />خدمات</>
-                                    )}
-                                  </Badge>
-                                  {'rating' in result.item && result.item.rating && (
-                                    <span className="flex items-center gap-1 text-xs text-yellow-500">
-                                      <Star className="h-3 w-3 fill-current" />
-                                      {result.item.rating}
+                              <Link
+                                href={resultHref(result)}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  go(resultHref(result), query);
+                                }}
+                                onMouseEnter={() => setActiveIndex(index)}
+                                tabIndex={-1}
+                                className={cn(
+                                  'group flex min-h-[4rem] items-center gap-3 rounded-xl p-2 transition-colors',
+                                  active ? 'bg-primary/10' : 'bg-muted/40 hover:bg-muted'
+                                )}
+                              >
+                                <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+                                  {result.item.images[0] ? (
+                                    <Image
+                                      src={result.item.images[0]}
+                                      alt=""
+                                      fill
+                                      sizes="56px"
+                                      className="object-cover"
+                                    />
+                                  ) : (
+                                    <span className="flex h-full w-full items-center justify-center text-muted-foreground">
+                                      {isProduct ? <Package className="h-5 w-5" /> : <Wrench className="h-5 w-5" />}
                                     </span>
                                   )}
-                                </div>
-                                <h3 className="font-bold text-foreground truncate group-hover:text-primary transition-colors">
-                                  {result.item.name}
-                                </h3>
-                                <p className="text-sm text-muted-foreground truncate">
-                                  {result.item.description}
-                                </p>
-                              </div>
-
-                              {/* Price */}
-                              <div className="text-left flex-shrink-0">
-                                <p className="font-bold text-primary">
-                                  {formatPrice(
-                                    'discountPrice' in result.item && result.item.discountPrice
-                                      ? result.item.discountPrice
-                                      : result.item.price
+                                </span>
+                                <span className="min-w-0 flex-1">
+                                  <span className="mb-0.5 flex items-center gap-2">
+                                    <span className="rounded-full bg-secondary/20 px-2 py-px text-[10px] font-bold text-foreground">
+                                      {isProduct ? 'محصول' : 'خدمت'}
+                                    </span>
+                                    {result.item.rating ? (
+                                      <span className="flex items-center gap-0.5 text-[11px] text-secondary">
+                                        <Star className="h-3 w-3 fill-current" aria-hidden="true" />
+                                        {toPersianDigits(result.item.rating)}
+                                      </span>
+                                    ) : null}
+                                  </span>
+                                  <span className="block truncate text-sm font-bold text-foreground group-hover:text-primary">
+                                    {result.item.name}
+                                  </span>
+                                  <span className="block truncate text-xs text-muted-foreground">
+                                    {result.item.shortDescription ?? result.item.description}
+                                  </span>
+                                </span>
+                                <span className="shrink-0 text-end text-xs font-bold text-primary dark:text-secondary tabular-nums">
+                                  {!isProduct && (
+                                    <span className="block text-[10px] font-normal text-muted-foreground">
+                                      شروع از
+                                    </span>
                                   )}
-                                </p>
-                              </div>
-
-                              <ArrowLeft className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </motion.div>
-                          </Link>
-                        ))}
-                      </div>
-
-                      {/* View All Results */}
-                      <Button
-                        variant="outline"
-                        className="w-full mt-4"
-                        onClick={() => handleSearchSubmit(query)}
-                      >
+                                  {formatToman(price)}
+                                </span>
+                                <ArrowLeft
+                                  className="hidden h-4 w-4 shrink-0 text-muted-foreground sm:block"
+                                  aria-hidden="true"
+                                />
+                              </Link>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                      <Button variant="outline" className="h-12 w-full gap-2" onClick={submit}>
                         مشاهده همه نتایج
-                        <ArrowLeft className="h-4 w-4 mr-2" />
+                        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
                       </Button>
                     </>
                   ) : (
-                    <div className="text-center py-12">
-                      <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-                      <p className="text-lg font-medium text-foreground mb-2">
-                        نتیجه‌ای یافت نشد
+                    <div className="py-12 text-center">
+                      <Search className="mx-auto mb-4 h-12 w-12 text-muted-foreground/50" aria-hidden="true" />
+                      <p className="mb-1 text-base font-medium text-foreground">نتیجه‌ای یافت نشد</p>
+                      <p className="mb-5 text-sm text-muted-foreground">
+                        برای «{query}» هیچ محصول یا خدمتی پیدا نشد.
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        برای &quot;{query}&quot; هیچ محصول یا خدمتی پیدا نشد.
-                      </p>
+                      <Button variant="outline" className="h-11" onClick={submit}>
+                        جستجو در فروشگاه
+                      </Button>
                     </div>
                   )}
                 </div>
               ) : (
-                // Default State - Quick Links & Recent Searches
-                <div className="space-y-8">
-                  {/* Quick Links */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                      <Sparkles className="h-4 w-4" />
-                      دسترسی سریع
-                    </h3>
-                    <div className="grid grid-cols-2 gap-3">
-                      {QUICK_LINKS.map((link) => (
-                        <Link key={link.href} href={link.href} onClick={onClose}>
-                          <motion.div
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                            className="flex items-center gap-3 p-4 bg-muted rounded-xl hover:bg-muted/80 transition-colors group"
-                          >
-                            <span className="text-2xl">{link.icon}</span>
-                            <span className="font-medium text-foreground group-hover:text-primary transition-colors">
-                              {link.title}
-                            </span>
-                            <ArrowLeft className="h-4 w-4 mr-auto text-muted-foreground group-hover:text-primary transition-colors" />
-                          </motion.div>
-                        </Link>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Popular Searches */}
-                  <div>
-                    <h3 className="text-sm font-semibold text-muted-foreground mb-4 flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4" />
-                      جستجوهای محبوب
-                    </h3>
-                    <div className="flex flex-wrap gap-2">
-                      {POPULAR_SEARCHES.map((term) => (
-                        <Button
-                          key={term}
-                          variant="outline"
-                          size="sm"
-                          className="rounded-full"
-                          onClick={() => {
-                            setQuery(term);
-                          }}
-                        >
-                          {term}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Recent Searches */}
+                <div className="space-y-6">
                   {recentSearches.length > 0 && (
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
-                          <Clock className="h-4 w-4" />
+                    <section aria-labelledby={`${listboxId}-recent`}>
+                      <div className="mb-3 flex items-center justify-between">
+                        <h3
+                          id={`${listboxId}-recent`}
+                          className="flex items-center gap-2 text-xs font-semibold text-muted-foreground"
+                        >
+                          <Clock className="h-4 w-4" aria-hidden="true" />
                           جستجوهای اخیر
                         </h3>
-                        <Button
-                          variant="ghost"
-                          size="sm"
+                        <button
+                          type="button"
                           onClick={clearRecentSearches}
-                          className="text-xs text-muted-foreground hover:text-destructive"
+                          className="min-h-[44px] px-2 text-xs text-muted-foreground hover:text-destructive"
                         >
                           پاک کردن همه
-                        </Button>
+                        </button>
                       </div>
-                      <div className="space-y-2">
+                      <ul className="flex flex-wrap gap-2">
                         {recentSearches.map((term) => (
-                          <div
+                          <li
                             key={term}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
+                            className="flex h-11 items-center rounded-full border border-border/50 bg-muted/40 ps-3 pe-1"
                           >
                             <button
+                              type="button"
                               onClick={() => setQuery(term)}
-                              className="flex items-center gap-3 flex-1 text-right"
+                              className="max-w-[10rem] truncate text-sm text-foreground"
                             >
-                              <Clock className="h-4 w-4 text-muted-foreground" />
-                              <span className="text-foreground group-hover:text-primary transition-colors">
-                                {term}
-                              </span>
+                              {term}
                             </button>
                             <button
+                              type="button"
                               onClick={() => removeRecentSearch(term)}
-                              className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                              className="ms-1 flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:text-destructive"
+                              aria-label={`حذف «${term}» از جستجوهای اخیر`}
                             >
-                              <Trash2 className="h-4 w-4" />
+                              <X className="h-3.5 w-3.5" aria-hidden="true" />
                             </button>
-                          </div>
+                          </li>
                         ))}
-                      </div>
-                    </div>
+                      </ul>
+                    </section>
                   )}
+
+                  <section aria-labelledby={`${listboxId}-popular`}>
+                    <h3
+                      id={`${listboxId}-popular`}
+                      className="mb-3 flex items-center gap-2 text-xs font-semibold text-muted-foreground"
+                    >
+                      <TrendingUp className="h-4 w-4" aria-hidden="true" />
+                      جستجوهای محبوب
+                    </h3>
+                    <ul className="flex flex-wrap gap-2">
+                      {POPULAR_SEARCHES.map((term) => (
+                        <li key={term}>
+                          <button
+                            type="button"
+                            onClick={() => setQuery(term)}
+                            className="flex h-11 items-center rounded-full border border-border/50 px-4 text-sm text-foreground transition-colors hover:border-primary hover:bg-primary/10"
+                          >
+                            {term}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+
+                  <section aria-labelledby={`${listboxId}-quick`}>
+                    <h3
+                      id={`${listboxId}-quick`}
+                      className="mb-3 flex items-center gap-2 text-xs font-semibold text-muted-foreground"
+                    >
+                      <Sparkles className="h-4 w-4" aria-hidden="true" />
+                      دسترسی سریع
+                    </h3>
+                    <ul className="grid grid-cols-2 gap-2">
+                      {QUICK_LINKS.map((link) => {
+                        const Icon = link.icon;
+                        return (
+                          <li key={link.href}>
+                            <Link
+                              href={link.href}
+                              onClick={close}
+                              className="group flex min-h-[3.25rem] items-center gap-3 rounded-xl bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
+                            >
+                              <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary dark:text-secondary">
+                                <Icon className="h-4 w-4" aria-hidden="true" />
+                              </span>
+                              <span className="flex-1 text-sm font-medium text-foreground group-hover:text-primary">
+                                {link.title}
+                              </span>
+                              <ArrowLeft className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </section>
                 </div>
               )}
             </div>
 
-            {/* Footer */}
-            <div className="p-4 border-t border-border bg-muted/30 flex-shrink-0">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
+            {!isMobile && (
+              <div className="flex shrink-0 items-center justify-between border-t border-border/40 bg-muted/30 px-4 py-2 text-[11px] text-muted-foreground">
                 <div className="flex items-center gap-4">
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border">Enter</kbd>
-                    جستجو
+                    <kbd className="rounded border border-border bg-muted px-1.5 py-0.5">↵</kbd> انتخاب
                   </span>
                   <span className="flex items-center gap-1">
-                    <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border">Esc</kbd>
-                    بستن
+                    <kbd className="rounded border border-border bg-muted px-1.5 py-0.5">↑↓</kbd> پیمایش
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <kbd className="rounded border border-border bg-muted px-1.5 py-0.5">Esc</kbd> بستن
                   </span>
                 </div>
                 <span>جستجوی هوشمند فارسی</span>
               </div>
-            </div>
+            )}
           </motion.div>
-        </>
+        </div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };
 

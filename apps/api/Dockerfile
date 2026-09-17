@@ -1,66 +1,58 @@
-# Build stage
-FROM node:18-alpine AS builder
+# syntax=docker/dockerfile:1
+# AutoLounge API — build context is the repository root (pnpm workspace)
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
-
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat openssl \
+  && corepack enable && corepack prepare pnpm@10.11.0 --activate
 WORKDIR /app
 
-# Copy workspace files
+# ---------------------------------------------------------------------------
+# Builder: install all deps, build shared, generate the Prisma client, compile
+# ---------------------------------------------------------------------------
+FROM base AS builder
+
+# Workspace manifests first so the install layer is cached; every workspace
+# package.json must be present for --frozen-lockfile to match pnpm-lock.yaml
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY turbo.json ./
+COPY packages/shared/package.json ./packages/shared/
+COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+RUN pnpm install --frozen-lockfile --filter api... --filter @autolounge/shared
 
-# Copy packages
-COPY packages ./packages
-
-# Copy API application
+# Sources
+COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm --filter @autolounge/shared build
+RUN pnpm --filter api exec prisma generate
+RUN pnpm --filter api build
 
-# Generate Prisma Client
-WORKDIR /app/apps/api
-RUN pnpm prisma:generate
+# ---------------------------------------------------------------------------
+# Runner: production deps only (prisma + tsx are runtime deps for migrate/seed)
+# ---------------------------------------------------------------------------
+FROM base AS runner
+ENV NODE_ENV=production
 
-# Build the API
-RUN pnpm build
-
-# Production stage
-FROM node:18-alpine AS runner
-
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@10.11.0 --activate
-
-WORKDIR /app
-
-# Copy workspace configuration
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY turbo.json ./
-
-# Copy packages
-COPY packages ./packages
-
-# Copy API application
+COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
+COPY apps/web/package.json ./apps/web/
+RUN pnpm install --frozen-lockfile --prod --filter api... --filter @autolounge/shared
+
+# Built shared package (consumed from dist by the API and the seed script)
+COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+# Prisma schema, migrations and seed
 COPY apps/api/prisma ./apps/api/prisma
+# Compiled API
+COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
-
-# Generate Prisma Client in production
 WORKDIR /app/apps/api
-RUN pnpm prisma:generate
+RUN pnpm exec prisma generate
 
-# Copy built application from builder
-COPY --from=builder /app/apps/api/dist ./dist
-
-# Expose API port
 EXPOSE 5000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:5000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1))"
 
-# Run migrations and start the server
-CMD ["sh", "-c", "pnpm prisma migrate deploy && node dist/server.js"]
+# Apply migrations, seed when SEED_ON_START=true, then start
+CMD ["sh", "-c", "pnpm exec prisma migrate deploy && if [ \"$SEED_ON_START\" = \"true\" ]; then pnpm exec prisma db seed; fi && node dist/server.js"]

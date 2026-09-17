@@ -1,7 +1,9 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { toPersianDigits } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 
@@ -9,130 +11,148 @@ interface PaginationProps {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  /** When given, page buttons render as crawlable links (`?page=`) and still call `onPageChange`. */
+  hrefFor?: (page: number) => string;
   siblingCount?: number;
   className?: string;
 }
 
+type PageToken = number | 'dots';
+
+function range(start: number, end: number): number[] {
+  return Array.from({ length: Math.max(0, end - start + 1) }, (_, i) => i + start);
+}
+
+export function usePaginationRange(currentPage: number, totalPages: number, siblingCount = 1): PageToken[] {
+  return React.useMemo<PageToken[]>(() => {
+    const totalPageNumbers = siblingCount + 5;
+    if (totalPageNumbers >= totalPages) return range(1, totalPages);
+
+    const leftSibling = Math.max(currentPage - siblingCount, 1);
+    const rightSibling = Math.min(currentPage + siblingCount, totalPages);
+    const showLeftDots = leftSibling > 2;
+    const showRightDots = rightSibling < totalPages - 2;
+
+    if (!showLeftDots && showRightDots) {
+      return [...range(1, 3 + 2 * siblingCount), 'dots', totalPages];
+    }
+    if (showLeftDots && !showRightDots) {
+      const count = 3 + 2 * siblingCount;
+      return [1, 'dots', ...range(totalPages - count + 1, totalPages)];
+    }
+    return [1, 'dots', ...range(leftSibling, rightSibling), 'dots', totalPages];
+  }, [currentPage, totalPages, siblingCount]);
+}
+
+/** Page navigation with 44px targets, Persian digits and optional real links. */
 export function Pagination({
   currentPage,
   totalPages,
   onPageChange,
+  hrefFor,
   siblingCount = 1,
   className,
 }: PaginationProps) {
-  const range = (start: number, end: number) => {
-    const length = end - start + 1;
-    return Array.from({ length }, (_, idx) => idx + start);
-  };
-
-  const paginationRange = React.useMemo(() => {
-    const totalPageNumbers = siblingCount + 5;
-
-    if (totalPageNumbers >= totalPages) {
-      return range(1, totalPages);
-    }
-
-    const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
-    const rightSiblingIndex = Math.min(currentPage + siblingCount, totalPages);
-
-    const shouldShowLeftDots = leftSiblingIndex > 2;
-    const shouldShowRightDots = rightSiblingIndex < totalPages - 2;
-
-    const firstPageIndex = 1;
-    const lastPageIndex = totalPages;
-
-    if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3 + 2 * siblingCount;
-      const leftRange = range(1, leftItemCount);
-      return [...leftRange, 'dots', totalPages];
-    }
-
-    if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3 + 2 * siblingCount;
-      const rightRange = range(totalPages - rightItemCount + 1, totalPages);
-      return [firstPageIndex, 'dots', ...rightRange];
-    }
-
-    if (shouldShowLeftDots && shouldShowRightDots) {
-      const middleRange = range(leftSiblingIndex, rightSiblingIndex);
-      return [firstPageIndex, 'dots', ...middleRange, 'dots', lastPageIndex];
-    }
-
-    return [];
-  }, [currentPage, totalPages, siblingCount]);
+  const tokens = usePaginationRange(currentPage, totalPages, siblingCount);
 
   if (totalPages <= 1) return null;
 
+  const go = (page: number) => {
+    if (page < 1 || page > totalPages || page === currentPage) return;
+    onPageChange(page);
+  };
+
+  const PageButton = ({
+    page,
+    label,
+    disabled,
+    active,
+    children,
+    className: cls,
+  }: {
+    page: number;
+    label: string;
+    disabled?: boolean;
+    active?: boolean;
+    children: React.ReactNode;
+    className?: string;
+  }) => {
+    const variant = active ? 'primary' : 'outline';
+    if (hrefFor && !disabled) {
+      return (
+        <Button asChild variant={variant} size="icon" className={cn('min-h-11 min-w-11', cls)}>
+          <Link
+            href={hrefFor(page)}
+            aria-label={label}
+            aria-current={active ? 'page' : undefined}
+            scroll={false}
+            onClick={(e) => {
+              e.preventDefault();
+              go(page);
+            }}
+          >
+            {children}
+          </Link>
+        </Button>
+      );
+    }
+    return (
+      <Button
+        type="button"
+        variant={variant}
+        size="icon"
+        className={cn('min-h-11 min-w-11', cls)}
+        onClick={() => go(page)}
+        disabled={disabled}
+        aria-label={label}
+        aria-current={active ? 'page' : undefined}
+      >
+        {children}
+      </Button>
+    );
+  };
+
   return (
-    <nav
-      aria-label="Pagination"
-      className={cn('flex items-center justify-center gap-2', className)}
-    >
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => onPageChange(1)}
-        disabled={currentPage === 1}
-        aria-label="صفحه اول"
-      >
+    <nav aria-label="صفحه‌بندی" className={cn('flex items-center justify-center gap-1.5 sm:gap-2', className)}>
+      <PageButton page={1} label="صفحهٔ اول" disabled={currentPage === 1} className="hidden sm:inline-flex">
         <ChevronsRight className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
-        aria-label="صفحه قبل"
-      >
+      </PageButton>
+      <PageButton page={currentPage - 1} label="صفحهٔ قبل" disabled={currentPage === 1}>
         <ChevronRight className="h-4 w-4" />
-      </Button>
+      </PageButton>
 
-      <div className="flex items-center gap-1">
-        {paginationRange.map((pageNumber, index) => {
-          if (pageNumber === 'dots') {
-            return (
-              <span key={`dots-${index}`} className="px-2 text-muted-foreground">
-                ...
-              </span>
-            );
-          }
+      <ol className="flex items-center gap-1" dir="rtl">
+        {tokens.map((token, index) =>
+          token === 'dots' ? (
+            <li key={`dots-${index}`} className="px-1 text-muted-foreground" aria-hidden="true">
+              …
+            </li>
+          ) : (
+            <li key={token}>
+              <PageButton
+                page={token}
+                label={`صفحهٔ ${toPersianDigits(token)}`}
+                active={token === currentPage}
+                className="tabular-nums"
+              >
+                {toPersianDigits(token)}
+              </PageButton>
+            </li>
+          )
+        )}
+      </ol>
 
-          const page = pageNumber as number;
-          return (
-            <Button
-              key={page}
-              variant={currentPage === page ? 'primary' : 'outline'}
-              size="icon"
-              onClick={() => onPageChange(page)}
-              aria-label={`صفحه ${page}`}
-              aria-current={currentPage === page ? 'page' : undefined}
-            >
-              {page}
-            </Button>
-          );
-        })}
-      </div>
-
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
-        aria-label="صفحه بعد"
-      >
+      <PageButton page={currentPage + 1} label="صفحهٔ بعد" disabled={currentPage === totalPages}>
         <ChevronLeft className="h-4 w-4" />
-      </Button>
-
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => onPageChange(totalPages)}
+      </PageButton>
+      <PageButton
+        page={totalPages}
+        label="صفحهٔ آخر"
         disabled={currentPage === totalPages}
-        aria-label="صفحه آخر"
+        className="hidden sm:inline-flex"
       >
         <ChevronsLeft className="h-4 w-4" />
-      </Button>
+      </PageButton>
     </nav>
   );
 }

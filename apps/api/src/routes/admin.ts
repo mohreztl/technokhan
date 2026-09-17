@@ -1,474 +1,510 @@
 import { FastifyPluginAsync } from 'fastify';
+import { Prisma } from '@prisma/client';
+import { z } from 'zod';
+import { slugify, type AdminDashboardStats } from '@autolounge/shared';
 import { prisma } from '../lib/prisma';
 import {
-  createProductSchema,
-  updateProductSchema,
-  createServiceSchema,
-  updateServiceSchema,
+  adminBookingQuerySchema,
+  adminMessageQuerySchema,
+  adminOrderQuerySchema,
+  adminProductQuerySchema,
+  adminProductSchema,
+  adminProductUpdateSchema,
+  adminReviewQuerySchema,
+  adminServiceQuerySchema,
+  adminServiceSchema,
+  adminServiceUpdateSchema,
+  adminUserQuerySchema,
+  idParamSchema,
   updateBookingStatusSchema,
   updateOrderStatusSchema,
-  paginationSchema,
 } from '../schemas';
-import { validateRequest, apiResponse } from '../lib/validation';
+import { parse, apiResponse } from '../lib/validation';
+import { conflict, notFound } from '../lib/errors';
+import {
+  bookingInclude,
+  orderInclude,
+  recomputeRating,
+  searchFilter,
+  stripUndefined,
+  toJson,
+  userSummarySelect,
+} from '../lib/catalog';
+import { dayRange } from '../lib/booking-time';
+import { sendStatusUpdate } from '../services/sms.service';
+
+type ProductInput = z.infer<typeof adminProductSchema>;
+type ServiceInput = z.infer<typeof adminServiceSchema>;
+
+function productData(input: Partial<ProductInput>) {
+  return stripUndefined({
+    name: input.name,
+    nameEn: input.nameEn,
+    description: input.description,
+    descriptionEn: input.descriptionEn,
+    shortDescription: input.shortDescription,
+    price: input.price,
+    discountPrice: input.discountPrice,
+    category: input.category,
+    images: input.images,
+    stock: input.stock,
+    featured: input.featured,
+    isActive: input.isActive,
+    brand: input.brand,
+    sku: input.sku,
+    features: input.features,
+    tags: input.tags,
+    specifications: toJson(input.specifications),
+  });
+}
+
+function serviceData(input: Partial<ServiceInput>) {
+  return stripUndefined({
+    name: input.name,
+    nameEn: input.nameEn,
+    description: input.description,
+    descriptionEn: input.descriptionEn,
+    shortDescription: input.shortDescription,
+    price: input.price,
+    duration: input.duration,
+    type: input.type,
+    images: input.images,
+    featured: input.featured,
+    isActive: input.isActive,
+    features: input.features,
+    tags: input.tags,
+    pricing: toJson(input.pricing),
+    addons: toJson(input.addons),
+    warrantyMonths: input.warrantyMonths,
+  });
+}
+
+/** slug id from the English name, salted when taken */
+async function uniqueId(model: 'product' | 'service', requested: string | undefined, nameEn: string) {
+  if (requested) {
+    const exists =
+      model === 'product'
+        ? await prisma.product.findUnique({ where: { id: requested }, select: { id: true } })
+        : await prisma.service.findUnique({ where: { id: requested }, select: { id: true } });
+    if (exists) throw conflict('شناسه انتخاب‌شده قبلاً استفاده شده است');
+    return requested;
+  }
+  const base = slugify(nameEn).replace(/[^a-z0-9-]/g, '') || undefined;
+  if (!base) return undefined; // fall back to cuid()
+  const exists =
+    model === 'product'
+      ? await prisma.product.findUnique({ where: { id: base }, select: { id: true } })
+      : await prisma.service.findUnique({ where: { id: base }, select: { id: true } });
+  return exists ? `${base}-${Math.random().toString(36).slice(2, 6)}` : base;
+}
 
 export const adminRoutes: FastifyPluginAsync = async (fastify) => {
-  // All admin routes require authentication and admin role
-  fastify.addHook('preHandler', fastify.authenticate);
-  fastify.addHook('preHandler', fastify.adminOnly);
+  fastify.addHook('preHandler', fastify.requireAdmin);
 
-  // ========================================
-  // DASHBOARD
-  // ========================================
+  // ------------------------------------------------------------------
+  // Dashboard
+  // ------------------------------------------------------------------
+  fastify.get('/dashboard', async (_request, reply) => {
+    const [
+      users,
+      orders,
+      bookings,
+      products,
+      services,
+      pendingOrders,
+      pendingBookings,
+      unreadMessages,
+      revenueAgg,
+      recentOrders,
+      recentBookings,
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.order.count(),
+      prisma.booking.count(),
+      prisma.product.count(),
+      prisma.service.count(),
+      prisma.order.count({ where: { status: 'pending' } }),
+      prisma.booking.count({ where: { status: 'pending' } }),
+      prisma.contactMessage.count({ where: { isRead: false } }),
+      prisma.order.aggregate({ _sum: { totalPrice: true }, where: { paymentStatus: 'paid' } }),
+      prisma.order.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { ...orderInclude, user: { select: userSummarySelect } },
+      }),
+      prisma.booking.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { ...bookingInclude, user: { select: userSummarySelect } },
+      }),
+    ]);
 
-  // Dashboard stats
-  fastify.get('/dashboard', async (request, reply) => {
-    try {
-      const [
-        totalUsers,
-        totalProducts,
-        totalServices,
-        totalOrders,
-        totalBookings,
-        pendingOrders,
-        pendingBookings,
-        recentOrders,
-        recentBookings,
-        revenue,
-      ] = await Promise.all([
-        prisma.user.count(),
-        prisma.product.count(),
-        prisma.service.count(),
-        prisma.order.count(),
-        prisma.booking.count(),
-        prisma.order.count({ where: { status: 'pending' } }),
-        prisma.booking.count({ where: { status: 'pending' } }),
-        prisma.order.findMany({
-          take: 5,
-          orderBy: { createdAt: 'desc' },
-          include: { user: true },
-        }),
-        prisma.booking.findMany({
-          take: 5,
-          orderBy: { createdAt: 'desc' },
-          include: { user: true, service: true },
-        }),
-        prisma.order.aggregate({
-          _sum: { totalPrice: true },
-          where: { status: 'delivered' },
-        }),
-      ]);
-
-      return apiResponse.success(reply, {
-        stats: {
-          totalUsers,
-          totalProducts,
-          totalServices,
-          totalOrders,
-          totalBookings,
-          pendingOrders,
-          pendingBookings,
-          totalRevenue: revenue._sum?.totalPrice || 0,
-        },
-        recentOrders,
-        recentBookings,
-      });
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت آمار', 500);
-    }
+    const stats: AdminDashboardStats = {
+      users,
+      orders,
+      bookings,
+      products,
+      services,
+      revenue: revenueAgg._sum.totalPrice ?? 0,
+      pendingOrders,
+      pendingBookings,
+      unreadMessages,
+      recentOrders: recentOrders as unknown as AdminDashboardStats['recentOrders'],
+      recentBookings: recentBookings as unknown as AdminDashboardStats['recentBookings'],
+    };
+    return apiResponse.success(reply, stats);
   });
 
-  // ========================================
-  // PRODUCTS MANAGEMENT
-  // ========================================
+  // ------------------------------------------------------------------
+  // Products
+  // ------------------------------------------------------------------
+  fastify.get('/products', async (request, reply) => {
+    const q = parse(adminProductQuerySchema, request.query);
+    const where: Prisma.ProductWhereInput = {};
+    if (q.category) where.category = q.category;
+    if (q.isActive !== undefined) where.isActive = q.isActive;
+    if (q.search) where.OR = searchFilter(q.search, ['id', 'name', 'nameEn', 'brand', 'sku']) as Prisma.ProductWhereInput[];
 
-  // Create product
+    const [items, total] = await Promise.all([
+      prisma.product.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (q.page - 1) * q.limit, take: q.limit }),
+      prisma.product.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
+  });
+
+  fastify.get('/products/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const product = await prisma.product.findUnique({
+      where: { id },
+      include: { reviews: { orderBy: { createdAt: 'desc' } }, _count: { select: { orderItems: true } } },
+    });
+    if (!product) throw notFound('محصول یافت نشد');
+    return apiResponse.success(reply, product);
+  });
+
   fastify.post('/products', async (request, reply) => {
-    const validation = validateRequest(createProductSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
-    }
-
-    try {
-      const product = await prisma.product.create({
-        data: {
-          ...validation.data,
-          isActive: true,
-          rating: 0,
-          reviewCount: 0,
-        },
-      });
-
-      return apiResponse.success(reply, product, 201);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در ایجاد محصول', 500);
-    }
+    const input = parse(adminProductSchema, request.body);
+    const id = await uniqueId('product', input.id, input.nameEn);
+    const product = await prisma.product.create({
+      data: { ...(id ? { id } : {}), ...productData(input), rating: 0, reviewCount: 0 } as Prisma.ProductUncheckedCreateInput,
+    });
+    return apiResponse.success(reply, product, 201);
   });
 
-  // Update product
-  fastify.put<{ Params: { id: string } }>('/products/:id', async (request, reply) => {
-    const { id } = request.params;
-    const validation = validateRequest(updateProductSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
-    }
-
-    try {
-      const product = await prisma.product.update({
-        where: { id },
-        data: validation.data,
-      });
-
-      return apiResponse.success(reply, product);
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return apiResponse.error(reply, 'محصول یافت نشد', 404);
-      }
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در به‌روزرسانی محصول', 500);
-    }
+  fastify.put('/products/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(adminProductUpdateSchema, request.body);
+    const product = await prisma.product.update({ where: { id }, data: productData(input) });
+    return apiResponse.success(reply, product);
   });
 
-  // Delete product (soft delete)
-  fastify.delete<{ Params: { id: string } }>('/products/:id', async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      await prisma.product.update({
-        where: { id },
-        data: { isActive: false },
-      });
-
-      return apiResponse.success(reply, { message: 'محصول با موفقیت حذف شد' });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return apiResponse.error(reply, 'محصول یافت نشد', 404);
-      }
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در حذف محصول', 500);
-    }
+  // soft delete — order items keep their product reference
+  fastify.delete('/products/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const product = await prisma.product.update({ where: { id }, data: { isActive: false, featured: false } });
+    return apiResponse.success(reply, product);
   });
 
-  // ========================================
-  // SERVICES MANAGEMENT
-  // ========================================
+  // ------------------------------------------------------------------
+  // Services
+  // ------------------------------------------------------------------
+  fastify.get('/services', async (request, reply) => {
+    const q = parse(adminServiceQuerySchema, request.query);
+    const where: Prisma.ServiceWhereInput = {};
+    if (q.type) where.type = q.type;
+    if (q.isActive !== undefined) where.isActive = q.isActive;
+    if (q.search) where.OR = searchFilter(q.search, ['id', 'name', 'nameEn']) as Prisma.ServiceWhereInput[];
 
-  // Create service
+    const [items, total] = await Promise.all([
+      prisma.service.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (q.page - 1) * q.limit, take: q.limit }),
+      prisma.service.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
+  });
+
+  fastify.get('/services/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const service = await prisma.service.findUnique({
+      where: { id },
+      include: { reviews: { orderBy: { createdAt: 'desc' } }, _count: { select: { bookings: true } } },
+    });
+    if (!service) throw notFound('خدمت یافت نشد');
+    return apiResponse.success(reply, service);
+  });
+
   fastify.post('/services', async (request, reply) => {
-    const validation = validateRequest(createServiceSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
-    }
-
-    try {
-      const service = await prisma.service.create({
-        data: {
-          ...validation.data,
-          isActive: true,
-          rating: 0,
-          reviewCount: 0,
-        },
-      });
-
-      return apiResponse.success(reply, service, 201);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در ایجاد سرویس', 500);
-    }
+    const input = parse(adminServiceSchema, request.body);
+    const id = await uniqueId('service', input.id, input.nameEn);
+    const service = await prisma.service.create({
+      data: { ...(id ? { id } : {}), ...serviceData(input), rating: 0, reviewCount: 0 } as Prisma.ServiceUncheckedCreateInput,
+    });
+    return apiResponse.success(reply, service, 201);
   });
 
-  // Update service
-  fastify.put<{ Params: { id: string } }>('/services/:id', async (request, reply) => {
-    const { id } = request.params;
-    const validation = validateRequest(updateServiceSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
-    }
-
-    try {
-      const service = await prisma.service.update({
-        where: { id },
-        data: validation.data,
-      });
-
-      return apiResponse.success(reply, service);
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return apiResponse.error(reply, 'سرویس یافت نشد', 404);
-      }
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در به‌روزرسانی سرویس', 500);
-    }
+  fastify.put('/services/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(adminServiceUpdateSchema, request.body);
+    const service = await prisma.service.update({ where: { id }, data: serviceData(input) });
+    return apiResponse.success(reply, service);
   });
 
-  // Delete service (soft delete)
-  fastify.delete<{ Params: { id: string } }>('/services/:id', async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      await prisma.service.update({
-        where: { id },
-        data: { isActive: false },
-      });
-
-      return apiResponse.success(reply, { message: 'سرویس با موفقیت حذف شد' });
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return apiResponse.error(reply, 'سرویس یافت نشد', 404);
-      }
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در حذف سرویس', 500);
-    }
+  fastify.delete('/services/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const service = await prisma.service.update({ where: { id }, data: { isActive: false, featured: false } });
+    return apiResponse.success(reply, service);
   });
 
-  // ========================================
-  // ORDERS MANAGEMENT
-  // ========================================
-
-  // List all orders with pagination
+  // ------------------------------------------------------------------
+  // Orders
+  // ------------------------------------------------------------------
   fastify.get('/orders', async (request, reply) => {
-    const validation = validateRequest(paginationSchema, request.query);
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = validation.success
-      ? validation.data
-      : { page: 1, limit: 10, sortBy: 'createdAt', sortOrder: 'desc' as const };
-
-    try {
-      const [orders, total] = await Promise.all([
-        prisma.order.findMany({
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { [sortBy]: sortOrder },
-          include: {
-            user: true,
-            items: {
-              include: { product: true },
-            },
-          },
-        }),
-        prisma.order.count(),
-      ]);
-
-      return apiResponse.paginated(reply, orders, total, page, limit);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت سفارشات', 500);
+    const q = parse(adminOrderQuerySchema, request.query);
+    const where: Prisma.OrderWhereInput = {};
+    if (q.status) where.status = q.status;
+    if (q.search) {
+      where.OR = [
+        { id: { contains: q.search } },
+        { trackingCode: { contains: q.search, mode: 'insensitive' } },
+        { user: { phoneNumber: { contains: q.search } } },
+        { user: { name: { contains: q.search, mode: 'insensitive' } } },
+      ];
     }
+
+    const [items, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        include: { ...orderInclude, user: { select: userSummarySelect } },
+        orderBy: { createdAt: 'desc' },
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      }),
+      prisma.order.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
   });
 
-  // Get order details
-  fastify.get<{ Params: { id: string } }>('/orders/:id', async (request, reply) => {
-    const { id } = request.params;
+  fastify.get('/orders/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const order = await prisma.order.findUnique({
+      where: { id },
+      include: { ...orderInclude, user: { select: userSummarySelect } },
+    });
+    if (!order) throw notFound('سفارش یافت نشد');
+    return apiResponse.success(reply, order);
+  });
 
-    try {
-      const order = await prisma.order.findUnique({
+  fastify.put('/orders/:id/status', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(updateOrderStatusSchema, request.body);
+
+    const existing = await prisma.order.findUnique({ where: { id }, include: { items: true, user: true } });
+    if (!existing) throw notFound('سفارش یافت نشد');
+
+    const order = await prisma.$transaction(async (tx) => {
+      // cancelling a live order puts the stock back
+      if (input.status === 'cancelled' && existing.status !== 'cancelled') {
+        for (const item of existing.items) {
+          await tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.quantity } } });
+        }
+      }
+      // re-activating a cancelled order takes it again
+      if (input.status !== 'cancelled' && existing.status === 'cancelled') {
+        for (const item of existing.items) {
+          await tx.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } });
+        }
+      }
+      const codDelivered = existing.paymentMethod === 'cod' && input.status === 'delivered';
+      return tx.order.update({
         where: { id },
-        include: {
-          user: true,
-          items: {
-            include: { product: true },
-          },
+        data: {
+          status: input.status,
+          ...(input.trackingCode ? { trackingCode: input.trackingCode } : {}),
+          ...(codDelivered ? { paymentStatus: 'paid' } : {}),
         },
+        include: { ...orderInclude, user: { select: userSummarySelect } },
       });
+    });
 
-      if (!order) {
-        return apiResponse.error(reply, 'سفارش یافت نشد', 404);
-      }
-
-      return apiResponse.success(reply, order);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت سفارش', 500);
+    if (existing.status !== input.status) {
+      void sendStatusUpdate(existing.user.phoneNumber, 'order', input.status);
     }
+    return apiResponse.success(reply, order);
   });
 
-  // Update order status
-  fastify.put<{ Params: { id: string } }>('/orders/:id/status', async (request, reply) => {
-    const { id } = request.params;
-    const validation = validateRequest(updateOrderStatusSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
-    }
-
-    try {
-      const order = await prisma.order.update({
-        where: { id },
-        data: { status: validation.data.status },
-        include: { user: true },
-      });
-
-      // TODO: Send SMS notification to user about status change
-
-      return apiResponse.success(reply, order);
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return apiResponse.error(reply, 'سفارش یافت نشد', 404);
-      }
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در به‌روزرسانی وضعیت سفارش', 500);
-    }
-  });
-
-  // ========================================
-  // BOOKINGS MANAGEMENT
-  // ========================================
-
-  // List all bookings with pagination
+  // ------------------------------------------------------------------
+  // Bookings
+  // ------------------------------------------------------------------
   fastify.get('/bookings', async (request, reply) => {
-    const validation = validateRequest(paginationSchema, request.query);
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = validation.success
-      ? validation.data
-      : { page: 1, limit: 10, sortBy: 'createdAt', sortOrder: 'desc' as const };
+    const q = parse(adminBookingQuerySchema, request.query);
+    const where: Prisma.BookingWhereInput = {};
+    if (q.status) where.status = q.status;
+    if (q.date) where.date = dayRange(q.date);
 
-    try {
-      const [bookings, total] = await Promise.all([
-        prisma.booking.findMany({
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { [sortBy]: sortOrder },
-          include: {
-            user: true,
-            service: true,
-          },
-        }),
-        prisma.booking.count(),
-      ]);
-
-      return apiResponse.paginated(reply, bookings, total, page, limit);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت رزروها', 500);
-    }
+    const [items, total] = await Promise.all([
+      prisma.booking.findMany({
+        where,
+        include: { ...bookingInclude, user: { select: userSummarySelect } },
+        orderBy: [{ date: 'desc' }, { timeSlot: 'asc' }],
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      }),
+      prisma.booking.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
   });
 
-  // Get booking details
-  fastify.get<{ Params: { id: string } }>('/bookings/:id', async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      const booking = await prisma.booking.findUnique({
-        where: { id },
-        include: {
-          user: true,
-          service: true,
-        },
-      });
-
-      if (!booking) {
-        return apiResponse.error(reply, 'رزرو یافت نشد', 404);
-      }
-
-      return apiResponse.success(reply, booking);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت رزرو', 500);
-    }
+  fastify.get('/bookings/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const booking = await prisma.booking.findUnique({
+      where: { id },
+      include: {
+        ...bookingInclude,
+        user: { select: userSummarySelect },
+        transactions: { orderBy: { createdAt: 'desc' } },
+      },
+    });
+    if (!booking) throw notFound('رزرو یافت نشد');
+    return apiResponse.success(reply, booking);
   });
 
-  // Update booking status
-  fastify.put<{ Params: { id: string } }>('/bookings/:id/status', async (request, reply) => {
-    const { id } = request.params;
-    const validation = validateRequest(updateBookingStatusSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
+  fastify.put('/bookings/:id/status', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(updateBookingStatusSchema, request.body);
+
+    const existing = await prisma.booking.findUnique({ where: { id }, include: { user: true } });
+    if (!existing) throw notFound('رزرو یافت نشد');
+
+    const booking = await prisma.booking.update({
+      where: { id },
+      data: { status: input.status },
+      include: { ...bookingInclude, user: { select: userSummarySelect } },
+    });
+
+    if (existing.status !== input.status) {
+      void sendStatusUpdate(existing.user.phoneNumber, 'booking', input.status);
     }
-
-    try {
-      const booking = await prisma.booking.update({
-        where: { id },
-        data: { status: validation.data.status as any },
-        include: { user: true, service: true },
-      });
-
-      // TODO: Send SMS notification to user about status change
-
-      return apiResponse.success(reply, booking);
-    } catch (error: any) {
-      if (error.code === 'P2025') {
-        return apiResponse.error(reply, 'رزرو یافت نشد', 404);
-      }
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در به‌روزرسانی وضعیت رزرو', 500);
-    }
+    return apiResponse.success(reply, booking);
   });
 
-  // ========================================
-  // USERS MANAGEMENT
-  // ========================================
-
-  // List all users with pagination
+  // ------------------------------------------------------------------
+  // Users
+  // ------------------------------------------------------------------
   fastify.get('/users', async (request, reply) => {
-    const validation = validateRequest(paginationSchema, request.query);
-    const { page = 1, limit = 10, sortBy = 'createdAt', sortOrder = 'desc' } = validation.success
-      ? validation.data
-      : { page: 1, limit: 10, sortBy: 'createdAt', sortOrder: 'desc' as const };
-
-    try {
-      const [users, total] = await Promise.all([
-        prisma.user.findMany({
-          skip: (page - 1) * limit,
-          take: limit,
-          orderBy: { [sortBy]: sortOrder },
-          select: {
-            id: true,
-            phoneNumber: true,
-            name: true,
-            email: true,
-            createdAt: true,
-            _count: {
-              select: {
-                orders: true,
-                bookings: true,
-              },
-            },
-          },
-        }),
-        prisma.user.count(),
-      ]);
-
-      return apiResponse.paginated(reply, users, total, page, limit);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت کاربران', 500);
+    const q = parse(adminUserQuerySchema, request.query);
+    const where: Prisma.UserWhereInput = {};
+    if (q.search) {
+      where.OR = [
+        { phoneNumber: { contains: q.search } },
+        { name: { contains: q.search, mode: 'insensitive' } },
+        { email: { contains: q.search, mode: 'insensitive' } },
+      ];
     }
-  });
 
-  // Get user details
-  fastify.get<{ Params: { id: string } }>('/users/:id', async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      const user = await prisma.user.findUnique({
-        where: { id },
-        include: {
-          orders: {
-            take: 10,
-            orderBy: { createdAt: 'desc' },
-          },
-          bookings: {
-            take: 10,
-            orderBy: { createdAt: 'desc' },
-          },
+    const [items, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+        select: {
+          ...userSummarySelect,
+          role: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+          _count: { select: { orders: true, bookings: true, reviews: true, addresses: true } },
         },
-      });
-
-      if (!user) {
-        return apiResponse.error(reply, 'کاربر یافت نشد', 404);
-      }
-
-      return apiResponse.success(reply, user);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت کاربر', 500);
-    }
+      }),
+      prisma.user.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
   });
 
-  // Note: User management features (toggle-active, make-admin) will be enabled after database migration
+  fastify.get('/users/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        ...userSummarySelect,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+        _count: { select: { orders: true, bookings: true, reviews: true, addresses: true } },
+        orders: { take: 10, orderBy: { createdAt: 'desc' }, include: orderInclude },
+        bookings: { take: 10, orderBy: { createdAt: 'desc' }, include: bookingInclude },
+        addresses: { orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] },
+      },
+    });
+    if (!user) throw notFound('کاربر یافت نشد');
+    return apiResponse.success(reply, user);
+  });
 
-  // ========================================
-  // REVIEWS MANAGEMENT
-  // Note: Review routes will be enabled after migration
-  // ========================================
+  // ------------------------------------------------------------------
+  // Contact messages
+  // ------------------------------------------------------------------
+  fastify.get('/messages', async (request, reply) => {
+    const q = parse(adminMessageQuerySchema, request.query);
+    const where: Prisma.ContactMessageWhereInput = {};
+    if (q.unread !== undefined) where.isRead = !q.unread;
 
-  // Placeholder - Reviews endpoints will be added after database migration
+    const [items, total] = await Promise.all([
+      prisma.contactMessage.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (q.page - 1) * q.limit, take: q.limit }),
+      prisma.contactMessage.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
+  });
+
+  fastify.put('/messages/:id/read', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const message = await prisma.contactMessage.update({ where: { id }, data: { isRead: true } });
+    return apiResponse.success(reply, message);
+  });
+
+  // ------------------------------------------------------------------
+  // Reviews
+  // ------------------------------------------------------------------
+  const adminReviewInclude = {
+    product: { select: { id: true, name: true } },
+    service: { select: { id: true, name: true } },
+    user: { select: userSummarySelect },
+  } satisfies Prisma.ReviewInclude;
+
+  fastify.get('/reviews', async (request, reply) => {
+    const q = parse(adminReviewQuerySchema, request.query);
+    const where: Prisma.ReviewWhereInput = {};
+    if (q.approved !== undefined) where.isApproved = q.approved;
+
+    const [items, total] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        include: adminReviewInclude,
+        orderBy: { createdAt: 'desc' },
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      }),
+      prisma.review.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
+  });
+
+  fastify.put('/reviews/:id/approve', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const review = await prisma.$transaction(async (tx) => {
+      const updated = await tx.review.update({ where: { id }, data: { isApproved: true }, include: adminReviewInclude });
+      await recomputeRating(tx, updated);
+      return updated;
+    });
+    return apiResponse.success(reply, review);
+  });
+
+  fastify.delete('/reviews/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const review = await prisma.$transaction(async (tx) => {
+      const deleted = await tx.review.delete({ where: { id } });
+      await recomputeRating(tx, deleted);
+      return deleted;
+    });
+    return apiResponse.success(reply, review);
+  });
 };

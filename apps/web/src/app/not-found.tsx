@@ -1,100 +1,70 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Metadata } from 'next';
-import { Home, Search, ArrowRight, Car, Package, Wrench } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, Car, Home, Package, Wrench } from 'lucide-react';
 import { ROUTES } from '@autolounge/shared';
+import { Button } from '@/components/ui/button';
+import { SearchShortcut } from '@/components/pages/search-shortcut';
 
 export const metadata: Metadata = {
-  title: 'صفحه یافت نشد | اتولانژ',
-  description: 'صفحه مورد نظر شما یافت نشد',
+  title: 'صفحه یافت نشد',
+  description: 'صفحهٔ مورد نظر شما یافت نشد.',
+  robots: { index: false, follow: false },
 };
 
 const SUGGESTED_PAGES = [
-  {
-    title: 'محصولات',
-    description: 'مشاهده تمام محصولات دیتیلینگ',
-    href: ROUTES.PRODUCTS,
-    icon: Package,
-  },
-  {
-    title: 'خدمات',
-    description: 'رزرو خدمات تخصصی خودرو',
-    href: ROUTES.SERVICES,
-    icon: Wrench,
-  },
-  {
-    title: 'رزرو نوبت',
-    description: 'رزرو آنلاین سرویس',
-    href: ROUTES.BOOKING,
-    icon: Car,
-  },
+  { title: 'فروشگاه', description: 'محصولات دیتیلینگ و مراقبت از خودرو', href: ROUTES.PRODUCTS, icon: Package },
+  { title: 'خدمات', description: 'سرامیک، احیای رنگ، PPF و دیتیلینگ', href: ROUTES.SERVICES, icon: Wrench },
+  { title: 'رزرو نوبت', description: 'رزرو آنلاین در چند ثانیه', href: ROUTES.BOOKING, icon: Car },
 ];
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center p-8 bg-gradient-to-b from-background to-muted/30">
-      <div className="max-w-2xl w-full text-center">
-        {/* 404 Animation */}
-        <div className="relative mb-8">
-          <div className="text-[150px] sm:text-[200px] font-black text-muted/20 leading-none select-none">
-            404
+    <div className="flex min-h-[calc(100dvh-9rem)] items-center justify-center bg-gradient-to-b from-background to-muted/30 px-4 py-12">
+      <div className="w-full max-w-2xl text-center">
+        <div className="relative mb-6">
+          <div className="select-none text-[120px] font-black leading-none text-muted/20 sm:text-[200px]" aria-hidden="true">
+            ۴۰۴
           </div>
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center animate-pulse">
-              <Car className="h-16 w-16 text-primary" />
+            <div className="flex h-28 w-28 items-center justify-center rounded-full bg-primary/10 motion-safe:animate-pulse">
+              <Car className="h-14 w-14 text-primary" aria-hidden="true" />
             </div>
           </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-black text-foreground mb-4">
-          صفحه مورد نظر یافت نشد!
-        </h1>
-
-        <p className="text-lg text-muted-foreground mb-8 max-w-md mx-auto">
+        <h1 className="mb-3 text-balance text-2xl font-black text-foreground sm:text-4xl">صفحهٔ مورد نظر یافت نشد!</h1>
+        <p className="mx-auto mb-8 max-w-md text-balance text-sm leading-7 text-muted-foreground sm:text-lg">
           متأسفانه صفحه‌ای که به دنبال آن هستید وجود ندارد یا منتقل شده است.
         </p>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-          <Button asChild variant="primary" className="gap-2">
-            <Link href="/">
-              <Home className="h-4 w-4" />
-              صفحه اصلی
+        <div className="mb-10 flex flex-col justify-center gap-3 sm:flex-row">
+          <Button asChild variant="primary" size="lg" className="min-h-12 gap-2">
+            <Link href={ROUTES.HOME}>
+              <Home className="h-4 w-4" aria-hidden="true" />
+              صفحهٔ اصلی
             </Link>
           </Button>
-          <Button asChild variant="outline" className="gap-2">
-            <Link href="/products">
-              <Search className="h-4 w-4" />
-              جستجوی محصولات
-            </Link>
-          </Button>
+          <SearchShortcut size="lg" className="min-h-12 gap-2" />
         </div>
 
-        {/* Suggested Pages */}
         <div className="border-t border-border pt-8">
-          <h2 className="text-lg font-bold text-foreground mb-6">
-            شاید این صفحات مفید باشند:
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-4">
+          <h2 className="mb-5 text-base font-bold text-foreground">شاید این صفحات مفید باشند:</h2>
+          <div className="grid gap-3 sm:grid-cols-3">
             {SUGGESTED_PAGES.map((page) => (
               <Link
                 key={page.href}
                 href={page.href}
-                className="group p-4 rounded-xl bg-muted/50 hover:bg-muted transition-colors text-right"
+                className="group flex min-h-[4.5rem] items-start gap-3 rounded-xl bg-muted/50 p-4 text-start transition-colors hover:bg-muted"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 transition-colors">
-                    <page.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                      {page.title}
-                      <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-                    </h3>
-                    <p className="text-sm text-muted-foreground truncate">
-                      {page.description}
-                    </p>
-                  </div>
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
+                  <page.icon className="h-5 w-5 text-primary" aria-hidden="true" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="flex items-center gap-2 font-bold text-foreground transition-colors group-hover:text-primary">
+                    {page.title}
+                    <ArrowRight className="h-4 w-4 opacity-0 transition-all group-hover:opacity-100 rtl:rotate-180" aria-hidden="true" />
+                  </h3>
+                  <p className="truncate text-sm text-muted-foreground">{page.description}</p>
                 </div>
               </Link>
             ))}

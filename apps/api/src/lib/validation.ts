@@ -1,16 +1,18 @@
 import { FastifyReply } from 'fastify';
-import { ZodError, ZodSchema } from 'zod';
+import { ZodError, ZodTypeAny, z } from 'zod';
+import type { Pagination } from '@autolounge/shared';
 
 /**
- * Validate request data with Zod schema (throws on error)
+ * Parse `data` with a Zod schema. Throws a ZodError which the global error
+ * handler turns into a 400 VALIDATION_ERROR envelope with `details`.
  */
-export function validateSchema<T>(schema: ZodSchema<T>, data: unknown): T {
-  return schema.parse(data);
+export function parse<S extends ZodTypeAny>(schema: S, data: unknown): z.output<S> {
+  return schema.parse(data ?? {});
 }
 
-/**
- * Format Zod validation errors for API response
- */
+/** @deprecated use parse() */
+export const validateSchema = parse;
+
 export function formatZodError(error: ZodError): { field: string; message: string }[] {
   return error.errors.map((err) => ({
     field: err.path.join('.'),
@@ -18,72 +20,47 @@ export function formatZodError(error: ZodError): { field: string; message: strin
   }));
 }
 
-/**
- * Validation result type
- */
 type ValidationResult<T> =
   | { success: true; data: T; error?: never }
   | { success: false; data?: never; error: string; details?: { field: string; message: string }[] };
 
-/**
- * Validate request data with Zod schema (returns result object)
- */
-export function validateRequest<T>(
-  schema: ZodSchema<T>,
-  data: unknown
-): ValidationResult<T> {
-  try {
-    const parsed = schema.parse(data);
-    return { success: true, data: parsed };
-  } catch (error) {
-    if (error instanceof ZodError) {
-      const details = formatZodError(error);
-      const firstError = details[0]?.message || 'خطای اعتبارسنجی';
-      return { success: false, error: firstError, details };
-    }
-    return { success: false, error: 'خطای داخلی' };
-  }
+/** Non-throwing variant (used for optional query strings) */
+export function validateRequest<S extends ZodTypeAny>(schema: S, data: unknown): ValidationResult<z.output<S>> {
+  const result = schema.safeParse(data ?? {});
+  if (result.success) return { success: true, data: result.data };
+  const details = formatZodError(result.error);
+  return { success: false, error: details[0]?.message || 'خطای اعتبارسنجی', details };
 }
 
-/**
- * Standard API response helpers
- */
+export function buildPagination(total: number, page: number, limit: number): Pagination {
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  return {
+    total,
+    page,
+    limit,
+    totalPages,
+    hasNext: page * limit < total,
+    hasPrev: page > 1,
+  };
+}
+
+/** Standard API response helpers */
 export const apiResponse = {
   success: <T>(reply: FastifyReply, data: T, statusCode = 200) => {
-    return reply.status(statusCode).send({
-      success: true,
-      data,
-    });
+    return reply.status(statusCode).send({ success: true, data });
   },
 
-  error: (reply: FastifyReply, error: string, statusCode = 400, code?: string, details?: unknown) => {
-    const response: Record<string, unknown> = {
-      success: false,
-      error,
-    };
-    if (code) response.code = code;
-    if (details) response.details = details;
+  error: (reply: FastifyReply, error: string, statusCode = 400, code = 'INTERNAL', details?: unknown) => {
+    const response: Record<string, unknown> = { success: false, error, code };
+    if (details !== undefined) response.details = details;
     return reply.status(statusCode).send(response);
   },
 
-  paginated: <T>(
-    reply: FastifyReply,
-    data: T[],
-    total: number,
-    page: number,
-    limit: number
-  ) => {
+  paginated: <T>(reply: FastifyReply, data: T[], total: number, page: number, limit: number) => {
     return reply.status(200).send({
       success: true,
       data,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page * limit < total,
-        hasPrev: page > 1,
-      },
+      pagination: buildPagination(total, page, limit),
     });
   },
 };

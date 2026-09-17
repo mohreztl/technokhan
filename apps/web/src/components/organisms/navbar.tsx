@@ -1,284 +1,227 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { Menu, X, ShoppingCart, User, Phone, Search, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { ThemeSwitcher } from '@/components/ui/theme-switcher';
-import { APP_NAME, ROUTES, CONTACT } from '@autolounge/shared';
+import { usePathname } from 'next/navigation';
+import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
+import { MoreHorizontal, Phone, Search, ShoppingCart, Sparkles, User } from 'lucide-react';
+import { APP_NAME, CONTACT, ROUTES } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
-import { useCart } from '@/lib/store/cart-store';
+import { Button } from '@/components/ui/button';
+import { IconButton } from '@/components/ui/icon-button';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
+import { useCartCount, useCartStore } from '@/lib/store/cart-store';
+import { useUIStore } from '@/lib/store/ui-store';
+import { useAuth } from '@/lib/store/auth-store';
+import { springSheet } from '@/lib/animation-variants';
+import { isChromeHidden } from '@/lib/routes';
 
 const menuItems = [
   { title: 'خانه', href: ROUTES.HOME },
   { title: 'خدمات', href: ROUTES.SERVICES },
   { title: 'محصولات', href: ROUTES.PRODUCTS },
   { title: 'رزرو نوبت', href: ROUTES.BOOKING },
+  { title: 'نمونه کارها', href: ROUTES.GALLERY },
   { title: 'درباره ما', href: ROUTES.ABOUT },
   { title: 'تماس با ما', href: ROUTES.CONTACT },
 ];
 
+const isActivePath = (pathname: string, href: string) =>
+  href === ROUTES.HOME ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
+
+/**
+ * Fixed 80px navbar. Transparent over the hero, glass once scrolled.
+ * Mobile action cluster: [search][cart][more]; desktop adds the pill nav,
+ * theme switch, profile and the call CTA. Ctrl/Cmd+K opens search.
+ */
 export const Navbar: React.FC = () => {
+  const pathname = usePathname() ?? '/';
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { totalItems, toggleCart } = useCart();
-  
+  const cartCount = useCartCount();
+  const toggleCart = useCartStore((s) => s.toggleCart);
+  const setSearchOpen = useUIStore((s) => s.setSearchOpen);
+  const setMoreOpen = useUIStore((s) => s.setMoreOpen);
+  const { status } = useAuth();
+
   const { scrollY } = useScroll();
-  const navBackground = useTransform(
-    scrollY, 
-    [0, 100], 
-    ['rgba(0,0,0,0)', 'rgba(var(--background), 0.9)']
-  );
+  useMotionValueEvent(scrollY, 'change', (v) => {
+    const next = v > 20;
+    setIsScrolled((prev) => (prev === next ? prev : next));
+  });
 
+  // Ctrl/Cmd+K → search
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
     };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [setSearchOpen]);
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Admin has its own shell
+  if (isChromeHidden(pathname)) return null;
 
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-    };
-  }, [isMobileMenuOpen]);
+  // Over the cinematic hero the bar is transparent on a dark image → light foreground
+  const overHero = pathname === ROUTES.HOME && !isScrolled;
+  const profileHref = status === 'anonymous' ? ROUTES.LOGIN : ROUTES.PROFILE;
+  const iconClass = overHero ? 'text-white hover:bg-white/10' : 'hover:bg-primary/10';
 
   return (
-    <>
-    {/* Premium top bar */}
-    <motion.div
+    <motion.header
       className={cn(
-        'fixed top-0 left-0 right-0 z-[51] h-1',
-        'bg-gradient-to-r from-primary via-secondary to-primary',
-        'transition-opacity duration-300',
-        isScrolled ? 'opacity-100' : 'opacity-0'
+        'fixed inset-x-0 top-0 z-50 pt-safe transition-[background-color,box-shadow,border-color] duration-500',
+        isScrolled
+          ? 'glass-effect-strong border-b border-border/40 shadow-2xl shadow-primary/5'
+          : 'border-b border-transparent bg-transparent',
+        overHero && 'text-white'
       )}
-      style={{ backgroundSize: '200% 100%' }}
-      animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
-      transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
-    />
-    
-    <motion.nav
-      className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-        isScrolled 
-          ? 'glass-effect-strong shadow-2xl shadow-primary/5 border-b border-border/50' 
-          : 'bg-transparent',
-        isScrolled && 'pt-1' // Space for the premium bar
-      )}
-      initial={{ y: -100 }}
+      initial={{ y: -80 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
     >
-      <div className="container-custom">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo - Premium */}
-          <Link href={ROUTES.HOME}>
-            <motion.div
-              className="flex items-center gap-3 group"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+      {/* Gold accent line, visible once scrolled */}
+      <div
+        aria-hidden="true"
+        className={cn(
+          'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent transition-opacity duration-500',
+          isScrolled ? 'opacity-100' : 'opacity-0'
+        )}
+      />
+
+      <nav aria-label="ناوبری سایت" className="container-custom">
+        <div className="flex h-20 items-center justify-between gap-3">
+          {/* Logo */}
+          <Link
+            href={ROUTES.HOME}
+            className="group flex shrink-0 items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label={`${APP_NAME} - صفحه اصلی`}
+          >
+            <motion.span
+              className="relative block"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
             >
-              <div className="relative">
-                <div className="relative w-12 h-12 bg-gradient-to-br from-primary via-secondary to-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 group-hover:shadow-xl group-hover:shadow-secondary/30 transition-all duration-500">
-                  <span className="text-2xl font-black text-primary-foreground">A</span>
-                  {/* Shine effect */}
-                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-xl" />
-                </div>
-                {/* Glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-primary to-secondary rounded-xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 -z-10" />
-              </div>
-              <div className="hidden sm:flex flex-col">
-                <span className="text-2xl font-black bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-                  {APP_NAME}
-                </span>
-                <span className="text-[10px] text-muted-foreground -mt-1 tracking-wider">
-                  مراقبت تخصصی خودرو
-                </span>
-              </div>
-            </motion.div>
+              <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary-700 to-secondary shadow-lg shadow-primary/20 transition-shadow duration-500 group-hover:shadow-xl group-hover:shadow-secondary/30">
+                <span className="text-2xl font-black text-white">A</span>
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                />
+              </span>
+            </motion.span>
+            <span className="hidden flex-col sm:flex">
+              <span
+                className={cn(
+                  'text-2xl font-black leading-tight',
+                  overHero
+                    ? 'text-white'
+                    : 'bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent'
+                )}
+              >
+                {APP_NAME}
+              </span>
+              <span
+                className={cn(
+                  '-mt-0.5 text-[10px] tracking-wider',
+                  overHero ? 'text-white/70' : 'text-muted-foreground'
+                )}
+              >
+                مراقبت تخصصی خودرو
+              </span>
+            </span>
           </Link>
 
-          {/* Desktop Menu - Premium */}
-          <div className="hidden lg:flex items-center gap-1 bg-background/30 backdrop-blur-md rounded-full px-2 py-1 border border-border/30">
-            {menuItems.map((item, index) => (
-              <Link key={item.href} href={item.href}>
-                <motion.div
-                  className="relative px-4 py-2 text-foreground hover:text-primary transition-colors cursor-pointer font-medium group rounded-full"
-                  whileHover={{ backgroundColor: 'hsl(var(--primary) / 0.1)' }}
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  {item.title}
-                  <motion.span 
-                    className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-secondary rounded-full"
-                    initial={{ scale: 0 }}
-                    whileHover={{ scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                  />
-                </motion.div>
-              </Link>
-            ))}
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-2">
-            {/* Search Button - Hidden on mobile */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="hidden md:flex hover:bg-primary/10"
-              aria-label="جستجو"
-            >
-              <Search className="h-5 w-5" />
-            </Button>
-
-            {/* Theme Switcher */}
-            <ThemeSwitcher />
-
-            {/* Cart - Premium */}
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative hover:bg-primary/10 rounded-full"
-                onClick={toggleCart}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                <AnimatePresence>
-                  {totalItems > 0 && (
-                    <motion.span
-                      className="absolute -top-1 -left-1 bg-gradient-to-br from-secondary to-secondary/80 text-primary-foreground text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg shadow-secondary/30"
-                      initial={{ scale: 0, rotate: -180 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0, rotate: 180 }}
-                      transition={{ type: 'spring', stiffness: 500 }}
-                    >
-                      {totalItems}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </motion.div>
-
-            {/* User Profile */}
-            <Link href={ROUTES.PROFILE}>
-              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
-
-            {/* Call to Action - Premium */}
-            <a href={`tel:${CONTACT.phoneEn}`} className="hidden md:block">
-              <motion.div
-                whileHover={{ scale: 1.02, y: -2 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                <Button 
-                  variant="secondary" 
-                  className="gap-2 shadow-lg shadow-secondary/20 hover:shadow-xl hover:shadow-secondary/30 transition-all duration-300 bg-gradient-to-r from-secondary via-secondary/90 to-secondary"
-                >
-                  <Phone className="h-4 w-4" />
-                  <span>تماس فوری</span>
-                  <Sparkles className="h-3 w-3" />
-                </Button>
-              </motion.div>
-            </a>
-
-            {/* Mobile Menu Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            >
-              <motion.div
-                animate={{ rotate: isMobileMenuOpen ? 90 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </motion.div>
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            className="lg:hidden glass-effect-strong border-t border-border"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
+          {/* Desktop pill nav */}
+          <ul
+            className={cn(
+              'hidden items-center gap-0.5 rounded-full border px-1.5 py-1 backdrop-blur-md lg:flex',
+              overHero ? 'border-white/15 bg-white/10' : 'border-border/30 bg-background/40'
+            )}
           >
-            <div className="container-custom py-6 space-y-2 max-h-[calc(100vh-5rem)] overflow-y-auto">
-              {/* Search on Mobile */}
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <input
-                    type="search"
-                    placeholder="جستجو..."
-                    className="w-full h-12 pr-10 pl-4 rounded-lg bg-background border border-input text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-              </div>
-
-              {/* Menu Items */}
-              {menuItems.map((item, index) => (
-                <motion.div
-                  key={item.href}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
+            {menuItems.map((item) => {
+              const active = isActivePath(pathname, item.href);
+              return (
+                <li key={item.href}>
                   <Link
                     href={item.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="block"
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative block rounded-full px-4 py-2 text-sm font-medium transition-colors outline-none',
+                      'focus-visible:ring-2 focus-visible:ring-ring',
+                      overHero
+                        ? 'text-white/85 hover:bg-white/10 hover:text-white'
+                        : 'text-foreground hover:bg-primary/10 hover:text-primary',
+                      active && (overHero ? 'text-white' : 'text-primary')
+                    )}
                   >
-                    <div className="py-3 px-4 text-foreground hover:bg-primary/10 hover:text-primary transition-all rounded-lg font-medium">
-                      {item.title}
-                    </div>
+                    {item.title}
+                    {active && (
+                      <motion.span
+                        layoutId="nav-active-dot"
+                        transition={springSheet}
+                        className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-secondary shadow-[0_0_8px_hsl(var(--secondary))]"
+                        aria-hidden="true"
+                      />
+                    )}
                   </Link>
-                </motion.div>
-              ))}
+                </li>
+              );
+            })}
+          </ul>
 
-              {/* Mobile CTA */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="pt-4 space-y-3"
-              >
-                <a href={`tel:${CONTACT.phoneEn}`}>
-                  <Button variant="secondary" className="w-full gap-2 shadow-glow-secondary">
-                    <Phone className="h-5 w-5" />
-                    {CONTACT.phone}
-                  </Button>
-                </a>
-                <Link href={ROUTES.BOOKING}>
-                  <Button variant="primary" className="w-full">
-                    رزرو نوبت آنلاین
-                  </Button>
-                </Link>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.nav>
-    </>
+          {/* Actions */}
+          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
+            <IconButton
+              label="جستجو (Ctrl+K)"
+              icon={<Search />}
+              className={iconClass}
+              onClick={() => setSearchOpen(true)}
+            />
+
+            <ThemeSwitcher className="hidden lg:flex" />
+
+            <IconButton
+              label="سبد خرید"
+              icon={<ShoppingCart />}
+              badge={cartCount}
+              className={iconClass}
+              onClick={toggleCart}
+              data-cart-target="desktop"
+            />
+
+            <IconButton
+              asChild
+              label={status === 'anonymous' ? 'ورود به حساب' : 'پروفایل'}
+              icon={<User />}
+              className={cn('hidden lg:inline-flex', iconClass)}
+            >
+              <Link href={profileHref} />
+            </IconButton>
+
+            <Button
+              asChild
+              variant="secondary"
+              className="hidden gap-2 bg-gradient-to-r from-secondary via-secondary/90 to-secondary shadow-lg shadow-secondary/20 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/30 lg:inline-flex"
+            >
+              <a href={`tel:${CONTACT.phoneEn}`}>
+                <Phone className="h-4 w-4" aria-hidden="true" />
+                <span>تماس فوری</span>
+                <Sparkles className="h-3 w-3" aria-hidden="true" />
+              </a>
+            </Button>
+
+            <IconButton
+              label="بیشتر"
+              icon={<MoreHorizontal />}
+              className={cn('lg:hidden', iconClass)}
+              onClick={() => setMoreOpen(true)}
+            />
+          </div>
+        </div>
+      </nav>
+    </motion.header>
   );
 };

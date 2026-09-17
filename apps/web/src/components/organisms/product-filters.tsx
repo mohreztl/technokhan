@@ -1,443 +1,299 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import {
-  SlidersHorizontal,
-  X,
-  ChevronDown,
-  Star,
-  Tag,
-  Palette,
-  Package,
-  Check,
-  RotateCcw,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import * as React from 'react';
+import { ChevronDown, RotateCcw } from 'lucide-react';
+import { formatTomanCompact, toPersianDigits, type ProductListQuery } from '@autolounge/shared';
+import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { formatPrice } from '@/lib/utils';
-import { ProductCategory } from '@autolounge/shared';
+import { Button } from '@/components/ui/button';
+import {
+  PRODUCT_SORT_OPTIONS,
+  applySort,
+  countActiveFilters,
+  sortIdOf,
+  type ProductSortId,
+} from '@/components/catalog/product-query';
 
-export interface ProductFilters {
-  categories: string[];
+export interface PriceBounds {
+  min: number;
+  max: number;
+}
+
+export interface ProductFiltersPanelProps {
+  /** Current query (URL is the source of truth). */
+  value: ProductListQuery;
+  /** Called with the next query whenever a control changes. */
+  onChange: (next: ProductListQuery) => void;
+  categories: Record<string, string>;
   brands: string[];
-  priceRange: [number, number];
-  rating: number | null;
-  inStock: boolean;
-  hasDiscount: boolean;
-  sortBy: string;
+  priceBounds: PriceBounds;
+  /** Show the sort group inside the panel (desktop sidebar). */
+  showSort?: boolean;
+  className?: string;
 }
 
-interface ProductFiltersProps {
-  filters: ProductFilters;
-  onFiltersChange: (filters: ProductFilters) => void;
-  availableCategories: { value: string; label: string; count: number }[];
-  availableBrands: { value: string; label: string; count: number }[];
-  priceRange: [number, number];
-  isOpen: boolean;
-  onToggle: () => void;
-}
-
-const SORT_OPTIONS = [
-  { value: 'newest', label: 'جدیدترین' },
-  { value: 'oldest', label: 'قدیمی‌ترین' },
-  { value: 'price-asc', label: 'ارزان‌ترین' },
-  { value: 'price-desc', label: 'گران‌ترین' },
-  { value: 'popular', label: 'محبوب‌ترین' },
-  { value: 'rating', label: 'بالاترین امتیاز' },
-  { value: 'name-asc', label: 'نام (الف-ی)' },
-  { value: 'name-desc', label: 'نام (ی-الف)' },
-];
-
-const RATING_OPTIONS = [
-  { value: 4, label: '۴ ستاره و بالاتر' },
-  { value: 3, label: '۳ ستاره و بالاتر' },
-  { value: 2, label: '۲ ستاره و بالاتر' },
-  { value: 1, label: '۱ ستاره و بالاتر' },
-];
-
-export function ProductFiltersPanel({
-  filters,
-  onFiltersChange,
-  availableCategories,
-  availableBrands,
-  priceRange,
-  isOpen,
-  onToggle,
-}: ProductFiltersProps) {
-  const [localPriceRange, setLocalPriceRange] = useState(filters.priceRange);
-  const [expandedSections, setExpandedSections] = useState({
-    categories: true,
-    brands: true,
-    price: true,
-    rating: false,
-    options: false,
-  });
-
-  useEffect(() => {
-    setLocalPriceRange(filters.priceRange);
-  }, [filters.priceRange]);
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
-
-  const handleCategoryToggle = (category: string) => {
-    const newCategories = filters.categories.includes(category)
-      ? filters.categories.filter((c) => c !== category)
-      : [...filters.categories, category];
-    onFiltersChange({ ...filters, categories: newCategories });
-  };
-
-  const handleBrandToggle = (brand: string) => {
-    const newBrands = filters.brands.includes(brand)
-      ? filters.brands.filter((b) => b !== brand)
-      : [...filters.brands, brand];
-    onFiltersChange({ ...filters, brands: newBrands });
-  };
-
-  const handleRatingChange = (rating: number | null) => {
-    onFiltersChange({ ...filters, rating });
-  };
-
-  const handlePriceRangeChange = () => {
-    onFiltersChange({ ...filters, priceRange: localPriceRange });
-  };
-
-  const handleSortChange = (sortBy: string) => {
-    onFiltersChange({ ...filters, sortBy });
-  };
-
-  const handleResetFilters = () => {
-    onFiltersChange({
-      categories: [],
-      brands: [],
-      priceRange: priceRange,
-      rating: null,
-      inStock: false,
-      hasDiscount: false,
-      sortBy: 'newest',
-    });
-  };
-
-  const activeFiltersCount =
-    filters.categories.length +
-    filters.brands.length +
-    (filters.rating !== null ? 1 : 0) +
-    (filters.inStock ? 1 : 0) +
-    (filters.hasDiscount ? 1 : 0) +
-    (filters.priceRange[0] !== priceRange[0] || filters.priceRange[1] !== priceRange[1] ? 1 : 0);
-
+/** Collapsible group used inside the panel. */
+export function FilterSection({
+  title,
+  children,
+  defaultOpen = true,
+  count,
+}: {
+  title: string;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  count?: number;
+}) {
+  const [open, setOpen] = React.useState(defaultOpen);
+  const id = React.useId();
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.aside
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: 50 }}
-          className="lg:w-80 shrink-0"
-        >
-          <div className="glass-effect-strong border border-primary/10 rounded-2xl overflow-hidden sticky top-24">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-primary/10">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="h-5 w-5 text-primary" />
-                <h3 className="font-bold text-lg">فیلترها</h3>
-                {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="text-xs">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleResetFilters}
-                className="text-muted-foreground hover:text-foreground gap-1"
-              >
-                <RotateCcw className="h-4 w-4" />
-                پاک کردن
-              </Button>
-            </div>
-
-            <div className="p-4 space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
-              {/* Sort Section */}
-              <FilterSection
-                title="مرتب‌سازی"
-                icon={<Tag className="h-4 w-4" />}
-                isExpanded={true}
-                onToggle={() => {}}
-              >
-                <div className="grid grid-cols-2 gap-2">
-                  {SORT_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() => handleSortChange(option.value)}
-                      className={`px-3 py-2 text-sm rounded-lg transition-all ${
-                        filters.sortBy === option.value
-                          ? 'bg-primary text-primary-foreground font-medium'
-                          : 'bg-muted/50 hover:bg-muted text-foreground'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </FilterSection>
-
-              {/* Categories */}
-              <FilterSection
-                title="دسته‌بندی"
-                icon={<Package className="h-4 w-4" />}
-                isExpanded={expandedSections.categories}
-                onToggle={() => toggleSection('categories')}
-              >
-                <div className="space-y-2">
-                  {availableCategories.map((category) => (
-                    <label
-                      key={category.value}
-                      className="flex items-center justify-between gap-3 cursor-pointer hover:bg-primary/5 px-3 py-2 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          checked={filters.categories.includes(category.value)}
-                          onChange={() => handleCategoryToggle(category.value)}
-                        />
-                        <span className="text-foreground">{category.label}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        {category.count}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </FilterSection>
-
-              {/* Brands */}
-              <FilterSection
-                title="برند"
-                icon={<Palette className="h-4 w-4" />}
-                isExpanded={expandedSections.brands}
-                onToggle={() => toggleSection('brands')}
-              >
-                <div className="space-y-2">
-                  {availableBrands.map((brand) => (
-                    <label
-                      key={brand.value}
-                      className="flex items-center justify-between gap-3 cursor-pointer hover:bg-primary/5 px-3 py-2 rounded-lg transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          checked={filters.brands.includes(brand.value)}
-                          onChange={() => handleBrandToggle(brand.value)}
-                        />
-                        <span className="text-foreground">{brand.label}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                        {brand.count}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </FilterSection>
-
-              {/* Price Range */}
-              <FilterSection
-                title="محدوده قیمت"
-                icon={<Tag className="h-4 w-4" />}
-                isExpanded={expandedSections.price}
-                onToggle={() => toggleSection('price')}
-              >
-                <div className="space-y-4">
-                  {/* Price Slider */}
-                  <div className="px-2">
-                    <div className="relative h-2 bg-muted rounded-full">
-                      <div
-                        className="absolute h-full bg-primary rounded-full"
-                        style={{
-                          right: `${((localPriceRange[0] - priceRange[0]) / (priceRange[1] - priceRange[0])) * 100}%`,
-                          left: `${100 - ((localPriceRange[1] - priceRange[0]) / (priceRange[1] - priceRange[0])) * 100}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="flex justify-between mt-2">
-                      <input
-                        type="range"
-                        min={priceRange[0]}
-                        max={priceRange[1]}
-                        value={localPriceRange[0]}
-                        onChange={(e) =>
-                          setLocalPriceRange([
-                            Math.min(Number(e.target.value), localPriceRange[1] - 100000),
-                            localPriceRange[1],
-                          ])
-                        }
-                        onMouseUp={handlePriceRangeChange}
-                        onTouchEnd={handlePriceRangeChange}
-                        className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer"
-                      />
-                      <input
-                        type="range"
-                        min={priceRange[0]}
-                        max={priceRange[1]}
-                        value={localPriceRange[1]}
-                        onChange={(e) =>
-                          setLocalPriceRange([
-                            localPriceRange[0],
-                            Math.max(Number(e.target.value), localPriceRange[0] + 100000),
-                          ])
-                        }
-                        onMouseUp={handlePriceRangeChange}
-                        onTouchEnd={handlePriceRangeChange}
-                        className="absolute w-full h-2 appearance-none bg-transparent pointer-events-none [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:cursor-pointer"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Price Display */}
-                  <div className="flex items-center justify-between text-sm">
-                    <div className="bg-muted px-3 py-1.5 rounded-lg">
-                      <span className="text-muted-foreground">از:</span>{' '}
-                      <span className="font-medium">{formatPrice(localPriceRange[0])}</span>
-                    </div>
-                    <div className="bg-muted px-3 py-1.5 rounded-lg">
-                      <span className="text-muted-foreground">تا:</span>{' '}
-                      <span className="font-medium">{formatPrice(localPriceRange[1])}</span>
-                    </div>
-                  </div>
-                </div>
-              </FilterSection>
-
-              {/* Rating */}
-              <FilterSection
-                title="امتیاز"
-                icon={<Star className="h-4 w-4" />}
-                isExpanded={expandedSections.rating}
-                onToggle={() => toggleSection('rating')}
-              >
-                <div className="space-y-2">
-                  {RATING_OPTIONS.map((option) => (
-                    <button
-                      key={option.value}
-                      onClick={() =>
-                        handleRatingChange(
-                          filters.rating === option.value ? null : option.value
-                        )
-                      }
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all ${
-                        filters.rating === option.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'hover:bg-muted'
-                      }`}
-                    >
-                      <div className="flex items-center gap-0.5">
-                        {Array.from({ length: 5 }).map((_, i) => (
-                          <Star
-                            key={i}
-                            className={`h-4 w-4 ${
-                              i < option.value
-                                ? filters.rating === option.value
-                                  ? 'fill-primary-foreground text-primary-foreground'
-                                  : 'fill-yellow-500 text-yellow-500'
-                                : 'text-muted-foreground'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-sm">و بالاتر</span>
-                      {filters.rating === option.value && (
-                        <Check className="h-4 w-4 mr-auto" />
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </FilterSection>
-
-              {/* Options */}
-              <FilterSection
-                title="گزینه‌ها"
-                icon={<Check className="h-4 w-4" />}
-                isExpanded={expandedSections.options}
-                onToggle={() => toggleSection('options')}
-              >
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 cursor-pointer hover:bg-primary/5 px-3 py-2 rounded-lg transition-colors">
-                    <Checkbox
-                      checked={filters.inStock}
-                      onChange={(e) =>
-                        onFiltersChange({ ...filters, inStock: e.target.checked })
-                      }
-                    />
-                    <span className="text-foreground">فقط محصولات موجود</span>
-                  </label>
-                  <label className="flex items-center gap-3 cursor-pointer hover:bg-primary/5 px-3 py-2 rounded-lg transition-colors">
-                    <Checkbox
-                      checked={filters.hasDiscount}
-                      onChange={(e) =>
-                        onFiltersChange({ ...filters, hasDiscount: e.target.checked })
-                      }
-                    />
-                    <span className="text-foreground">فقط محصولات تخفیف‌دار</span>
-                  </label>
-                </div>
-              </FilterSection>
-            </div>
-          </div>
-        </motion.aside>
+    <div className="border-b border-border/70 py-2 last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        aria-controls={id}
+        className="flex min-h-11 w-full items-center justify-between gap-2 text-start text-sm font-bold text-foreground"
+      >
+        <span className="flex items-center gap-2">
+          {title}
+          {count ? (
+            <span className="rounded-full bg-secondary/20 px-2 py-0.5 text-[11px] font-bold text-foreground">
+              {toPersianDigits(count)}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          aria-hidden="true"
+          className={cn('h-4 w-4 text-muted-foreground transition-transform', open && 'rotate-180')}
+        />
+      </button>
+      {open && (
+        <div id={id} className="pb-3 pt-1">
+          {children}
+        </div>
       )}
-    </AnimatePresence>
+    </div>
   );
 }
 
-interface FilterSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  isExpanded: boolean;
-  onToggle: () => void;
+function ChoiceChip({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
   children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={cn(
+        'inline-flex min-h-11 items-center rounded-xl border px-3.5 text-sm font-medium transition-colors',
+        active
+          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+          : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-muted'
+      )}
+    >
+      {children}
+    </button>
+  );
 }
 
-function FilterSection({
-  title,
-  icon,
-  isExpanded,
-  onToggle,
-  children,
-}: FilterSectionProps) {
+const roundTo = (n: number, step: number) => Math.round(n / step) * step;
+
+/**
+ * Filter controls for the products list. Stateless: renders `value` and
+ * reports the next query through `onChange` (page is reset by the caller).
+ */
+export function ProductFiltersPanel({
+  value,
+  onChange,
+  categories,
+  brands,
+  priceBounds,
+  showSort = false,
+  className,
+}: ProductFiltersPanelProps) {
+  const step = Math.max(10_000, roundTo((priceBounds.max - priceBounds.min) / 40, 10_000));
+  const min = value.minPrice ?? priceBounds.min;
+  const max = value.maxPrice ?? priceBounds.max;
+  const active = countActiveFilters(value);
+
+  const patch = (changes: Partial<ProductListQuery>, clear: (keyof ProductListQuery)[] = []) => {
+    const next: ProductListQuery = { ...value, ...changes };
+    delete next.page;
+    for (const key of clear) delete next[key];
+    onChange(next);
+  };
+
+  const setPrice = (nextMin: number, nextMax: number) => {
+    const lo = Math.max(priceBounds.min, Math.min(nextMin, nextMax));
+    const hi = Math.min(priceBounds.max, Math.max(nextMax, nextMin));
+    const changes: Partial<ProductListQuery> = {};
+    const clear: (keyof ProductListQuery)[] = [];
+    if (lo > priceBounds.min) changes.minPrice = lo;
+    else clear.push('minPrice');
+    if (hi < priceBounds.max) changes.maxPrice = hi;
+    else clear.push('maxPrice');
+    patch(changes, clear);
+  };
+
+  const reset = () => {
+    const next: ProductListQuery = { limit: value.limit };
+    if (value.search) next.search = value.search;
+    if (value.sortBy) next.sortBy = value.sortBy;
+    if (value.sortOrder) next.sortOrder = value.sortOrder;
+    onChange(next);
+  };
+
   return (
-    <div className="border-b border-primary/5 pb-4 last:border-b-0">
-      <button
-        onClick={onToggle}
-        className="flex items-center justify-between w-full py-2 text-foreground hover:text-primary transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          {icon}
-          <span className="font-medium">{title}</span>
+    <div className={cn('flex flex-col', className)} role="group" aria-label="فیلتر محصولات">
+      <div className="mb-1 flex items-center justify-between">
+        <h2 className="text-base font-black text-foreground">
+          فیلترها
+          {active > 0 && (
+            <span className="ms-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-foreground">
+              {toPersianDigits(active)}
+            </span>
+          )}
+        </h2>
+        <Button type="button" variant="ghost" size="sm" onClick={reset} disabled={active === 0} className="gap-1.5">
+          <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+          پاک کردن
+        </Button>
+      </div>
+
+      <FilterSection title="دسته‌بندی" count={value.category ? 1 : 0}>
+        <div className="flex flex-wrap gap-2">
+          <ChoiceChip active={!value.category} onClick={() => patch({}, ['category'])}>
+            همه
+          </ChoiceChip>
+          {Object.entries(categories).map(([key, label]) => (
+            <ChoiceChip
+              key={key}
+              active={value.category === key}
+              onClick={() => (value.category === key ? patch({}, ['category']) : patch({ category: key }))}
+            >
+              {label}
+            </ChoiceChip>
+          ))}
         </div>
-        <motion.div
-          animate={{ rotate: isExpanded ? 180 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </motion.div>
-      </button>
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+      </FilterSection>
+
+      {brands.length > 0 && (
+        <FilterSection title="برند" count={value.brand ? 1 : 0}>
+          <div className="flex flex-wrap gap-2">
+            {brands.map((brand) => (
+              <ChoiceChip
+                key={brand}
+                active={value.brand === brand}
+                onClick={() => (value.brand === brand ? patch({}, ['brand']) : patch({ brand }))}
+              >
+                <span dir="ltr">{brand}</span>
+              </ChoiceChip>
+            ))}
+          </div>
+        </FilterSection>
+      )}
+
+      <FilterSection title="محدودهٔ قیمت" count={value.minPrice !== undefined || value.maxPrice !== undefined ? 1 : 0}>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between text-sm font-semibold tabular-nums">
+            <span>{formatTomanCompact(min)}</span>
+            <span className="text-muted-foreground">تا</span>
+            <span>{formatTomanCompact(max)}</span>
+          </div>
+          <label className="block">
+            <span className="mb-1 block text-xs text-muted-foreground">حداقل</span>
+            <input
+              type="range"
+              dir="ltr"
+              min={priceBounds.min}
+              max={priceBounds.max}
+              step={step}
+              value={min}
+              onChange={(e) => setPrice(Number(e.target.value), max)}
+              aria-label="حداقل قیمت"
+              aria-valuetext={formatTomanCompact(min)}
+              className="h-11 w-full cursor-pointer accent-primary"
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-xs text-muted-foreground">حداکثر</span>
+            <input
+              type="range"
+              dir="ltr"
+              min={priceBounds.min}
+              max={priceBounds.max}
+              step={step}
+              value={max}
+              onChange={(e) => setPrice(min, Number(e.target.value))}
+              aria-label="حداکثر قیمت"
+              aria-valuetext={formatTomanCompact(max)}
+              className="h-11 w-full cursor-pointer accent-primary"
+            />
+          </label>
+        </div>
+      </FilterSection>
+
+      <FilterSection title="موجودی" count={value.inStock ? 1 : 0}>
+        <Checkbox
+          label="فقط کالاهای موجود"
+          checked={!!value.inStock}
+          onChange={(e) => (e.target.checked ? patch({ inStock: true }) : patch({}, ['inStock']))}
+        />
+      </FilterSection>
+
+      {showSort && (
+        <FilterSection title="مرتب‌سازی">
+          <SortOptions value={sortIdOf(value)} onChange={(id) => onChange(applySort(value, id))} />
+        </FilterSection>
+      )}
+    </div>
+  );
+}
+
+/** Radio-style sort list shared by the sidebar and the mobile sort sheet. */
+export function SortOptions({
+  value,
+  onChange,
+  className,
+}: {
+  value: ProductSortId;
+  onChange: (id: ProductSortId) => void;
+  className?: string;
+}) {
+  return (
+    <div className={cn('flex flex-col gap-1', className)} role="radiogroup" aria-label="مرتب‌سازی">
+      {PRODUCT_SORT_OPTIONS.map((option) => {
+        const active = option.id === value;
+        return (
+          <button
+            key={option.id}
+            type="button"
+            role="radio"
+            aria-checked={active}
+            onClick={() => onChange(option.id)}
+            className={cn(
+              'flex min-h-11 items-center justify-between rounded-xl px-3 text-sm font-medium transition-colors',
+              active ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-muted'
+            )}
           >
-            <div className="pt-2">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {option.label}
+            <span
+              aria-hidden="true"
+              className={cn(
+                'h-4 w-4 rounded-full border-2 transition-colors',
+                active ? 'border-primary bg-primary shadow-[inset_0_0_0_3px_hsl(var(--background))]' : 'border-border'
+              )}
+            />
+          </button>
+        );
+      })}
     </div>
   );
 }

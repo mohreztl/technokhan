@@ -1,7 +1,8 @@
 'use client';
 
-import Fuse from 'fuse.js';
-import { useMemo, useState, useCallback } from 'react';
+import Fuse, { type IFuseOptions } from 'fuse.js';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PRODUCTS, SERVICES } from '@autolounge/shared';
 import type { Product, Service } from '@autolounge/shared';
 
 // Search result types
@@ -11,35 +12,37 @@ export interface SearchResult {
   score: number;
 }
 
+export type SearchableItem = Pick<Product, 'name' | 'nameEn' | 'description'> & {
+  brand?: string;
+  tags?: string[];
+};
+
 // Fuse.js options for Persian-friendly fuzzy search
-const FUSE_OPTIONS = {
+const FUSE_OPTIONS: IFuseOptions<SearchableItem> = {
   includeScore: true,
   threshold: 0.4, // Lower = more strict matching
   distance: 100,
   minMatchCharLength: 2,
-  useExtendedSearch: true,
   ignoreLocation: true,
   keys: [
     { name: 'name', weight: 0.4 },
-    { name: 'nameEn', weight: 0.3 },
-    { name: 'description', weight: 0.2 },
-    { name: 'descriptionEn', weight: 0.1 },
+    { name: 'nameEn', weight: 0.2 },
+    { name: 'brand', weight: 0.15 },
+    { name: 'tags', weight: 0.15 },
+    { name: 'description', weight: 0.1 },
   ],
 };
 
+const options = <T extends SearchableItem>() => FUSE_OPTIONS as IFuseOptions<T>;
+
 // Hook for searching products
 export function useProductSearch(products: Product[]) {
-  const fuse = useMemo(
-    () => new Fuse(products, FUSE_OPTIONS),
-    [products]
-  );
+  const fuse = useMemo(() => new Fuse(products, options<Product>()), [products]);
 
   const search = useCallback(
     (query: string): Product[] => {
       if (!query.trim()) return products;
-      
-      const results = fuse.search(query);
-      return results.map((result) => result.item);
+      return fuse.search(query).map((result) => result.item);
     },
     [fuse, products]
   );
@@ -49,17 +52,12 @@ export function useProductSearch(products: Product[]) {
 
 // Hook for searching services
 export function useServiceSearch(services: Service[]) {
-  const fuse = useMemo(
-    () => new Fuse(services, FUSE_OPTIONS),
-    [services]
-  );
+  const fuse = useMemo(() => new Fuse(services, options<Service>()), [services]);
 
   const search = useCallback(
     (query: string): Service[] => {
       if (!query.trim()) return services;
-      
-      const results = fuse.search(query);
-      return results.map((result) => result.item);
+      return fuse.search(query).map((result) => result.item);
     },
     [fuse, services]
   );
@@ -68,89 +66,104 @@ export function useServiceSearch(services: Service[]) {
 }
 
 // Combined search hook for both products and services
-export function useGlobalSearch(products: Product[], services: Service[]) {
-  const productFuse = useMemo(
-    () => new Fuse(products, FUSE_OPTIONS),
-    [products]
-  );
-
-  const serviceFuse = useMemo(
-    () => new Fuse(services, FUSE_OPTIONS),
-    [services]
-  );
+export function useGlobalSearch(products: Product[], services: Service[], limit = 10) {
+  const productFuse = useMemo(() => new Fuse(products, options<Product>()), [products]);
+  const serviceFuse = useMemo(() => new Fuse(services, options<Service>()), [services]);
 
   const search = useCallback(
     (query: string): SearchResult[] => {
-      if (!query.trim()) return [];
+      const q = query.trim();
+      if (!q) return [];
 
-      const productResults = productFuse.search(query).map((result) => ({
+      const productResults = productFuse.search(q).map((result) => ({
         type: 'product' as const,
         item: result.item,
-        score: result.score || 0,
+        score: result.score ?? 0,
       }));
 
-      const serviceResults = serviceFuse.search(query).map((result) => ({
+      const serviceResults = serviceFuse.search(q).map((result) => ({
         type: 'service' as const,
         item: result.item,
-        score: result.score || 0,
+        score: result.score ?? 0,
       }));
 
       // Combine and sort by score (lower is better)
       return [...productResults, ...serviceResults]
         .sort((a, b) => a.score - b.score)
-        .slice(0, 10); // Limit to 10 results
+        .slice(0, limit);
     },
-    [productFuse, serviceFuse]
+    [productFuse, serviceFuse, limit]
   );
 
   return { search };
 }
 
-// Standalone search function for server-side use
-export function searchItems<T extends { name: string; nameEn?: string; description: string }>(
-  items: T[],
-  query: string,
-  options?: Partial<typeof FUSE_OPTIONS>
-): T[] {
-  if (!query.trim()) return items;
-  
-  const fuse = new Fuse(items, { ...FUSE_OPTIONS, ...options });
-  const results = fuse.search(query);
-  
-  return results.map((result) => result.item);
+/** Global search over the shared catalog (`PRODUCTS` + `SERVICES`). */
+export function useCatalogSearch(limit = 10) {
+  return useGlobalSearch(PRODUCTS, SERVICES, limit);
 }
 
-// Hook for managing search state
+// Standalone search function for server-side use
+export function searchItems<T extends SearchableItem>(
+  items: T[],
+  query: string,
+  overrides?: Partial<IFuseOptions<T>>
+): T[] {
+  if (!query.trim()) return items;
+  const fuse = new Fuse(items, { ...options<T>(), ...overrides });
+  return fuse.search(query).map((result) => result.item);
+}
+
+export const RECENT_SEARCHES_KEY = 'autolounge_recent_searches';
+const RECENT_LIMIT = 6;
+
+function readRecent(): string[] {
+  try {
+    const saved = localStorage.getItem(RECENT_SEARCHES_KEY);
+    const parsed = saved ? JSON.parse(saved) : [];
+    return Array.isArray(parsed) ? parsed.filter((s) => typeof s === 'string') : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeRecent(list: string[]) {
+  try {
+    localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(list));
+  } catch {
+    /* storage unavailable (private mode / quota) */
+  }
+}
+
+// Hook for managing search state (recent searches persist in localStorage, read after mount)
 export function useSearchState() {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
-    if (typeof window === 'undefined') return [];
-    const saved = localStorage.getItem('autolounge_recent_searches');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  useEffect(() => {
+    setRecentSearches(readRecent());
+  }, []);
 
   const addRecentSearch = useCallback((term: string) => {
     const trimmed = term.trim();
     if (!trimmed) return;
-
     setRecentSearches((prev) => {
-      const filtered = prev.filter((s) => s !== trimmed);
-      const updated = [trimmed, ...filtered].slice(0, 5);
-      localStorage.setItem('autolounge_recent_searches', JSON.stringify(updated));
+      const updated = [trimmed, ...prev.filter((s) => s !== trimmed)].slice(0, RECENT_LIMIT);
+      writeRecent(updated);
       return updated;
     });
   }, []);
 
   const clearRecentSearches = useCallback(() => {
     setRecentSearches([]);
-    localStorage.removeItem('autolounge_recent_searches');
+    writeRecent([]);
   }, []);
 
   const removeRecentSearch = useCallback((term: string) => {
     setRecentSearches((prev) => {
       const updated = prev.filter((s) => s !== term);
-      localStorage.setItem('autolounge_recent_searches', JSON.stringify(updated));
+      writeRecent(updated);
       return updated;
     });
   }, []);

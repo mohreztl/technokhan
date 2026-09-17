@@ -1,199 +1,183 @@
+/**
+ * API validation schemas.
+ * Request bodies are validated with the schemas shared with the web forms
+ * (`@autolounge/shared`); only API-specific query/param schemas live here.
+ */
 import { z } from 'zod';
+import { toEnglishDigits } from '@autolounge/shared';
 
-// ========================================
-// Auth Schemas
-// ========================================
+export {
+  phoneSchema,
+  postalCodeSchema,
+  otpCodeSchema,
+  sendOTPSchema,
+  verifyOTPSchema,
+  updateProfileSchema,
+  shippingAddressSchema,
+  paymentMethodSchema,
+  couponCodeSchema,
+  createOrderSchema,
+  updateOrderStatusSchema,
+  vehicleSizeSchema,
+  createBookingSchema,
+  updateBookingStatusSchema,
+  availableSlotsQuerySchema,
+  contactSchema,
+  reviewSchema,
+  adminProductSchema,
+  adminServiceSchema,
+  idParamSchema,
+  paginationQuerySchema,
+} from '@autolounge/shared';
 
-export const sendOTPSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(/^09\d{9}$/, 'شماره تلفن باید با ۰۹ شروع شود و ۱۱ رقم باشد'),
+export type {
+  SendOTPInput,
+  VerifyOTPInput,
+  UpdateProfileInput,
+  ShippingAddressInput,
+  CreateOrderSchemaInput,
+  CreateBookingSchemaInput,
+  ContactSchemaInput,
+  AdminProductInput,
+  AdminServiceInput,
+} from '@autolounge/shared';
+
+import { adminProductSchema, adminServiceSchema } from '@autolounge/shared';
+
+// ---------------------------------------------------------------------------
+// Query-string helpers
+// ---------------------------------------------------------------------------
+
+/** "true"/"false"/"1"/"0" → boolean, anything else → undefined */
+export const queryBool = z.preprocess((v) => {
+  if (v === true || v === 'true' || v === '1') return true;
+  if (v === false || v === 'false' || v === '0') return false;
+  return undefined;
+}, z.boolean().optional());
+
+const queryNumber = z.preprocess((v) => {
+  if (v === undefined || v === null || v === '') return undefined;
+  const n = Number(toEnglishDigits(String(v)));
+  return Number.isFinite(n) ? n : undefined;
+}, z.number().optional());
+
+export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc');
+export const catalogSortBySchema = z.enum(['createdAt', 'price', 'rating', 'name']).default('createdAt');
+
+export const pageQuery = (defaultLimit = 12, maxLimit = 100) =>
+  z.object({
+    page: z.coerce.number().int().min(1).default(1),
+    limit: z.coerce.number().int().min(1).max(maxLimit).default(defaultLimit),
+  });
+
+export const productQuerySchema = pageQuery(12).extend({
+  category: z.string().trim().min(1).optional(),
+  brand: z.string().trim().min(1).optional(),
+  featured: queryBool,
+  search: z.string().trim().min(1).max(100).optional(),
+  minPrice: queryNumber,
+  maxPrice: queryNumber,
+  inStock: queryBool,
+  sortBy: catalogSortBySchema,
+  sortOrder: sortOrderSchema,
 });
 
-export const verifyOTPSchema = z.object({
-  phoneNumber: z
-    .string()
-    .regex(/^09\d{9}$/, 'شماره تلفن نامعتبر است'),
+export const serviceQuerySchema = pageQuery(12).extend({
+  type: z.string().trim().min(1).optional(),
+  featured: queryBool,
+  search: z.string().trim().min(1).max(100).optional(),
+  minPrice: queryNumber,
+  maxPrice: queryNumber,
+  sortBy: catalogSortBySchema,
+  sortOrder: sortOrderSchema,
+});
+
+export const limitQuerySchema = (defaultLimit: number) =>
+  z.object({ limit: z.coerce.number().int().min(1).max(50).default(defaultLimit) });
+
+export const listStatusQuerySchema = pageQuery(20).extend({
+  status: z.string().trim().min(1).optional(),
+});
+
+// ---------------------------------------------------------------------------
+// Orders / payment
+// ---------------------------------------------------------------------------
+
+export const validateCouponSchema = z.object({
   code: z
     .string()
-    .length(6, 'کد تایید باید ۶ رقم باشد')
-    .regex(/^\d{6}$/, 'کد تایید باید فقط شامل اعداد باشد'),
+    .trim()
+    .min(1, 'کد تخفیف را وارد کنید')
+    .max(30)
+    .transform((v) => toEnglishDigits(v).toUpperCase()),
+  subtotal: z.number().min(0),
 });
 
-export const updateProfileSchema = z.object({
-  name: z.string().min(2, 'نام باید حداقل ۲ کاراکتر باشد').optional(),
-  email: z.string().email('ایمیل نامعتبر است').optional(),
-});
-
-// ========================================
-// Product Schemas
-// ========================================
-
-export const createProductSchema = z.object({
-  name: z.string().min(2, 'نام محصول باید حداقل ۲ کاراکتر باشد'),
-  nameEn: z.string().min(2, 'نام انگلیسی محصول باید حداقل ۲ کاراکتر باشد'),
-  description: z.string().min(10, 'توضیحات باید حداقل ۱۰ کاراکتر باشد'),
-  descriptionEn: z.string().min(10, 'توضیحات انگلیسی باید حداقل ۱۰ کاراکتر باشد'),
-  price: z.number().positive('قیمت باید بزرگتر از صفر باشد'),
-  discountPrice: z.number().positive().optional().nullable(),
-  category: z.string().min(1, 'دسته‌بندی الزامی است'),
-  images: z.array(z.string().url()).default([]),
-  stock: z.number().int().min(0, 'موجودی نمی‌تواند منفی باشد').default(0),
-  featured: z.boolean().default(false),
-});
-
-export const updateProductSchema = createProductSchema.partial();
-
-export const productIdParamSchema = z.object({
-  id: z.string().cuid('شناسه محصول نامعتبر است'),
-});
-
-// ========================================
-// Service Schemas
-// ========================================
-
-export const createServiceSchema = z.object({
-  name: z.string().min(2, 'نام خدمت باید حداقل ۲ کاراکتر باشد'),
-  nameEn: z.string().min(2, 'نام انگلیسی خدمت باید حداقل ۲ کاراکتر باشد'),
-  description: z.string().min(10, 'توضیحات باید حداقل ۱۰ کاراکتر باشد'),
-  descriptionEn: z.string().min(10, 'توضیحات انگلیسی باید حداقل ۱۰ کاراکتر باشد'),
-  price: z.number().positive('قیمت باید بزرگتر از صفر باشد'),
-  duration: z.number().int().positive('مدت زمان باید بزرگتر از صفر باشد'),
-  type: z.string().min(1, 'نوع خدمت الزامی است'),
-  images: z.array(z.string().url()).default([]),
-  featured: z.boolean().default(false),
-});
-
-export const updateServiceSchema = createServiceSchema.partial();
-
-export const serviceIdParamSchema = z.object({
-  id: z.string().cuid('شناسه خدمت نامعتبر است'),
-});
-
-// ========================================
-// Booking Schemas
-// ========================================
-
-export const createBookingSchema = z.object({
-  serviceId: z.string().cuid('شناسه خدمت نامعتبر است'),
-  date: z.coerce.date({ errorMap: () => ({ message: 'تاریخ نامعتبر است' }) }),
-  timeSlot: z.string().min(1, 'ساعت رزرو الزامی است'),
-  location: z.string().min(2, 'محل خدمت الزامی است'),
-  carModel: z.string().min(2, 'مدل خودرو الزامی است'),
-  carYear: z.number().int().min(1350).max(1410, 'سال خودرو نامعتبر است'),
-  carColor: z.string().min(2, 'رنگ خودرو الزامی است'),
-  carPlate: z.string().optional(),
-  notes: z.string().optional(),
-  totalPrice: z.number().positive('مبلغ کل باید بزرگتر از صفر باشد'),
-});
-
-export const updateBookingStatusSchema = z.object({
-  status: z.enum(['pending', 'confirmed', 'in-progress', 'completed', 'cancelled'], {
-    errorMap: () => ({ message: 'وضعیت نامعتبر است' }),
-  }),
-});
-
-export const bookingIdParamSchema = z.object({
-  id: z.string().cuid('شناسه رزرو نامعتبر است'),
-});
-
-// ========================================
-// Order Schemas
-// ========================================
-
-export const shippingAddressSchema = z.object({
-  fullName: z.string().min(2, 'نام کامل الزامی است'),
-  phoneNumber: z.string().regex(/^09\d{9}$/, 'شماره تلفن نامعتبر است'),
-  province: z.string().min(2, 'استان الزامی است'),
-  city: z.string().min(2, 'شهر الزامی است'),
-  address: z.string().min(10, 'آدرس باید حداقل ۱۰ کاراکتر باشد'),
-  postalCode: z.string().regex(/^\d{10}$/, 'کد پستی باید ۱۰ رقم باشد'),
-});
-
-export const orderItemSchema = z.object({
-  productId: z.string().cuid('شناسه محصول نامعتبر است'),
-  quantity: z.number().int().positive('تعداد باید بزرگتر از صفر باشد'),
-  price: z.number().positive('قیمت باید بزرگتر از صفر باشد'),
-});
-
-export const createOrderSchema = z.object({
-  items: z.array(orderItemSchema).min(1, 'سبد خرید نمی‌تواند خالی باشد'),
-  totalPrice: z.number().positive('مبلغ کل باید بزرگتر از صفر باشد'),
-  shippingAddress: shippingAddressSchema,
-});
-
-export const updateOrderStatusSchema = z.object({
-  status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled'], {
-    errorMap: () => ({ message: 'وضعیت نامعتبر است' }),
-  }),
-  paymentStatus: z.enum(['pending', 'paid', 'failed', 'refunded']).optional(),
-});
-
-export const orderIdParamSchema = z.object({
-  id: z.string().cuid('شناسه سفارش نامعتبر است'),
-});
-
-// ========================================
-// Pagination & Query Schemas
-// ========================================
-
-export const paginationSchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
-  search: z.string().optional(),
-  sortBy: z.enum(['createdAt', 'price', 'name', 'updatedAt']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
-});
-
-export const productQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(12),
-  search: z.string().optional(),
-  category: z.string().optional(),
-  featured: z.coerce.boolean().optional(),
-  minPrice: z.coerce.number().positive().optional(),
-  maxPrice: z.coerce.number().positive().optional(),
-  inStock: z.coerce.boolean().optional(),
-});
-
-export const serviceQuerySchema = z.object({
-  page: z.coerce.number().int().positive().default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(12),
-  search: z.string().optional(),
-  category: z.string().optional(),
-  featured: z.coerce.boolean().optional(),
-  minPrice: z.coerce.number().positive().optional(),
-  maxPrice: z.coerce.number().positive().optional(),
-});
-
-// ========================================
-// Payment Schemas
-// ========================================
+/** Absolute URL, or a site-relative path the API resolves against WEB_URL. */
+const callbackUrlSchema = z
+  .string()
+  .refine(
+    (v) => v.startsWith('/') || v.startsWith('http://') || v.startsWith('https://'),
+    'آدرس بازگشت نامعتبر است'
+  )
+  .optional();
 
 export const paymentRequestSchema = z.object({
-  orderId: z.string().cuid('شناسه سفارش نامعتبر است'),
-  callbackUrl: z.string().url('آدرس بازگشت نامعتبر است').optional(),
+  orderId: z.string().min(1, 'شناسه سفارش الزامی است'),
+  callbackUrl: callbackUrlSchema,
+});
+
+export const bookingPaymentRequestSchema = z.object({
+  bookingId: z.string().min(1, 'شناسه رزرو الزامی است'),
+  callbackUrl: callbackUrlSchema,
 });
 
 export const paymentVerifySchema = z.object({
   authority: z.string().min(1, 'شناسه تراکنش الزامی است'),
-  status: z.string(),
+  status: z.enum(['OK', 'NOK']).default('OK'),
 });
 
-// ========================================
-// Type Exports
-// ========================================
+// ---------------------------------------------------------------------------
+// Admin
+// ---------------------------------------------------------------------------
 
-export type SendOTPInput = z.infer<typeof sendOTPSchema>;
-export type VerifyOTPInput = z.infer<typeof verifyOTPSchema>;
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
-export type CreateProductInput = z.infer<typeof createProductSchema>;
-export type UpdateProductInput = z.infer<typeof updateProductSchema>;
-export type CreateServiceInput = z.infer<typeof createServiceSchema>;
-export type UpdateServiceInput = z.infer<typeof updateServiceSchema>;
-export type CreateBookingInput = z.infer<typeof createBookingSchema>;
-export type CreateOrderInput = z.infer<typeof createOrderSchema>;
-export type PaginationInput = z.infer<typeof paginationSchema>;
+export const adminProductUpdateSchema = adminProductSchema.partial();
+export const adminServiceUpdateSchema = adminServiceSchema.partial();
+
+export const adminProductQuerySchema = pageQuery(20).extend({
+  search: z.string().trim().min(1).max(100).optional(),
+  category: z.string().trim().min(1).optional(),
+  isActive: queryBool,
+});
+
+export const adminServiceQuerySchema = pageQuery(20).extend({
+  search: z.string().trim().min(1).max(100).optional(),
+  type: z.string().trim().min(1).optional(),
+  isActive: queryBool,
+});
+
+export const adminOrderQuerySchema = pageQuery(20).extend({
+  status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).optional(),
+  search: z.string().trim().min(1).max(100).optional(),
+});
+
+export const adminBookingQuerySchema = pageQuery(20).extend({
+  status: z.enum(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled']).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'تاریخ نامعتبر است').optional(),
+});
+
+export const adminUserQuerySchema = pageQuery(20).extend({
+  search: z.string().trim().min(1).max(100).optional(),
+});
+
+export const adminMessageQuerySchema = pageQuery(20).extend({
+  unread: queryBool,
+});
+
+export const adminReviewQuerySchema = pageQuery(20).extend({
+  approved: queryBool,
+});
+
 export type ProductQueryInput = z.infer<typeof productQuerySchema>;
 export type ServiceQueryInput = z.infer<typeof serviceQuerySchema>;
 export type PaymentRequestInput = z.infer<typeof paymentRequestSchema>;

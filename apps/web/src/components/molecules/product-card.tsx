@@ -1,51 +1,73 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
-import { ShoppingCart, Eye, Package, Heart, Star, Sparkles } from 'lucide-react';
+import { Eye, Heart, Package, ShoppingCart, Sparkles, Star } from 'lucide-react';
+import {
+  ROUTES,
+  discountPercent,
+  effectivePrice,
+  formatToman,
+  toPersianDigits,
+  type Product,
+} from '@autolounge/shared';
+import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { formatPrice, calculateDiscount, cn } from '@/lib/utils';
+import { useIsCoarsePointer } from '@/lib/hooks/use-media-query';
 import { useCart } from '@/lib/store/cart-store';
+import { useWishlist } from '@/lib/store/wishlist-store';
+import { useUIStore } from '@/lib/store/ui-store';
 import { showToast } from '@/components/ui/toaster';
+import { IconButton } from '@/components/ui/icon-button';
 import { QuickViewModal } from '@/components/organisms/quick-view-modal';
-import type { Product } from '@autolounge/shared';
 
 interface ProductCardProps {
   product: Product;
   onAddToCart?: (product: Product) => void;
+  className?: string;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }) => {
+/** Sends the product image flying towards the cart target (layer built in components/creative). */
+export function flyToCart(product: Product, imgEl: HTMLElement | null) {
+  const src = product.images[0];
+  if (!src || !imgEl) return;
+  const rect = imgEl.getBoundingClientRect();
+  useUIStore.getState().fly({
+    src,
+    from: { x: rect.left, y: rect.top, width: rect.width, height: rect.height },
+  });
+}
+
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, className }) => {
   const prefersReducedMotion = useReducedMotion();
-  const { addItem, openCart } = useCart();
+  const coarse = useIsCoarsePointer();
+  const { addItem } = useCart();
+  const wishlist = useWishlist();
   const [showQuickView, setShowQuickView] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  
-  // 3D Tilt effect
+  const imgRef = useRef<HTMLDivElement>(null);
+
+  const tiltEnabled = !prefersReducedMotion && !coarse;
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const mouseXSpring = useSpring(x);
-  const mouseYSpring = useSpring(y);
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['5deg', '-5deg']);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-5deg', '5deg']);
-  
-  const discountPercentage = product.discountPrice
-    ? calculateDiscount(product.price, product.discountPrice)
-    : 0;
+  const mouseXSpring = useSpring(x, { stiffness: 250, damping: 25 });
+  const mouseYSpring = useSpring(y, { stiffness: 250, damping: 25 });
+  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['4deg', '-4deg']);
+  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-4deg', '4deg']);
+
+  const inStock = product.stock > 0;
+  const price = effectivePrice(product);
+  const percent = discountPercent(product);
+  const href = `${ROUTES.PRODUCTS}/${product.id}`;
+  const wished = wishlist.has(product.id);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (prefersReducedMotion || !cardRef.current) return;
+    if (!tiltEnabled || !cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const xPct = (e.clientX - rect.left) / rect.width - 0.5;
-    const yPct = (e.clientY - rect.top) / rect.height - 0.5;
-    x.set(xPct);
-    y.set(yPct);
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
   const handleMouseLeave = () => {
@@ -53,227 +75,174 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart }
     y.set(0);
   };
 
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleAddToCart = () => {
+    if (!inStock) return;
     addItem(product);
+    flyToCart(product, imgRef.current);
     showToast.addedToCart(product.name);
     onAddToCart?.(product);
   };
 
-  const handleQuickView = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setShowQuickView(true);
-  };
-
-  const handleToggleFavorite = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsFavorite(!isFavorite);
-    if (!isFavorite) {
-      showToast.addedToWishlist(product.name);
-    }
+  const handleToggleWishlist = () => {
+    const added = wishlist.toggle(product.id);
+    if (added) showToast.addedToWishlist(product.name);
+    else showToast.info('از علاقه‌مندی‌ها حذف شد', product.name);
   };
 
   return (
     <>
-    <div style={{ perspective: '1000px' }}>
-      <motion.div
-        ref={cardRef}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={{
-          rotateX: prefersReducedMotion ? 0 : rotateX,
-          rotateY: prefersReducedMotion ? 0 : rotateY,
-          transformStyle: 'preserve-3d',
-        }}
-        whileHover={prefersReducedMotion ? {} : { z: 50 }}
-        transition={{ duration: 0.2 }}
-      >
-    <Card className={cn(
-      "group overflow-hidden h-full flex flex-col relative",
-      "bg-gradient-to-br from-card/80 via-card to-card/90",
-      "border border-border/50 hover:border-secondary/30",
-      "shadow-lg hover:shadow-2xl hover:shadow-primary/10",
-      "transition-all duration-500"
-    )}>
-
-      {/* Shimmer overlay on hover */}
-      <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none z-20" />
-
-      {/* Favorite Button - Premium */}
-      <motion.button
-        onClick={handleToggleFavorite}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        className={cn(
-          "absolute top-3 left-3 z-10 p-2 rounded-full transition-all backdrop-blur-md",
-          isFavorite
-            ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
-            : 'bg-background/60 text-muted-foreground hover:bg-background hover:text-red-500'
-        )}
-      >
-        <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-      </motion.button>
-
-      <Link href={`/products/${product.id}`}>
-        <div className="relative h-56 overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
-          {product.images[0] ? (
-            <>
-              <Image
-                src={product.images[0]}
-                alt={product.name}
-                fill
-                className="object-cover transition-all duration-700 group-hover:scale-110 group-hover:rotate-1"
-              />
-              {/* Premium image overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-            </>
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-muted/50">
-              <Package className="h-16 w-16 text-muted-foreground/30" />
-            </div>
+      <div style={{ perspective: '1000px' }} className={cn('h-full', className)}>
+        <motion.div
+          ref={cardRef}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          style={tiltEnabled ? { rotateX, rotateY, transformStyle: 'preserve-3d' } : undefined}
+          className={cn(
+            'group relative flex h-full flex-col overflow-hidden rounded-2xl',
+            'border border-border/50 bg-gradient-to-br from-card/80 via-card to-card/90',
+            'shadow-lg transition-[border-color,box-shadow] duration-500 hover:border-secondary/40 hover:shadow-2xl hover:shadow-primary/10'
           )}
-          
-          {/* Badges - Premium Style */}
-          <div className="absolute top-3 right-3 flex flex-col gap-2">
-            {product.discountPrice && (
-              <motion.div
-                initial={prefersReducedMotion ? false : { scale: 0, rotate: -10 }}
-                animate={prefersReducedMotion ? {} : { scale: 1, rotate: 0 }}
-                transition={prefersReducedMotion ? {} : { type: 'spring', stiffness: 500, damping: 30 }}
-              >
-                <Badge className="bg-gradient-to-r from-red-600 to-red-500 text-white font-bold shadow-lg shadow-red-500/30 px-3">
-                  <Sparkles className="h-3 w-3 ml-1" />
-                  {discountPercentage}% تخفیف
-                </Badge>
-              </motion.div>
-            )}
-            {product.featured && !product.discountPrice && (
-              <Badge className="bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/30">
-                <Star className="h-3 w-3 ml-1 fill-current" />
-                پیشنهادی
-              </Badge>
-            )}
-          </div>
-
-          {/* Out of Stock Overlay - Premium */}
-          {!product.stock && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30 backdrop-blur-sm flex items-center justify-center">
-              <span className="text-white text-lg font-bold px-6 py-3 bg-black/60 rounded-xl border border-white/10">
-                ناموجود
-              </span>
-            </div>
-          )}
-
-          {/* Quick View Button - Premium */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-4">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <Button 
-                variant="secondary" 
-                size="sm" 
-                className="gap-2 backdrop-blur-md bg-white/20 border border-white/30 text-white hover:bg-white/30 shadow-xl"
-                onClick={handleQuickView}
-              >
-                <Eye className="h-4 w-4" />
-                مشاهده سریع
-              </Button>
-            </motion.div>
-          </div>
-        </div>
-      </Link>
-
-      <CardContent className="p-5 flex-1 flex flex-col relative">
-        {/* Gold accent line */}
-        <div className="absolute top-0 left-5 right-5 h-px bg-gradient-to-r from-transparent via-secondary/30 to-transparent" />
-        
-        {/* Rating - Premium */}
-        {product.rating && (
-          <div className="flex items-center gap-1 mb-3">
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star 
-                  key={i}
+        >
+          {/* Media */}
+          <div ref={imgRef} className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
+            <Link href={href} className="absolute inset-0 block" aria-label={product.name} tabIndex={-1}>
+              {product.images[0] ? (
+                <Image
+                  src={product.images[0]}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                   className={cn(
-                    "h-3.5 w-3.5",
-                    i < Math.floor(product.rating!) 
-                      ? "fill-yellow-500 text-yellow-500" 
-                      : "fill-muted text-muted"
+                    'object-cover transition-transform duration-700 group-hover:scale-105',
+                    !inStock && 'grayscale'
                   )}
                 />
-              ))}
+              ) : (
+                <span className="flex h-full w-full items-center justify-center">
+                  <Package className="h-16 w-16 text-muted-foreground/30" aria-hidden="true" />
+                </span>
+              )}
+              <span className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+            </Link>
+
+            {/* Badges */}
+            <div className="pointer-events-none absolute start-3 top-3 flex flex-col gap-2">
+              {percent > 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
+                  <Sparkles className="h-3 w-3" aria-hidden="true" />
+                  {toPersianDigits(percent)}٪ تخفیف
+                </span>
+              )}
+              {product.featured && percent === 0 && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-primary/80 px-2.5 py-1 text-[11px] font-bold text-primary-foreground shadow-lg shadow-primary/30">
+                  <Star className="h-3 w-3 fill-current" aria-hidden="true" />
+                  پیشنهادی
+                </span>
+              )}
             </div>
-            <span className="text-sm font-medium text-foreground">{product.rating}</span>
-            {product.reviewCount && (
-              <span className="text-xs text-muted-foreground">
-                ({product.reviewCount} نظر)
-              </span>
-            )}
-          </div>
-        )}
 
-        <Link href={`/products/${product.id}`}>
-          <h3 className="text-base font-bold text-foreground mb-1 group-hover:text-primary transition-colors line-clamp-1">
-            {product.name}
-          </h3>
-          <p className="text-xs text-muted-foreground mb-1 font-medium">{product.nameEn}</p>
-        </Link>
-
-        <p className="text-sm text-muted-foreground mb-4 line-clamp-2 flex-1 leading-relaxed">
-          {product.description}
-        </p>
-
-        <div className="flex items-center justify-between mt-auto pt-4 border-t border-border/50">
-          <div className="flex flex-col">
-            {product.discountPrice ? (
-              <>
-                <span className="text-xl font-black bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
-                  {formatPrice(product.discountPrice)}
-                </span>
-                <span className="text-xs text-muted-foreground line-through">
-                  {formatPrice(product.price)}
-                </span>
-              </>
-            ) : (
-              <span className="text-xl font-black text-foreground">
-                {formatPrice(product.price)}
-              </span>
-            )}
-          </div>
-
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <Button
-              size="icon"
-              onClick={handleAddToCart}
-              disabled={!product.stock}
+            {/* Quick actions: always visible on touch layouts, hover-revealed on desktop */}
+            <div
               className={cn(
-                "rounded-xl h-11 w-11",
-                "bg-gradient-to-br from-primary to-primary/80",
-                "hover:from-primary/90 hover:to-primary/70",
-                "shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30",
-                "transition-all duration-300"
+                'absolute end-3 top-3 flex flex-col gap-2 transition-opacity duration-300',
+                'lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100'
               )}
             >
-              <ShoppingCart className="h-5 w-5" />
-            </Button>
-          </motion.div>
-        </div>
-      </CardContent>
-    </Card>
-    </motion.div>
-    </div>
+              <IconButton
+                label={wished ? 'حذف از علاقه‌مندی‌ها' : 'افزودن به علاقه‌مندی‌ها'}
+                icon={<Heart className={cn(wished && 'fill-current')} />}
+                variant="glass"
+                active={wished}
+                onClick={handleToggleWishlist}
+                className={cn(
+                  'bg-background/70 text-foreground shadow-md',
+                  wished && 'bg-red-500 text-white hover:bg-red-500/90'
+                )}
+              />
+              <IconButton
+                label="مشاهده سریع"
+                icon={<Eye />}
+                variant="glass"
+                onClick={() => setShowQuickView(true)}
+                className="bg-background/70 text-foreground shadow-md"
+              />
+            </div>
 
-    {/* Quick View Modal */}
-    <QuickViewModal
-      product={product}
-      isOpen={showQuickView}
-      onClose={() => setShowQuickView(false)}
-    />
+            {!inStock && (
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-[2px]">
+                <span className="rounded-xl border border-white/15 bg-black/60 px-5 py-2 text-base font-bold text-white">
+                  ناموجود
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Body */}
+          <div className="relative flex flex-1 flex-col p-4 sm:p-5">
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-secondary/30 to-transparent"
+            />
+
+            {product.rating ? (
+              <div className="mb-2 flex items-center gap-1.5 text-xs">
+                <Star className="h-3.5 w-3.5 fill-secondary text-secondary" aria-hidden="true" />
+                <span className="font-semibold text-foreground">{toPersianDigits(product.rating)}</span>
+                {product.reviewCount ? (
+                  <span className="text-muted-foreground">
+                    ({toPersianDigits(product.reviewCount)} نظر)
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+
+            <Link href={href} className="group/title outline-none focus-visible:underline">
+              <h3 className="line-clamp-1 text-base font-bold text-foreground transition-colors group-hover/title:text-primary">
+                {product.name}
+              </h3>
+              {product.brand ? (
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground">{product.brand}</p>
+              ) : (
+                <p className="mt-0.5 text-xs font-medium text-muted-foreground" dir="ltr">
+                  {product.nameEn}
+                </p>
+              )}
+            </Link>
+
+            <p className="mb-4 mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-muted-foreground">
+              {product.shortDescription ?? product.description}
+            </p>
+
+            <div className="mt-auto flex items-center justify-between gap-3 border-t border-border/50 pt-4">
+              <div className="flex min-w-0 flex-col leading-tight">
+                <span className="truncate text-lg font-black text-foreground tabular-nums">
+                  {formatToman(price)}
+                </span>
+                {percent > 0 && (
+                  <span className="text-xs text-muted-foreground line-through tabular-nums">
+                    {formatToman(product.price)}
+                  </span>
+                )}
+              </div>
+
+              <IconButton
+                label={inStock ? `افزودن ${product.name} به سبد خرید` : 'ناموجود'}
+                icon={<ShoppingCart />}
+                variant="primary"
+                disabled={!inStock}
+                onClick={handleAddToCart}
+                className="rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+              />
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <QuickViewModal
+        product={product}
+        isOpen={showQuickView}
+        onClose={() => setShowQuickView(false)}
+      />
     </>
   );
 };

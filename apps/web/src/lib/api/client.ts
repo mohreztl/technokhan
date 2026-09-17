@@ -1,213 +1,169 @@
-import { API_BASE_URL } from '@autolounge/shared';
-import type {
-  Product,
-  Service,
-  Booking,
-  Order,
-  User,
-  ApiResponse,
-  OTPRequest,
-  OTPVerification,
-  AuthResponse,
-} from '@autolounge/shared';
+import type { Pagination } from '@autolounge/shared';
+import { API_PREFIX } from '@autolounge/shared';
+import { getAuthToken, useAuthStore } from '@/lib/store/auth-store';
 
-class ApiClient {
-  private baseUrl: string;
-  private token: string | null = null;
+export type ApiOk<T> = { ok: true; data: T; pagination?: Pagination; status: number };
+export type ApiErr = {
+  ok: false;
+  error: string;
+  status: number;
+  code?: string;
+  /** network failure / timeout — the API is unreachable */
+  offline: boolean;
+  details?: unknown;
+};
+export type ApiResult<T> = ApiOk<T> | ApiErr;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+export interface ApiFetchOptions extends Omit<RequestInit, 'body' | 'headers'> {
+  body?: unknown;
+  headers?: Record<string, string>;
+  /** abort after N ms (default 8000) */
+  timeoutMs?: number;
+  /** attach the bearer token when available (default true) */
+  auth?: boolean;
+  /** Next.js fetch cache options (server only) */
+  next?: { revalidate?: number | false; tags?: string[] };
+}
+
+const isServer = typeof window === 'undefined';
+
+export function apiHost(): string {
+  if (isServer) {
+    return (
+      process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+    ).replace(/\/$/, '');
+  }
+  return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+}
+
+export function apiBase(): string {
+  return `${apiHost()}${API_PREFIX}`;
+}
+
+export function isDemoMode(): boolean {
+  return process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+}
+
+export const NETWORK_ERROR_MESSAGE = 'ارتباط با سرور برقرار نشد';
+
+export function buildQuery(params?: Record<string, unknown>): string {
+  if (!params) return '';
+  const sp = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v === undefined || v === null || v === '') return;
+    if (Array.isArray(v)) v.forEach((x) => sp.append(k, String(x)));
+    else sp.append(k, String(v));
+  });
+  const q = sp.toString();
+  return q ? `?${q}` : '';
+}
+
+/**
+ * Isomorphic fetch wrapper for the AutoLounge API. Never throws.
+ * Parses the `{ success, data, pagination, error, code }` envelope.
+ */
+export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Promise<ApiResult<T>> {
+  const { body, headers = {}, timeoutMs = 8000, auth = true, next, ...init } = opts;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  const finalHeaders: Record<string, string> = { Accept: 'application/json', ...headers };
+  if (body !== undefined && !(body instanceof FormData)) {
+    finalHeaders['Content-Type'] = 'application/json';
+  }
+  if (auth && !isServer) {
+    const token = getAuthToken();
+    if (token) finalHeaders.Authorization = `Bearer ${token}`;
   }
 
-  setToken(token: string | null) {
-    this.token = token;
-  }
+  try {
+    const res = await fetch(`${apiBase()}${path}`, {
+      ...init,
+      headers: finalHeaders,
+      body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body),
+      signal: controller.signal,
+      ...(next && isServer ? { next } : {}),
+      cache: init.cache ?? (next ? undefined : 'no-store'),
+    } as RequestInit);
 
-  private async request<T>(
-    endpoint: string,
-    options: RequestInit = {}
-  ): Promise<ApiResponse<T>> {
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
-
-    if (this.token) {
-      (headers as Record<string, string>)['Authorization'] = `Bearer ${this.token}`;
+    let json: any = null;
+    const text = await res.text();
+    if (text) {
+      try {
+        json = JSON.parse(text);
+      } catch {
+        json = null;
+      }
     }
 
-    try {
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        ...options,
-        headers,
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        return {
-          success: false,
-          error: data.message || 'خطا در برقراری ارتباط با سرور',
-        };
+    if (!res.ok || (json && json.success === false)) {
+      if (res.status === 401 && !isServer && auth) {
+        useAuthStore.getState().logout();
       }
-
-      return { success: true, data };
-    } catch (error) {
-      console.error('API Error:', error);
       return {
-        success: false,
-        error: 'خطا در برقراری ارتباط با سرور',
+        ok: false,
+        status: res.status,
+        error: json?.error || json?.message || httpErrorMessage(res.status),
+        code: json?.code,
+        details: json?.details,
+        offline: false,
       };
     }
-  }
 
-  // Auth APIs
-  async sendOTP(data: OTPRequest): Promise<ApiResponse<{ message: string }>> {
-    return this.request('/auth/send-otp', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async verifyOTP(data: OTPVerification): Promise<ApiResponse<AuthResponse>> {
-    return this.request('/auth/verify-otp', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async getProfile(): Promise<ApiResponse<User>> {
-    return this.request('/auth/profile');
-  }
-
-  async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request('/auth/profile', {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    });
-  }
-
-  // Products APIs
-  async getProducts(params?: {
-    category?: string;
-    featured?: boolean;
-    search?: string;
-    page?: number;
-    limit?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }): Promise<ApiResponse<{ products: Product[]; total: number; pages: number }>> {
-    const searchParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          searchParams.append(key, String(value));
-        }
-      });
-    }
-    return this.request(`/products?${searchParams.toString()}`);
-  }
-
-  async getProduct(id: string): Promise<ApiResponse<Product>> {
-    return this.request(`/products/${id}`);
-  }
-
-  async getFeaturedProducts(): Promise<ApiResponse<Product[]>> {
-    return this.request('/products?featured=true&limit=8');
-  }
-
-  // Services APIs
-  async getServices(params?: {
-    type?: string;
-    featured?: boolean;
-    search?: string;
-    page?: number;
-    limit?: number;
-  }): Promise<ApiResponse<{ services: Service[]; total: number; pages: number }>> {
-    const searchParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          searchParams.append(key, String(value));
-        }
-      });
-    }
-    return this.request(`/services?${searchParams.toString()}`);
-  }
-
-  async getService(id: string): Promise<ApiResponse<Service>> {
-    return this.request(`/services/${id}`);
-  }
-
-  async getFeaturedServices(): Promise<ApiResponse<Service[]>> {
-    return this.request('/services?featured=true&limit=6');
-  }
-
-  // Booking APIs
-  async createBooking(data: Omit<Booking, 'id' | 'createdAt' | 'updatedAt'>): Promise<ApiResponse<Booking>> {
-    return this.request('/bookings', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async getBookings(): Promise<ApiResponse<Booking[]>> {
-    return this.request('/bookings');
-  }
-
-  async getBooking(id: string): Promise<ApiResponse<Booking>> {
-    return this.request(`/bookings/${id}`);
-  }
-
-  async cancelBooking(id: string): Promise<ApiResponse<Booking>> {
-    return this.request(`/bookings/${id}/cancel`, {
-      method: 'POST',
-    });
-  }
-
-  async getAvailableSlots(date: string, serviceId: string): Promise<ApiResponse<string[]>> {
-    return this.request(`/bookings/available-slots?date=${date}&serviceId=${serviceId}`);
-  }
-
-  // Orders APIs
-  async createOrder(data: {
-    items: { productId: string; quantity: number }[];
-    shippingAddress: {
-      fullName: string;
-      phoneNumber: string;
-      province: string;
-      city: string;
-      postalCode: string;
-      addressLine: string;
+    const data = (json && 'data' in json ? json.data : json) as T;
+    return { ok: true, data, pagination: json?.pagination, status: res.status };
+  } catch (err) {
+    const aborted = (err as Error)?.name === 'AbortError';
+    return {
+      ok: false,
+      status: 0,
+      error: aborted ? 'پاسخ سرور بیش از حد طول کشید' : NETWORK_ERROR_MESSAGE,
+      code: aborted ? 'TIMEOUT' : 'NETWORK',
+      offline: true,
     };
-  }): Promise<ApiResponse<Order>> {
-    return this.request('/orders', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  }
-
-  async getOrders(): Promise<ApiResponse<Order[]>> {
-    return this.request('/orders');
-  }
-
-  async getOrder(id: string): Promise<ApiResponse<Order>> {
-    return this.request(`/orders/${id}`);
-  }
-
-  // Contact Form
-  async submitContactForm(data: {
-    name: string;
-    email: string;
-    phone: string;
-    subject: string;
-    message: string;
-  }): Promise<ApiResponse<{ message: string }>> {
-    return this.request('/contact', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
+  } finally {
+    clearTimeout(timer);
   }
 }
 
-export const api = new ApiClient(API_BASE_URL);
+function httpErrorMessage(status: number): string {
+  switch (status) {
+    case 400:
+      return 'اطلاعات ارسال‌شده معتبر نیست';
+    case 401:
+      return 'لطفاً وارد حساب کاربری خود شوید';
+    case 403:
+      return 'شما دسترسی لازم را ندارید';
+    case 404:
+      return 'موردی یافت نشد';
+    case 409:
+      return 'درخواست با وضعیت فعلی تداخل دارد';
+    case 429:
+      return 'تعداد درخواست‌ها زیاد است، کمی بعد تلاش کنید';
+    default:
+      return 'خطایی در سرور رخ داد';
+  }
+}
+
+/** Convenience helpers */
+export const apiGet = <T>(path: string, opts?: ApiFetchOptions) =>
+  apiFetch<T>(path, { ...opts, method: 'GET' });
+export const apiPost = <T>(path: string, body?: unknown, opts?: ApiFetchOptions) =>
+  apiFetch<T>(path, { ...opts, method: 'POST', body });
+export const apiPut = <T>(path: string, body?: unknown, opts?: ApiFetchOptions) =>
+  apiFetch<T>(path, { ...opts, method: 'PUT', body });
+export const apiDelete = <T>(path: string, opts?: ApiFetchOptions) =>
+  apiFetch<T>(path, { ...opts, method: 'DELETE' });
+
+/** Throws on failure — for React Query `queryFn`s */
+export async function unwrap<T>(p: Promise<ApiResult<T>>): Promise<T> {
+  const r = await p;
+  if (!r.ok) {
+    const e = new Error(r.error) as Error & { status: number; code?: string; offline: boolean };
+    e.status = r.status;
+    e.code = r.code;
+    e.offline = r.offline;
+    throw e;
+  }
+  return r.data;
+}

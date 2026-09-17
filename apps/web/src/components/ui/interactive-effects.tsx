@@ -1,16 +1,27 @@
 'use client';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, useMotionValue, useSpring, AnimatePresence } from 'framer-motion';
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useScroll,
+  AnimatePresence,
+} from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useIsCoarsePointer } from '@/lib/hooks/use-media-query';
+import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
+
+const INTERACTIVE_SELECTOR = 'a, button, [role="button"], .cursor-hover';
 
 /**
- * Custom Cursor - کرسور سفارشی
+ * Custom Cursor - کرسور سفارشی (mouse only; delegated listeners, fully cleaned up)
  */
 export function CustomCursor({ className }: { className?: string }) {
   const [isVisible, setIsVisible] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [isClicking, setIsClicking] = useState(false);
+  const coarse = useIsCoarsePointer();
 
   const cursorX = useMotionValue(-100);
   const cursorY = useMotionValue(-100);
@@ -20,71 +31,52 @@ export function CustomCursor({ className }: { className?: string }) {
   const cursorYSpring = useSpring(cursorY, springConfig);
 
   useEffect(() => {
+    if (coarse) return;
+
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX);
       cursorY.set(e.clientY);
       setIsVisible(true);
     };
-
     const handleMouseDown = () => setIsClicking(true);
     const handleMouseUp = () => setIsClicking(false);
-
-    const handleMouseEnter = (e: MouseEvent) => {
-      const target = e.target as HTMLElement;
-      if (
-        target.tagName === 'A' ||
-        target.tagName === 'BUTTON' ||
-        target.closest('a') ||
-        target.closest('button') ||
-        target.classList.contains('cursor-hover')
-      ) {
-        setIsHovering(true);
-      }
+    const handleLeaveWindow = () => setIsVisible(false);
+    // Event delegation instead of per-element listeners (works for elements mounted later, nothing leaks)
+    const handleOver = (e: MouseEvent) => {
+      const target = e.target as Element | null;
+      setIsHovering(Boolean(target?.closest?.(INTERACTIVE_SELECTOR)));
     };
 
-    const handleMouseLeave = () => {
-      setIsHovering(false);
-    };
-
-    window.addEventListener('mousemove', moveCursor);
+    window.addEventListener('mousemove', moveCursor, { passive: true });
     window.addEventListener('mousedown', handleMouseDown);
     window.addEventListener('mouseup', handleMouseUp);
-
-    document.querySelectorAll('a, button, .cursor-hover').forEach((el) => {
-      el.addEventListener('mouseenter', handleMouseEnter as EventListener);
-      el.addEventListener('mouseleave', handleMouseLeave);
-    });
+    document.addEventListener('mouseover', handleOver);
+    document.documentElement.addEventListener('mouseleave', handleLeaveWindow);
 
     return () => {
       window.removeEventListener('mousemove', moveCursor);
       window.removeEventListener('mousedown', handleMouseDown);
       window.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseover', handleOver);
+      document.documentElement.removeEventListener('mouseleave', handleLeaveWindow);
     };
-  }, [cursorX, cursorY]);
+  }, [cursorX, cursorY, coarse]);
 
-  // Hide on touch devices
-  if (typeof window !== 'undefined' && 'ontouchstart' in window) {
-    return null;
-  }
+  if (coarse) return null;
 
   return (
     <>
-      {/* Main cursor dot */}
       <motion.div
+        aria-hidden="true"
         className={cn(
-          'fixed top-0 left-0 pointer-events-none z-[9999] mix-blend-difference',
+          'pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference',
           !isVisible && 'opacity-0',
           className
         )}
-        style={{
-          x: cursorXSpring,
-          y: cursorYSpring,
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
+        style={{ x: cursorXSpring, y: cursorYSpring, translateX: '-50%', translateY: '-50%' }}
       >
         <motion.div
-          className="bg-white rounded-full"
+          className="rounded-full bg-white"
           animate={{
             width: isClicking ? 8 : isHovering ? 40 : 12,
             height: isClicking ? 8 : isHovering ? 40 : 12,
@@ -93,21 +85,13 @@ export function CustomCursor({ className }: { className?: string }) {
         />
       </motion.div>
 
-      {/* Trailing ring */}
       <motion.div
-        className={cn(
-          'fixed top-0 left-0 pointer-events-none z-[9998]',
-          !isVisible && 'opacity-0'
-        )}
-        style={{
-          x: cursorX,
-          y: cursorY,
-          translateX: '-50%',
-          translateY: '-50%',
-        }}
+        aria-hidden="true"
+        className={cn('pointer-events-none fixed left-0 top-0 z-[9998]', !isVisible && 'opacity-0')}
+        style={{ x: cursorX, y: cursorY, translateX: '-50%', translateY: '-50%' }}
       >
         <motion.div
-          className="border-2 border-secondary/50 rounded-full"
+          className="rounded-full border-2 border-secondary/50"
           animate={{
             width: isHovering ? 60 : 40,
             height: isHovering ? 60 : 40,
@@ -134,6 +118,12 @@ export function RippleButton({
   rippleColor?: string;
 } & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([]);
+  const timers = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+  useEffect(() => {
+    const pending = timers.current;
+    return () => pending.forEach((t) => clearTimeout(t));
+  }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -142,30 +132,29 @@ export function RippleButton({
     const id = Date.now();
 
     setRipples((prev) => [...prev, { x, y, id }]);
-    setTimeout(() => {
+    const t = setTimeout(() => {
       setRipples((prev) => prev.filter((r) => r.id !== id));
+      timers.current.delete(t);
     }, 1000);
+    timers.current.add(t);
 
     props.onClick?.(e);
   };
 
   return (
     <button
+      type="button"
+      {...props}
       className={cn('relative overflow-hidden', className)}
       onClick={handleClick}
-      {...props}
     >
       {children}
       <AnimatePresence>
         {ripples.map((ripple) => (
           <motion.span
             key={ripple.id}
-            className="absolute rounded-full pointer-events-none"
-            style={{
-              left: ripple.x,
-              top: ripple.y,
-              backgroundColor: rippleColor,
-            }}
+            className="pointer-events-none absolute rounded-full"
+            style={{ left: ripple.x, top: ripple.y, backgroundColor: rippleColor }}
             initial={{ width: 0, height: 0, x: 0, y: 0, opacity: 0.5 }}
             animate={{ width: 500, height: 500, x: -250, y: -250, opacity: 0 }}
             exit={{ opacity: 0 }}
@@ -196,10 +185,7 @@ export function HoverReveal({
   const handleMouseMove = (e: React.MouseEvent) => {
     if (!ref.current) return;
     const rect = ref.current.getBoundingClientRect();
-    setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
-    });
+    setMousePosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   };
 
   return (
@@ -212,7 +198,7 @@ export function HoverReveal({
     >
       {children}
       <motion.div
-        className="absolute inset-0 pointer-events-none"
+        className="pointer-events-none absolute inset-0"
         style={{
           clipPath: isHovering
             ? `circle(100px at ${mousePosition.x}px ${mousePosition.y}px)`
@@ -242,20 +228,14 @@ export function MagneticLink({
 }) {
   const ref = useRef<HTMLAnchorElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const coarse = useIsCoarsePointer();
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
+    if (!ref.current || coarse) return;
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    setPosition({
-      x: (e.clientX - centerX) * strength,
-      y: (e.clientY - centerY) * strength,
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
+    setPosition({ x: (e.clientX - centerX) * strength, y: (e.clientY - centerY) * strength });
   };
 
   return (
@@ -264,7 +244,7 @@ export function MagneticLink({
       href={href}
       className={cn('inline-block', className)}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={() => setPosition({ x: 0, y: 0 })}
       animate={{ x: position.x, y: position.y }}
       transition={{ type: 'spring', stiffness: 350, damping: 15 }}
     >
@@ -292,48 +272,35 @@ export function TiltImage({
   const ref = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
   const [glare, setGlare] = useState({ x: 50, y: 50 });
+  const coarse = useIsCoarsePointer();
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!ref.current) return;
+    if (!ref.current || coarse) return;
     const rect = ref.current.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width;
     const y = (e.clientY - rect.top) / rect.height;
-
-    setTilt({
-      x: (y - 0.5) * maxTilt * 2,
-      y: (x - 0.5) * -maxTilt * 2,
-    });
-    setGlare({
-      x: x * 100,
-      y: y * 100,
-    });
-  };
-
-  const handleMouseLeave = () => {
-    setTilt({ x: 0, y: 0 });
+    setTilt({ x: (y - 0.5) * maxTilt * 2, y: (x - 0.5) * -maxTilt * 2 });
+    setGlare({ x: x * 100, y: y * 100 });
   };
 
   return (
     <div
       ref={ref}
-      className={cn('relative perspective-1000', containerClassName)}
+      className={cn('relative', containerClassName)}
       style={{ perspective: '1000px' }}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      onMouseLeave={() => setTilt({ x: 0, y: 0 })}
     >
       <motion.div
         className="relative"
-        animate={{
-          rotateX: tilt.x,
-          rotateY: tilt.y,
-        }}
+        animate={{ rotateX: tilt.x, rotateY: tilt.y }}
         transition={{ type: 'spring', stiffness: 300, damping: 20 }}
         style={{ transformStyle: 'preserve-3d' }}
       >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={src} alt={alt} className={cn('rounded-2xl', className)} />
-        {/* Glare effect */}
         <div
-          className="absolute inset-0 rounded-2xl pointer-events-none"
+          className="pointer-events-none absolute inset-0 rounded-2xl"
           style={{
             background: `radial-gradient(circle at ${glare.x}% ${glare.y}%, rgba(255,255,255,0.2) 0%, transparent 60%)`,
           }}
@@ -345,6 +312,7 @@ export function TiltImage({
 
 /**
  * Scroll Progress - نوار پیشرفت اسکرول
+ * Driven by a motion value (no React state, no re-render per scroll frame).
  */
 export function ScrollProgress({
   className,
@@ -353,26 +321,18 @@ export function ScrollProgress({
   className?: string;
   color?: string;
 }) {
-  const [progress, setProgress] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollTop = window.scrollY;
-      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
-      const scrollPercent = (scrollTop / docHeight) * 100;
-      setProgress(scrollPercent);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const { scrollYProgress } = useScroll();
+  const reduced = useReducedMotion();
+  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, mass: 0.3 });
 
   return (
-    <div className={cn('fixed top-0 left-0 right-0 h-1 z-50', className)}>
+    <div
+      className={cn('pointer-events-none fixed inset-x-0 top-0 z-[60] h-1', className)}
+      aria-hidden="true"
+    >
       <motion.div
-        className={cn('h-full', color)}
-        style={{ width: `${progress}%` }}
-        transition={{ duration: 0.1 }}
+        className={cn('h-full origin-right', color)}
+        style={{ scaleX: reduced ? scrollYProgress : scaleX }}
       />
     </div>
   );

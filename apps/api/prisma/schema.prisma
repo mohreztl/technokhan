@@ -27,6 +27,11 @@ enum PaymentStatus {
   refunded
 }
 
+enum PaymentMethod {
+  zarinpal
+  cod
+}
+
 enum BookingStatus {
   pending
   confirmed
@@ -36,19 +41,20 @@ enum BookingStatus {
 }
 
 model User {
-  id          String    @id @default(cuid())
-  phoneNumber String    @unique
+  id          String   @id @default(cuid())
+  phoneNumber String   @unique
   name        String?
   email       String?
-  role        UserRole  @default(customer)
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  bookings    Booking[]
-  orders      Order[]
-  addresses   Address[]
-  
+  role        UserRole @default(customer)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings  Booking[]
+  orders    Order[]
+  addresses Address[]
+  reviews   Review[]
+
   @@index([phoneNumber])
   @@index([role])
 }
@@ -65,115 +71,139 @@ model Address {
   isDefault   Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
 }
 
 model OTP {
-  id          String    @id @default(cuid())
+  id          String   @id @default(cuid())
   phoneNumber String
-  code        String    // Now stores hashed OTP
+  code        String // bcrypt hash of the 6-digit code
   expiresAt   DateTime
-  used        Boolean   @default(false)
-  attempts    Int       @default(0)
-  createdAt   DateTime  @default(now())
-  
+  used        Boolean  @default(false)
+  attempts    Int      @default(0)
+  createdAt   DateTime @default(now())
+
   @@index([phoneNumber, code])
   @@index([phoneNumber, expiresAt])
 }
 
 model Product {
-  id              String   @id @default(cuid())
-  name            String
-  nameEn          String
-  description     String   @db.Text
-  descriptionEn   String   @db.Text
-  price           Float
-  discountPrice   Float?
-  category        String
-  images          String[]
-  stock           Int      @default(0)
-  featured        Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  rating          Float?   @default(0)
-  reviewCount     Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  orderItems      OrderItem[]
-  reviews         Review[]
-  
+  id               String   @id @default(cuid())
+  name             String
+  nameEn           String
+  description      String   @db.Text
+  descriptionEn    String   @db.Text
+  shortDescription String?
+  price            Float
+  discountPrice    Float?
+  category         String
+  images           String[]
+  stock            Int      @default(0)
+  featured         Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  brand            String?
+  sku              String?
+  specifications   Json?
+  features         String[] @default([])
+  tags             String[] @default([])
+  rating           Float?   @default(0)
+  reviewCount      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  orderItems OrderItem[]
+  reviews    Review[]
+
   @@index([category])
   @@index([featured])
   @@index([isActive])
 }
 
 model Service {
-  id              String   @id @default(cuid())
-  name            String
-  nameEn          String
-  description     String   @db.Text
-  descriptionEn   String   @db.Text
-  price           Float
-  duration        Int      // in minutes
-  type            String
-  images          String[]
-  featured        Boolean  @default(false)
-  isActive        Boolean  @default(true)
-  rating          Float?   @default(0)
-  reviewCount     Int      @default(0)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  
-  bookings        Booking[]
-  reviews         Review[]
-  
+  id               String   @id @default(cuid())
+  name             String
+  nameEn           String
+  description      String   @db.Text
+  descriptionEn    String   @db.Text
+  shortDescription String?
+  price            Float
+  duration         Int // in minutes
+  type             String
+  images           String[]
+  featured         Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  features         String[] @default([])
+  steps            Json?
+  faq              Json?
+  pricing          Json?
+  addons           Json?
+  gallery          String[] @default([])
+  beforeAfter      Json?
+  warrantyMonths   Int?
+  tags             String[] @default([])
+  rating           Float?   @default(0)
+  reviewCount      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  bookings Booking[]
+  reviews  Review[]
+
   @@index([type])
   @@index([featured])
   @@index([isActive])
 }
 
 model Review {
-  id          String   @id @default(cuid())
-  userId      String
-  productId   String?
-  serviceId   String?
-  rating      Int      // 1-5
-  comment     String?  @db.Text
-  isApproved  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  product     Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
-  service     Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
+  id           String   @id @default(cuid())
+  userId       String
+  userName     String
+  productId    String?
+  serviceId    String?
+  rating       Int // 1-5
+  comment      String?  @db.Text
+  helpfulCount Int      @default(0)
+  isApproved   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  service Service? @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
   @@index([productId])
   @@index([serviceId])
   @@index([isApproved])
 }
 
 model Booking {
-  id          String        @id @default(cuid())
-  userId      String
-  serviceId   String
-  date        DateTime
-  timeSlot    String
-  location    String
-  carModel    String
-  carYear     Int
-  carColor    String
-  carPlate    String?
-  notes       String?       @db.Text
-  status      BookingStatus @default(pending)
-  totalPrice  Float
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-  
-  user        User          @relation(fields: [userId], references: [id])
-  service     Service       @relation(fields: [serviceId], references: [id])
-  
+  id           String        @id @default(cuid())
+  userId       String
+  serviceId    String
+  date         DateTime
+  timeSlot     String
+  location     String
+  carModel     String
+  carYear      Int
+  carColor     String
+  carPlate     String?
+  vehicleSize  String?
+  addonIds     String[]      @default([])
+  notes        String?       @db.Text
+  status       BookingStatus @default(pending)
+  totalPrice   Float
+  trackingCode String?       @unique
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  user         User                 @relation(fields: [userId], references: [id])
+  service      Service              @relation(fields: [serviceId], references: [id])
+  transactions PaymentTransaction[]
+
   @@index([userId])
   @@index([serviceId])
   @@index([date])
@@ -183,55 +213,77 @@ model Booking {
 model Order {
   id              String        @id @default(cuid())
   userId          String
+  subtotal        Float         @default(0)
+  discount        Float         @default(0)
+  shippingCost    Float         @default(0)
   totalPrice      Float
   shippingAddress Json
   status          OrderStatus   @default(pending)
   paymentStatus   PaymentStatus @default(pending)
+  paymentMethod   PaymentMethod @default(zarinpal)
+  couponCode      String?
   trackingCode    String?
   notes           String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  
-  user            User          @relation(fields: [userId], references: [id])
-  items           OrderItem[]
-  transactions    PaymentTransaction[]
-  
+
+  user         User                 @relation(fields: [userId], references: [id])
+  items        OrderItem[]
+  transactions PaymentTransaction[]
+
   @@index([userId])
   @@index([status])
   @@index([paymentStatus])
 }
 
 model OrderItem {
-  id        String  @id @default(cuid())
+  id        String @id @default(cuid())
   orderId   String
   productId String
   quantity  Int
   price     Float
-  
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product   Product @relation(fields: [productId], references: [id])
-  
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
   @@index([orderId])
   @@index([productId])
 }
 
 model PaymentTransaction {
-  id            String   @id @default(cuid())
-  orderId       String
-  amount        Float
-  authority     String?  @unique
-  refId         String?
-  status        String   @default("pending")
-  gateway       String   @default("zarinpal")
-  cardNumber    String?
-  errorCode     String?
-  errorMessage  String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
+  id           String   @id @default(cuid())
+  orderId      String?
+  bookingId    String?
+  amount       Float
+  authority    String?  @unique
+  refId        String?
+  status       String   @default("pending")
+  gateway      String   @default("zarinpal")
+  cardNumber   String?
+  errorCode    String?
+  errorMessage String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  order   Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  booking Booking? @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
   @@index([orderId])
+  @@index([bookingId])
   @@index([authority])
   @@index([status])
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  subject   String
+  message   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([isRead])
+  @@index([createdAt])
 }

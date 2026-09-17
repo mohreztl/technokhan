@@ -20,30 +20,26 @@ interface AccordionProps {
   className?: string;
 }
 
-export function Accordion({
-  type = 'single',
-  defaultValue = [],
-  children,
-  className,
-}: AccordionProps) {
+export function Accordion({ type = 'single', defaultValue = [], children, className }: AccordionProps) {
   const [openItems, setOpenItems] = React.useState<string[]>(
     Array.isArray(defaultValue) ? defaultValue : [defaultValue]
   );
 
-  const toggleItem = (value: string) => {
-    if (type === 'single') {
-      setOpenItems(openItems.includes(value) ? [] : [value]);
-    } else {
-      setOpenItems(
-        openItems.includes(value)
-          ? openItems.filter((item) => item !== value)
-          : [...openItems, value]
-      );
-    }
-  };
+  const toggleItem = React.useCallback(
+    (value: string) => {
+      setOpenItems((current) => {
+        const isOpen = current.includes(value);
+        if (type === 'single') return isOpen ? [] : [value];
+        return isOpen ? current.filter((item) => item !== value) : [...current, value];
+      });
+    },
+    [type]
+  );
+
+  const ctx = React.useMemo(() => ({ openItems, toggleItem, type }), [openItems, toggleItem, type]);
 
   return (
-    <AccordionContext.Provider value={{ openItems, toggleItem, type }}>
+    <AccordionContext.Provider value={ctx}>
       <div className={cn('w-full', className)}>{children}</div>
     </AccordionContext.Provider>
   );
@@ -55,11 +51,22 @@ interface AccordionItemProps {
   className?: string;
 }
 
-const AccordionItemContext = React.createContext<string | undefined>(undefined);
+interface AccordionItemContextType {
+  value: string;
+  triggerId: string;
+  contentId: string;
+}
+
+const AccordionItemContext = React.createContext<AccordionItemContextType | undefined>(undefined);
 
 export function AccordionItem({ value, children, className }: AccordionItemProps) {
+  const id = React.useId();
+  const ctx = React.useMemo(
+    () => ({ value, triggerId: `${id}-trigger`, contentId: `${id}-content` }),
+    [id, value]
+  );
   return (
-    <AccordionItemContext.Provider value={value}>
+    <AccordionItemContext.Provider value={ctx}>
       <div className={cn('border-b border-border', className)} data-value={value}>
         {children}
       </div>
@@ -75,24 +82,30 @@ interface AccordionTriggerProps {
 export function AccordionTrigger({ children, className }: AccordionTriggerProps) {
   const context = React.useContext(AccordionContext);
   if (!context) throw new Error('AccordionTrigger must be used within Accordion');
+  const item = React.useContext(AccordionItemContext);
+  if (!item) throw new Error('AccordionTrigger must be used within AccordionItem');
 
-  const { openItems, toggleItem } = context;
-  const parent = React.useContext(AccordionItemContext);
-  if (!parent) throw new Error('AccordionTrigger must be used within AccordionItem');
-
-  const isOpen = openItems.includes(parent);
+  const isOpen = context.openItems.includes(item.value);
 
   return (
     <button
-      onClick={() => toggleItem(parent)}
+      type="button"
+      id={item.triggerId}
+      aria-expanded={isOpen}
+      aria-controls={item.contentId}
+      onClick={() => context.toggleItem(item.value)}
       className={cn(
-        'flex w-full items-center justify-between py-4 text-right font-medium transition-all hover:text-primary',
+        'flex min-h-11 w-full items-center justify-between gap-3 py-3 text-start font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         className
       )}
     >
-      {children}
+      <span className="flex-1">{children}</span>
       <ChevronDown
-        className={cn('h-5 w-5 shrink-0 transition-transform duration-200', isOpen && 'rotate-180')}
+        aria-hidden="true"
+        className={cn(
+          'h-5 w-5 shrink-0 text-muted-foreground transition-transform duration-300',
+          isOpen && 'rotate-180 text-secondary'
+        )}
       />
     </button>
   );
@@ -106,25 +119,27 @@ interface AccordionContentProps {
 export function AccordionContent({ children, className }: AccordionContentProps) {
   const context = React.useContext(AccordionContext);
   if (!context) throw new Error('AccordionContent must be used within Accordion');
+  const item = React.useContext(AccordionItemContext);
+  if (!item) throw new Error('AccordionContent must be used within AccordionItem');
 
-  const { openItems } = context;
-  const itemElement = React.useContext(AccordionItemContext);
-
-  // Get value from parent AccordionItem
-  const value = itemElement || '';
-  const isOpen = openItems.includes(value);
+  const isOpen = context.openItems.includes(item.value);
 
   return (
     <AnimatePresence initial={false}>
       {isOpen && (
         <motion.div
+          id={item.contentId}
+          role="region"
+          aria-labelledby={item.triggerId}
           initial={{ height: 0, opacity: 0 }}
           animate={{ height: 'auto', opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          transition={{ duration: 0.28, ease: 'easeInOut' }}
           className="overflow-hidden"
         >
-          <div className={cn('pb-4 pt-0 text-muted-foreground', className)}>{children}</div>
+          <div className={cn('pb-4 pt-0 text-sm leading-7 text-muted-foreground', className)}>
+            {children}
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

@@ -3,6 +3,7 @@
 import { Toaster as SonnerToaster, toast } from 'sonner';
 import { useTheme } from 'next-themes';
 import { CheckCircle2, XCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { useCartStore } from '@/lib/store/cart-store';
 
 export function Toaster() {
   const { theme } = useTheme();
@@ -15,7 +16,7 @@ export function Toaster() {
       toastOptions={{
         duration: 4000,
         classNames: {
-          toast: 'group font-shabnam border-border bg-background text-foreground shadow-lg',
+          toast: 'group font-sans border-border bg-background text-foreground shadow-lg',
           title: 'font-bold text-foreground',
           description: 'text-muted-foreground text-sm',
           actionButton: 'bg-primary text-primary-foreground hover:bg-primary/90',
@@ -73,8 +74,7 @@ export const showToast = {
       action: {
         label: 'مشاهده سبد',
         onClick: () => {
-          // This will be handled by the cart context
-          window.dispatchEvent(new CustomEvent('open-cart'));
+          useCartStore.getState().openCart();
         },
       },
     });
@@ -92,7 +92,7 @@ export const showToast = {
       action: {
         label: 'مشاهده',
         onClick: () => {
-          window.location.href = '/profile?tab=favorites';
+          window.location.href = '/wishlist';
         },
       },
     });
@@ -122,7 +122,7 @@ export const showToast = {
       action: {
         label: 'پیگیری',
         onClick: () => {
-          window.location.href = `/profile?tab=orders`;
+          window.location.href = `/orders/${orderId}`;
         },
       },
       duration: 8000,
@@ -141,7 +141,7 @@ export const showToast = {
       action: {
         label: 'تلاش مجدد',
         onClick: () => {
-          // Retry payment logic
+          window.location.href = '/orders';
         },
       },
     });

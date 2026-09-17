@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
+import { Suspense } from 'react';
 import { ProfileClient } from './client';
 
 export const metadata: Metadata = {
-  title: 'پروفایل کاربری | اتولانژ',
+  title: 'پروفایل کاربری',
   description: 'مدیریت حساب کاربری، مشاهده سفارشات و رزروها در اتولانژ',
   robots: {
     index: false,
@@ -11,5 +12,9 @@ export const metadata: Metadata = {
 };
 
 export default function ProfilePage() {
-  return <ProfileClient />;
+  return (
+    <Suspense fallback={null}>
+      <ProfileClient />
+    </Suspense>
+  );
 }

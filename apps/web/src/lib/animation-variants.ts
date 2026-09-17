@@ -40,6 +40,67 @@ export const transitions = {
     duration: 0.4,
     ease: 'easeOut' as const,
   },
+  /** Sheets, drawers, tab indicators and the cart pill */
+  sheet: {
+    type: 'spring' as const,
+    damping: 28,
+    stiffness: 300,
+  },
+  /** Tab icon micro-bounce */
+  tab: {
+    type: 'spring' as const,
+    damping: 18,
+    stiffness: 400,
+    mass: 0.6,
+  },
+};
+
+/** `{ type: 'spring', damping: 28, stiffness: 300 }` — the app-shell spring. */
+export const springSheet: Transition = transitions.sheet;
+export const springTab: Transition = transitions.tab;
+
+// =============================================================================
+// APP SHELL (sheets, tab bar, pills)
+// =============================================================================
+
+export const sheetVariants: Variants = {
+  hidden: { y: '100%' },
+  visible: { y: 0, transition: transitions.sheet },
+  exit: { y: '100%', transition: { ...transitions.sheet, damping: 32 } },
+};
+
+export const slideUpIn: Variants = {
+  hidden: { y: 80, opacity: 0 },
+  visible: { y: 0, opacity: 1, transition: transitions.sheet },
+  exit: { y: 80, opacity: 0, transition: { duration: 0.2 } },
+};
+
+export const backdropVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.2 } },
+  exit: { opacity: 0, transition: { duration: 0.15 } },
+};
+
+/** Hero text block: direction-aware enter/exit for slide changes */
+export const heroContent: Variants = {
+  enter: (direction: number) => ({ opacity: 0, x: direction > 0 ? -32 : 32, y: 12 }),
+  center: {
+    opacity: 1,
+    x: 0,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1], staggerChildren: 0.08 },
+  },
+  exit: (direction: number) => ({
+    opacity: 0,
+    x: direction > 0 ? 32 : -32,
+    transition: { duration: 0.25, ease: 'easeIn' },
+  }),
+};
+
+export const heroItem: Variants = {
+  enter: { opacity: 0, y: 16 },
+  center: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
 };
 
 // =============================================================================

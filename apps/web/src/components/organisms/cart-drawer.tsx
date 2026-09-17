@@ -1,186 +1,392 @@
 'use client';
 
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { X, Plus, Minus, Trash2, ShoppingBag, ArrowLeft } from 'lucide-react';
-import { useCart } from '@/lib/store/cart-store';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  Check,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Ticket,
+  Trash2,
+  X,
+} from 'lucide-react';
+import {
+  ROUTES,
+  SHIPPING,
+  effectivePrice,
+  formatToman,
+  toPersianDigits,
+} from '@autolounge/shared';
+import { cn } from '@/lib/utils';
+import { useCart, type CartItem } from '@/lib/store/cart-store';
+import { useIsMobile } from '@/lib/hooks/use-media-query';
+import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
 import { Button } from '@/components/ui/button';
-import { ROUTES } from '@autolounge/shared';
-import { formatPrice } from '@/lib/utils';
+import { IconButton } from '@/components/ui/icon-button';
+import { BottomSheet, useFocusTrap } from '@/components/ui/bottom-sheet';
+import { showToast } from '@/components/ui/toaster';
+import { springSheet } from '@/lib/animation-variants';
 
-export const CartDrawer: React.FC = () => {
-  const { state, closeCart, removeItem, updateQuantity, totalItems, discountedPrice } = useCart();
+/* ------------------------------------------------------------------ */
+/* Pieces shared by the mobile sheet and the desktop drawer            */
+/* ------------------------------------------------------------------ */
+
+function EmptyCart({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="flex h-full min-h-[18rem] flex-col items-center justify-center py-10 text-center">
+      <div className="relative mb-5">
+        <span className="absolute inset-0 rounded-full bg-secondary/20 blur-2xl" aria-hidden="true" />
+        <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-secondary/25 ring-1 ring-secondary/30">
+          <ShoppingBag className="h-11 w-11 text-primary dark:text-secondary" aria-hidden="true" />
+        </span>
+      </div>
+      <h3 className="mb-1 text-lg font-bold text-foreground">سبد خرید شما خالی است</h3>
+      <p className="mb-6 max-w-xs text-sm text-muted-foreground">
+        محصولات حرفه‌ای دیتیلینگ را به سبد اضافه کنید تا اینجا ببینید
+      </p>
+      <Button asChild variant="primary" className="gap-2">
+        <Link href={ROUTES.PRODUCTS} onClick={onClose}>
+          مشاهده محصولات
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
+function CartLine({
+  item,
+  onRemove,
+  onQuantity,
+}: {
+  item: CartItem;
+  onRemove: () => void;
+  onQuantity: (q: number) => void;
+}) {
+  const { product, quantity } = item;
+  const unit = effectivePrice(product);
+  const hasDiscount = unit < product.price;
+  const maxQty = product.stock > 0 ? product.stock : 99;
+
+  return (
+    <motion.li
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -60, transition: { duration: 0.2 } }}
+      transition={springSheet}
+      className="flex gap-3 rounded-2xl border border-border/40 bg-card/60 p-3"
+    >
+      <Link
+        href={`${ROUTES.PRODUCTS}/${product.id}`}
+        className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-muted"
+        aria-label={product.name}
+      >
+        {product.images[0] ? (
+          <Image
+            src={product.images[0]}
+            alt={product.name}
+            fill
+            sizes="80px"
+            className="object-cover"
+          />
+        ) : (
+          <span className="flex h-full w-full items-center justify-center">
+            <ShoppingBag className="h-7 w-7 text-muted-foreground" aria-hidden="true" />
+          </span>
+        )}
+      </Link>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex items-start justify-between gap-2">
+          <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+            {product.name}
+          </h4>
+          <IconButton
+            label={`حذف ${product.name}`}
+            icon={<Trash2 />}
+            size="sm"
+            className="-me-2 -mt-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            onClick={onRemove}
+          />
+        </div>
+
+        <div className="mt-auto flex items-end justify-between gap-2 pt-2">
+          <div className="flex flex-col leading-tight">
+            <span className="text-sm font-bold text-primary dark:text-secondary tabular-nums">
+              {formatToman(unit * quantity)}
+            </span>
+            {hasDiscount && (
+              <span className="text-[11px] text-muted-foreground line-through tabular-nums">
+                {formatToman(product.price * quantity)}
+              </span>
+            )}
+          </div>
+
+          <div
+            className="flex items-center rounded-xl border border-border/50 bg-background/60"
+            role="group"
+            aria-label={`تعداد ${product.name}`}
+          >
+            <IconButton
+              label="کاهش تعداد"
+              icon={<Minus />}
+              size="sm"
+              className="rounded-xl"
+              onClick={() => onQuantity(quantity - 1)}
+            />
+            <span className="w-8 text-center text-sm font-bold tabular-nums" aria-live="polite">
+              {toPersianDigits(quantity)}
+            </span>
+            <IconButton
+              label="افزایش تعداد"
+              icon={<Plus />}
+              size="sm"
+              className="rounded-xl"
+              disabled={quantity >= maxQty}
+              onClick={() => onQuantity(quantity + 1)}
+            />
+          </div>
+        </div>
+      </div>
+    </motion.li>
+  );
+}
+
+function CouponField() {
+  const { couponCode, setCoupon, totals } = useCart();
+  const [code, setCode] = useState('');
+  const { coupon } = totals;
+
+  useEffect(() => {
+    if (!couponCode) setCode('');
+  }, [couponCode]);
+
+  const apply = () => {
+    const trimmed = code.trim();
+    if (!trimmed) return;
+    setCoupon(trimmed);
+  };
+
+  if (couponCode && coupon.valid) {
+    return (
+      <div className="flex items-center gap-2 rounded-xl border border-success/40 bg-success/10 px-3 py-2 text-sm">
+        <Check className="h-4 w-4 shrink-0 text-success" aria-hidden="true" />
+        <span className="min-w-0 flex-1 truncate text-foreground">
+          کد <span className="font-mono font-bold" dir="ltr">{couponCode}</span> اعمال شد
+          {coupon.message ? ` · ${coupon.message}` : ''}
+        </span>
+        <IconButton
+          label="حذف کد تخفیف"
+          icon={<X />}
+          size="sm"
+          onClick={() => setCoupon(null)}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <form
+      className="space-y-1.5"
+      onSubmit={(e) => {
+        e.preventDefault();
+        apply();
+      }}
+    >
+      <div className="flex items-center gap-2">
+        <label htmlFor="cart-coupon" className="sr-only">
+          کد تخفیف
+        </label>
+        <div className="relative flex-1">
+          <Ticket
+            className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <input
+            id="cart-coupon"
+            type="text"
+            inputMode="text"
+            autoComplete="off"
+            placeholder="کد تخفیف دارید؟"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            className="h-11 w-full rounded-xl border border-input bg-background/70 ps-9 pe-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+        <Button type="submit" variant="outline" size="sm" className="h-11" disabled={!code.trim()}>
+          اعمال
+        </Button>
+      </div>
+      {couponCode && !coupon.valid && coupon.message && (
+        <p className="text-xs text-destructive" role="alert">
+          {coupon.message}
+        </p>
+      )}
+    </form>
+  );
+}
+
+function Totals() {
+  const { totals } = useCart();
+  const row = 'flex items-center justify-between text-sm';
+  return (
+    <dl className="space-y-1.5">
+      <div className={row}>
+        <dt className="text-muted-foreground">جمع کالاها</dt>
+        <dd className="tabular-nums">{formatToman(totals.listTotal)}</dd>
+      </div>
+      {totals.productDiscount > 0 && (
+        <div className={row}>
+          <dt className="text-muted-foreground">تخفیف محصولات</dt>
+          <dd className="text-success tabular-nums">{formatToman(totals.productDiscount)}-</dd>
+        </div>
+      )}
+      {totals.couponDiscount > 0 && (
+        <div className={row}>
+          <dt className="text-muted-foreground">کد تخفیف</dt>
+          <dd className="text-success tabular-nums">{formatToman(totals.couponDiscount)}-</dd>
+        </div>
+      )}
+      <div className={row}>
+        <dt className="text-muted-foreground">هزینه ارسال</dt>
+        <dd className={cn('tabular-nums', totals.shipping === 0 && 'font-semibold text-success')}>
+          {totals.shipping === 0 ? 'رایگان' : formatToman(totals.shipping)}
+        </dd>
+      </div>
+      {totals.shipping > 0 && (
+        <p className="text-[11px] text-muted-foreground">
+          با خرید بالای {formatToman(SHIPPING.freeThreshold)} ارسال رایگان می‌شود
+        </p>
+      )}
+      <div className="flex items-center justify-between border-t border-border/40 pt-2">
+        <dt className="font-bold text-foreground">مبلغ قابل پرداخت</dt>
+        <dd className="text-lg font-black text-primary dark:text-secondary tabular-nums">
+          {formatToman(totals.total)}
+        </dd>
+      </div>
+    </dl>
+  );
+}
+
+function CartActions({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      <Button variant="outline" className="h-12" onClick={onClose}>
+        ادامه خرید
+      </Button>
+      <Button asChild variant="secondary" className="h-12 gap-2 shadow-glow-secondary">
+        <Link href={ROUTES.CHECKOUT} onClick={onClose}>
+          تسویه حساب
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+        </Link>
+      </Button>
+    </div>
+  );
+}
+
+function CartBody({ onClose }: { onClose: () => void }) {
+  const { items, removeItem, updateQuantity } = useCart();
+
+  if (items.length === 0) return <EmptyCart onClose={onClose} />;
+
+  return (
+    <div className="space-y-4">
+      <ul className="space-y-3">
+        <AnimatePresence initial={false}>
+          {items.map((item) => (
+            <CartLine
+              key={item.product.id}
+              item={item}
+              onRemove={() => {
+                removeItem(item.product.id);
+                showToast.removedFromCart(item.product.name);
+              }}
+              onQuantity={(q) => updateQuantity(item.product.id, q)}
+            />
+          ))}
+        </AnimatePresence>
+      </ul>
+      <CouponField />
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Desktop drawer                                                      */
+/* ------------------------------------------------------------------ */
+
+function DesktopDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { items, totalItems } = useCart();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useBodyScrollLock(open);
+  useFocusTrap(panelRef, open);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
 
   return (
     <AnimatePresence>
-      {state.isOpen && (
+      {open && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={closeCart}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            transition={{ duration: 0.2 }}
+            onClick={onClose}
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+            aria-hidden="true"
           />
 
-          {/* Drawer */}
           <motion.div
-            initial={{ x: '-100%' }}
+            ref={panelRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cart-drawer-title"
+            tabIndex={-1}
+            initial={{ x: '100%' }}
             animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
-            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 h-full w-full max-w-md bg-background border-l border-border shadow-2xl z-50 flex flex-col"
+            exit={{ x: '100%' }}
+            transition={springSheet}
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border/50 bg-background shadow-2xl outline-none"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-border">
+            <div className="flex items-center justify-between border-b border-border/50 p-5">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center">
-                  <ShoppingBag className="h-5 w-5 text-primary" />
-                </div>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary dark:text-secondary">
+                  <ShoppingBag className="h-5 w-5" aria-hidden="true" />
+                </span>
                 <div>
-                  <h2 className="text-lg font-bold text-foreground">سبد خرید</h2>
-                  <p className="text-sm text-muted-foreground">{totalItems} محصول</p>
+                  <h2 id="cart-drawer-title" className="text-lg font-bold text-foreground">
+                    سبد خرید
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    {toPersianDigits(totalItems)} محصول
+                  </p>
                 </div>
               </div>
-              <Button variant="ghost" size="icon" onClick={closeCart}>
-                <X className="h-5 w-5" />
-              </Button>
+              <IconButton label="بستن سبد خرید" icon={<X />} onClick={onClose} />
             </div>
 
-            {/* Cart Items */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-              {state.items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                  <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mb-4">
-                    <ShoppingBag className="h-10 w-10 text-muted-foreground" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">
-                    سبد خرید شما خالی است
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-6">
-                    محصولات مورد علاقه خود را به سبد خرید اضافه کنید
-                  </p>
-                  <Link href={ROUTES.PRODUCTS} onClick={closeCart}>
-                    <Button variant="primary" className="gap-2">
-                      مشاهده محصولات
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                  </Link>
-                </div>
-              ) : (
-                state.items.map((item) => (
-                  <motion.div
-                    key={item.product.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, x: -100 }}
-                    className="flex gap-4 p-4 bg-card rounded-xl border border-border"
-                  >
-                    {/* Product Image */}
-                    <div className="relative w-20 h-20 bg-muted rounded-lg overflow-hidden flex-shrink-0">
-                      {item.product.images[0] ? (
-                        <Image
-                          src={item.product.images[0]}
-                          alt={item.product.name}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ShoppingBag className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Product Info */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-foreground truncate mb-1">
-                        {item.product.name}
-                      </h4>
-                      <div className="flex items-center gap-2 mb-3">
-                        {item.product.discountPrice ? (
-                          <>
-                            <span className="text-primary font-bold">
-                              {formatPrice(item.product.discountPrice)}
-                            </span>
-                            <span className="text-sm text-muted-foreground line-through">
-                              {formatPrice(item.product.price)}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-primary font-bold">
-                            {formatPrice(item.product.price)}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Quantity Controls */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity - 1)
-                            }
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="w-8 text-center font-semibold">
-                            {item.quantity}
-                          </span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              updateQuantity(item.product.id, item.quantity + 1)
-                            }
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => removeItem(item.product.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                ))
-              )}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4">
+              <CartBody onClose={onClose} />
             </div>
 
-            {/* Footer */}
-            {state.items.length > 0 && (
-              <div className="p-6 border-t border-border bg-card">
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-muted-foreground">جمع کل:</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {formatPrice(discountedPrice)}
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  <Link href={ROUTES.CART} onClick={closeCart} className="block">
-                    <Button variant="outline" className="w-full">
-                      مشاهده سبد خرید
-                    </Button>
-                  </Link>
-                  <Link href={ROUTES.CHECKOUT} onClick={closeCart} className="block">
-                    <Button variant="primary" className="w-full">
-                      تکمیل خرید
-                    </Button>
-                  </Link>
-                </div>
+            {items.length > 0 && (
+              <div className="space-y-4 border-t border-border/50 bg-card p-5">
+                <Totals />
+                <CartActions onClose={onClose} />
               </div>
             )}
           </motion.div>
@@ -188,4 +394,42 @@ export const CartDrawer: React.FC = () => {
       )}
     </AnimatePresence>
   );
+}
+
+/* ------------------------------------------------------------------ */
+/* Entry                                                               */
+/* ------------------------------------------------------------------ */
+
+/** Cart overlay: bottom sheet below `lg`, right-anchored drawer above. */
+export const CartDrawer: React.FC = () => {
+  const { isOpen, closeCart, items, totalItems } = useCart();
+  const isMobile = useIsMobile();
+
+  if (isMobile) {
+    return (
+      <BottomSheet
+        open={isOpen}
+        onOpenChange={(open) => {
+          if (!open) closeCart();
+        }}
+        title="سبد خرید"
+        description={
+          totalItems > 0 ? `${toPersianDigits(totalItems)} محصول` : 'هنوز چیزی اضافه نکرده‌اید'
+        }
+        snapPoints={[0.85]}
+        footer={
+          items.length > 0 ? (
+            <div className="space-y-3">
+              <Totals />
+              <CartActions onClose={closeCart} />
+            </div>
+          ) : undefined
+        }
+      >
+        <CartBody onClose={closeCart} />
+      </BottomSheet>
+    );
+  }
+
+  return <DesktopDrawer open={isOpen} onClose={closeCart} />;
 };

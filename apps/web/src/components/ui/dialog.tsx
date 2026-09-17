@@ -4,6 +4,7 @@ import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
 
 interface DialogProps {
   open?: boolean;
@@ -57,6 +58,7 @@ export function DialogTrigger({
 
 export function DialogContent({ className, children, onClose }: DialogContentProps) {
   const { open, onOpenChange } = React.useContext(DialogContext);
+  useBodyScrollLock(open);
 
   React.useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -67,11 +69,9 @@ export function DialogContent({ className, children, onClose }: DialogContentPro
     };
     if (open) {
       document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
     }
     return () => {
       document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'unset';
     };
   }, [open, onOpenChange, onClose]);
 
