@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="100" viewBox="0 0 320 100">
+  <g transform="translate(0 0) scale(1)" opacity="1">
+    <path d="M50 8 L90 86 H74 L50 40 L26 86 H10 Z" fill="#C2B280"/>
+    <path d="M14 76 C 38 60, 62 60, 86 76" stroke="#C2B280" stroke-width="7" fill="none" stroke-linecap="round"/>
+  </g>
+  <text x="112" y="58" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="34" font-weight="800" fill="#001F3F" letter-spacing="4">AUTO</text>
+  <text x="200" y="58" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="34" font-weight="300" fill="#C2B280" letter-spacing="4">LOUNGE</text>
+  <rect x="112" y="68" width="196" height="3" fill="#C2B280"/>
+  <text x="112" y="90" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="12" font-weight="600" fill="#001F3F" letter-spacing="6">PREMIUM CAR CARE</text>
+</svg>

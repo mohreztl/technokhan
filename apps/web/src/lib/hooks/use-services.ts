@@ -1,94 +1,70 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
-import { api } from '@/lib/api';
-import type { Service } from '@autolounge/shared';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import type { PagedList, Service, ServiceListQuery } from '@autolounge/shared';
+import { servicesApi } from '@/lib/api/endpoints';
+import { qk } from '@/lib/api/query-keys';
+import { unwrap } from '@/lib/api/client';
 
-interface UseServicesParams {
-  type?: string;
-  featured?: boolean;
-  search?: string;
-  page?: number;
-  limit?: number;
+async function fetchServicePage(q: ServiceListQuery): Promise<PagedList<Service>> {
+  const r = await servicesApi.list(q);
+  if (!r.ok) throw new Error(r.error);
+  return {
+    items: r.data,
+    pagination: r.pagination ?? {
+      total: r.data.length,
+      page: q.page ?? 1,
+      limit: q.limit ?? r.data.length,
+      totalPages: 1,
+      hasNext: false,
+      hasPrev: false,
+    },
+  };
 }
 
-interface UseServicesReturn {
-  services: Service[];
-  isLoading: boolean;
-  error: string | null;
-  total: number;
-  pages: number;
-  refetch: () => Promise<void>;
+export function useServices(q: ServiceListQuery = {}, options: { enabled?: boolean; initialData?: PagedList<Service> } = {}) {
+  const query = useQuery({
+    queryKey: qk.services(q),
+    queryFn: () => fetchServicePage(q),
+    placeholderData: keepPreviousData,
+    enabled: options.enabled ?? true,
+    initialData: options.initialData,
+    staleTime: 60_000,
+  });
+  return {
+    ...query,
+    services: query.data?.items ?? [],
+    pagination: query.data?.pagination,
+    total: query.data?.pagination.total ?? 0,
+    pages: query.data?.pagination.totalPages ?? 0,
+  };
 }
 
-export function useServices(params: UseServicesParams = {}): UseServicesReturn {
-  const [services, setServices] = useState<Service[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [total, setTotal] = useState(0);
-  const [pages, setPages] = useState(0);
-
-  const fetchServices = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await api.getServices(params);
-      if (response.success && response.data) {
-        setServices(response.data.services);
-        setTotal(response.data.total);
-        setPages(response.data.pages);
-      } else {
-        setError(response.error || 'خطا در دریافت خدمات');
-      }
-    } catch (err) {
-      setError('خطا در دریافت خدمات');
-    } finally {
-      setIsLoading(false);
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [params.type, params.featured, params.search, params.page, params.limit]);
-
-  useEffect(() => {
-    fetchServices();
-  }, [fetchServices]);
-
-  return { services, isLoading, error, total, pages, refetch: fetchServices };
+export function useService(id: string | undefined, initialData?: Service) {
+  return useQuery({
+    queryKey: qk.service(id ?? ''),
+    queryFn: () => unwrap(servicesApi.get(id!)),
+    enabled: !!id,
+    initialData,
+    staleTime: 60_000,
+  });
 }
 
-interface UseServiceReturn {
-  service: Service | null;
-  isLoading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
+export function useFeaturedServices(limit = 6, initialData?: Service[]) {
+  return useQuery({
+    queryKey: qk.featuredServices(),
+    queryFn: () => unwrap(servicesApi.featured(limit)),
+    initialData,
+    staleTime: 5 * 60_000,
+  });
 }
 
-export function useService(id: string): UseServiceReturn {
-  const [service, setService] = useState<Service | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchService = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    
-    try {
-      const response = await api.getService(id);
-      if (response.success && response.data) {
-        setService(response.data);
-      } else {
-        setError(response.error || 'خطا در دریافت خدمت');
-      }
-    } catch (err) {
-      setError('خطا در دریافت خدمت');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [id]);
-
-  useEffect(() => {
-    fetchService();
-  }, [fetchService]);
-
-  return { service, isLoading, error, refetch: fetchService };
+export function useRelatedServices(id: string | undefined, limit = 3, initialData?: Service[]) {
+  return useQuery({
+    queryKey: qk.relatedServices(id ?? ''),
+    queryFn: () => unwrap(servicesApi.related(id!, limit)),
+    enabled: !!id,
+    initialData,
+    staleTime: 5 * 60_000,
+  });
 }

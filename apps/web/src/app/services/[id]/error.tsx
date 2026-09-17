@@ -1,68 +1,52 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { AlertCircle, Home, RefreshCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { AlertCircle, RefreshCcw, Wrench } from 'lucide-react';
 import { ROUTES } from '@autolounge/shared';
+import { Button } from '@/components/ui/button';
 
-export default function Error({
+export default function ServiceError({
   error,
   reset,
 }: {
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  useEffect(() => {
-    console.error('Service page error:', error);
-  }, [error]);
-
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center py-24">
-      <div className="container-custom px-4 sm:px-6 lg:px-8">
+    <div className="flex min-h-[70dvh] items-center justify-center bg-background py-12 lg:py-24">
+      <div className="container-custom">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="max-w-2xl mx-auto text-center"
+          className="mx-auto max-w-2xl text-center"
         >
-          <div className="glass-effect-strong border border-primary/10 rounded-3xl p-12 space-y-6">
-            {/* Error Icon */}
-            <div className="w-24 h-24 mx-auto rounded-full bg-destructive/10 flex items-center justify-center">
-              <AlertCircle className="h-12 w-12 text-destructive" />
+          <div className="glass-effect-strong space-y-6 rounded-3xl border border-primary/10 p-8 sm:p-12">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-destructive/10">
+              <AlertCircle className="h-10 w-10 text-destructive" aria-hidden="true" />
             </div>
-
-            {/* Error Message */}
             <div>
-              <h1 className="text-4xl font-black text-gradient-luxury mb-4">
-                خطا در بارگذاری خدمات
-              </h1>
-              <p className="text-lg text-muted-foreground mb-2">
-                متأسفانه در بارگذاری اطلاعات خدمات مشکلی پیش آمد.
+              <h1 className="mb-3 text-2xl font-black text-gradient-luxury sm:text-4xl">خطا در بارگذاری خدمت</h1>
+              <p className="mb-2 text-base text-muted-foreground sm:text-lg">
+                متأسفانه در بارگذاری اطلاعات این خدمت مشکلی پیش آمد.
               </p>
               <p className="text-sm text-muted-foreground">
                 {error.message || 'لطفاً دوباره تلاش کنید یا با پشتیبانی تماس بگیرید.'}
               </p>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-6">
-              <Button variant="primary" size="lg" onClick={reset} className="gap-2">
-                <RefreshCcw className="h-5 w-5" />
+            <div className="flex flex-col items-center justify-center gap-3 pt-2 sm:flex-row">
+              <Button type="button" variant="primary" size="lg" onClick={reset} className="min-h-12 w-full gap-2 sm:w-auto">
+                <RefreshCcw className="h-5 w-5" aria-hidden="true" />
                 تلاش مجدد
               </Button>
-              <Link href={ROUTES.SERVICES}>
-                <Button variant="outline" size="lg" className="gap-2">
-                  <Home className="h-5 w-5" />
+              <Button asChild variant="outline" size="lg" className="min-h-12 w-full gap-2 sm:w-auto">
+                <Link href={ROUTES.SERVICES}>
+                  <Wrench className="h-5 w-5" aria-hidden="true" />
                   بازگشت به خدمات
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
-
-          {/* Decorative Elements */}
-          <div className="absolute top-1/4 right-1/4 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[80px] -z-10" />
-          <div className="absolute bottom-1/4 left-1/4 w-[300px] h-[300px] bg-secondary/5 rounded-full blur-[80px] -z-10" />
         </motion.div>
       </div>
     </div>

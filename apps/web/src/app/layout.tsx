@@ -1,11 +1,23 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Suspense } from 'react';
+import localFont from 'next/font/local';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Navbar } from '@/components/organisms/navbar';
 import { Footer } from '@/components/organisms/footer';
 import { GoogleAnalytics } from '@/components/analytics/google-analytics';
+import { ScrollProgress } from '@/components/ui/interactive-effects';
 import { APP_NAME, APP_DESCRIPTION } from '@autolounge/shared';
+
+const shabnam = localFont({
+  src: [{ path: '../../public/fonts/Shabnam-FD.woff2', weight: '400', style: 'normal' }],
+  variable: '--font-Shabnam-FD',
+  display: 'swap',
+  preload: true,
+  fallback: ['Tahoma', 'Arial', 'sans-serif'],
+});
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
 export const metadata: Metadata = {
   title: {
@@ -32,7 +44,7 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL(siteUrl),
   alternates: {
     canonical: '/',
   },
@@ -43,20 +55,11 @@ export const metadata: Metadata = {
     siteName: APP_NAME,
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: APP_NAME,
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: APP_NAME,
     description: APP_DESCRIPTION,
-    images: ['/og-image.jpg'],
   },
   robots: {
     index: true,
@@ -69,30 +72,39 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  icons: {
-    icon: '/favicon.ico',
-    shortcut: '/favicon-16x16.png',
-    apple: '/apple-touch-icon.png',
-  },
   manifest: '/manifest.json',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
+  appleWebApp: {
+    capable: true,
+    title: APP_NAME,
+    statusBarStyle: 'black-translucent',
   },
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F9F7F2' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" suppressHydrationWarning>
-      <body className="min-h-screen bg-[#F9F7F2] dark:bg-gray-950">
+    <html lang="fa" dir="rtl" className={shabnam.variable} suppressHydrationWarning>
+      <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
         <Providers>
-          <div className="flex flex-col min-h-screen">
+          <ScrollProgress />
+          <div className="flex min-h-dvh flex-col">
             <Navbar />
-            <main className="flex-1">{children}</main>
+            <main className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+              {children}
+            </main>
             <Footer />
           </div>
         </Providers>

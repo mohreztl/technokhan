@@ -1,743 +1,444 @@
 'use client';
 
-import { useState } from 'react';
+import * as React from 'react';
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { CalendarCheck, Check, Clock, Phone, Plus, ShieldCheck, Star } from 'lucide-react';
 import {
-  Calendar,
-  Clock,
-  CheckCircle2,
-  Star,
-  ChevronLeft,
-  Award,
-  Shield,
-  Users,
-  TrendingUp,
-  Phone,
-  Share2,
-  Heart,
-  ThumbsUp,
-  Play,
-  MessageSquare,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+  CONTACT,
+  ROUTES,
+  SERVICE_TYPE_LABELS,
+  VEHICLE_SIZES,
+  WRAP_COLORS,
+  formatToman,
+  toPersianDigits,
+  type GalleryItem,
+  type Service,
+  type VehicleSize,
+} from '@autolounge/shared';
+import { cn } from '@/lib/utils';
+import { useRelatedServices, useService } from '@/lib/hooks/use-services';
+import { fadeInUp, staggerContainer, viewportConfig } from '@/lib/animation-variants';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Avatar } from '@/components/ui/avatar';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SectionHeading } from '@/components/ui/premium-components';
+import { StickyCtaBar, useStickyCta } from '@/components/molecules/sticky-cta-bar';
 import { ServiceCard } from '@/components/molecules/service-card';
-import { ROUTES, ServiceType, type Service } from '@autolounge/shared';
+import { BeforeAfterSlider } from '@/components/creative/before-after-slider';
+import { ProcessTimeline } from '@/components/creative/process-timeline';
+import { FaqAccordion } from '@/components/catalog/faq-accordion';
+import { QuoteCalculator } from '@/components/catalog/quote-calculator';
+import { RatingStars } from '@/components/catalog/rating-stars';
+import { ReviewSection } from '@/components/catalog/review-section';
+import { ShareButton } from '@/components/catalog/share-button';
+import { SnapRow } from '@/components/catalog/snap-row';
 
-// Features data
-const SERVICE_FEATURES = [
-  'پولیش چند مرحله‌ای حرفه‌ای',
-  'اصلاح کامل رنگ و برطرف کردن خط‌اندازی‌ها',
-  'محافظت با واکس پریمیوم',
-  'استفاده از محصولات برند جهانی',
-  'ضمانت کیفیت کار',
-  'گارانتی یک‌ساله',
-];
+const Lightbox = dynamic(() => import('@/components/creative/lightbox').then((m) => m.Lightbox), {
+  ssr: false,
+});
 
-// Process steps data
-const SERVICE_STEPS = [
-  { title: 'بازرسی اولیه', description: 'بررسی وضعیت رنگ خودرو و شناسایی مشکلات', icon: '🔍' },
-  { title: 'آماده‌سازی', description: 'شستشوی دقیق و آماده‌سازی سطح', icon: '🧽' },
-  { title: 'پولیش مرحله اول', description: 'برطرف کردن خطوط عمیق و اکسیداسیون', icon: '⚙️' },
-  { title: 'پولیش مرحله دوم', description: 'صیقل و درخشش نهایی', icon: '✨' },
-  { title: 'محافظت', description: 'اعمال واکس یا سرامیک کوتینگ', icon: '🛡️' },
-  { title: 'بازرسی نهایی', description: 'کنترل کیفیت و تحویل', icon: '✅' },
-];
+const WrapVisualizer = dynamic(
+  () => import('@/components/creative/wrap-visualizer').then((m) => m.WrapVisualizer),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="space-y-4 rounded-3xl border border-border bg-card p-4 sm:p-6" aria-busy="true">
+        <Skeleton className="aspect-[16/9] w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+      </div>
+    ),
+  }
+);
 
-// Testimonials mock data
-const MOCK_TESTIMONIALS = [
-  {
-    id: '1',
-    userName: 'علی محمدی',
-    rating: 5,
-    comment:
-      'واقعاً عالی بود! ماشینم مثل تازه از نمایشگاه درآمده. کیفیت کار و رفتار کارشناسان فوق‌العاده بود.',
-    date: '۱۴۰۲/۱۲/۱۰',
-    carModel: 'بنز C200',
-    verified: true,
-    helpful: 28,
-  },
-  {
-    id: '2',
-    userName: 'رضا احمدی',
-    rating: 5,
-    comment:
-      'بعد از ۷ سال، رنگ ماشینم کاملاً کدر شده بود. با این سرویس، دوباره مثل روز اول شد. ممنون از تیم اتولانژ!',
-    date: '۱۴۰۲/۱۲/۰۵',
-    carModel: 'BMW 320i',
-    verified: true,
-    helpful: 19,
-  },
-  {
-    id: '3',
-    userName: 'سارا کریمی',
-    rating: 5,
-    comment: 'حرفه‌ای‌ترین کار که دیدم. تمام خطوط و لکه‌ها برطرف شد و درخششی باورنکردنی گرفت.',
-    date: '۱۴۰۲/۱۱/۲۸',
-    carModel: 'Audi A4',
-    verified: false,
-    helpful: 15,
-  },
-  {
-    id: '4',
-    userName: 'محمد رضایی',
-    rating: 5,
-    comment: 'قیمت عالی، کیفیت عالی، خدمات عالی. به همه توصیه می‌کنم.',
-    date: '۱۴۰۲/۱۱/۲۰',
-    carModel: 'Hyundai Sonata',
-    verified: true,
-    helpful: 22,
-  },
-];
-
-// Related services
-const RELATED_SERVICES: Service[] = [
-  {
-    id: '2',
-    name: 'دیتیلینگ حرفه‌ای خودرو',
-    nameEn: 'Professional Car Detailing',
-    description: 'شست‌وشو، واکس و پولیش کامل',
-    descriptionEn: 'Complete detailing service',
-    price: 3500000,
-    duration: 240,
-    type: ServiceType.DETAILING,
-    images: ['/images/services/detailing.jpg'],
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '3',
-    name: 'سرامیک کوتینگ پیشرفته',
-    nameEn: 'Advanced Ceramic Coating',
-    description: 'محافظت حرفه‌ای رنگ خودرو',
-    descriptionEn: 'Professional paint protection',
-    price: 12000000,
-    duration: 360,
-    type: ServiceType.CERAMIC_COATING,
-    images: ['/images/services/ceramic.jpg'],
-    featured: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    id: '5',
-    name: 'پوشش محافظ رنگ (PPF)',
-    nameEn: 'Paint Protection Film',
-    description: 'نصب فیلم محافظ شفاف',
-    descriptionEn: 'Transparent protective film',
-    price: 18000000,
-    duration: 540,
-    type: ServiceType.PPF,
-    images: ['/images/services/ppf.jpg'],
-    featured: false,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-];
-
-// Service type labels
-const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
-  [ServiceType.PAINT_RESTORATION]: 'رپینت و صافکاری',
-  [ServiceType.DETAILING]: 'دیتیلینگ',
-  [ServiceType.CERAMIC_COATING]: 'سرامیک کوتینگ',
-  [ServiceType.CAR_WRAP]: 'رپ کامل',
-  [ServiceType.PPF]: 'پوشش محافظ',
-  [ServiceType.INTERIOR_CLEANING]: 'شستشوی داخلی',
-  [ServiceType.ENGINE_CLEANING]: 'شستشوی موتور',
-  [ServiceType.HEADLIGHT_RESTORATION]: 'ترمیم چراغ',
-  [ServiceType.CUSTOM]: 'سفارشی',
-};
-
-interface ServiceDetailClientProps {
+export interface ServiceDetailClientProps {
   service: Service;
+  related: Service[];
+  /** Editorial gallery items linked to this service (may be empty). */
+  gallery: GalleryItem[];
 }
 
-export function ServiceDetailClient({ service }: ServiceDetailClientProps) {
-  const [selectedImage, setSelectedImage] = useState(0);
-  const [activeTab, setActiveTab] = useState('description');
-  const [isFavorite, setIsFavorite] = useState(false);
+const PLACEHOLDER = '/images/placeholder-service.webp';
 
-  const durationHours = Math.floor(service.duration / 60);
-  const durationMinutes = service.duration % 60;
-  const durationText =
-    durationHours > 0
-      ? `${durationHours} ساعت${durationMinutes > 0 ? ` و ${durationMinutes} دقیقه` : ''}`
-      : `${durationMinutes} دقیقه`;
+function durationLabel(minutes: number): string {
+  const hours = minutes / 60;
+  const text = Number.isInteger(hours) ? String(hours) : hours.toFixed(1).replace('.', '٫');
+  return `حدود ${toPersianDigits(text)} ساعت`;
+}
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: service.name,
-          text: service.description,
-          url: window.location.href,
-        });
-      } catch {
-        // User cancelled
-      }
-    } else {
-      await navigator.clipboard.writeText(window.location.href);
+const bookingHref = (serviceId: string, size?: VehicleSize) =>
+  `${ROUTES.BOOKING}?service=${serviceId}${size ? `&size=${size}` : ''}`;
+
+function Section({
+  id,
+  eyebrow,
+  title,
+  subtitle,
+  children,
+  className,
+  muted,
+}: {
+  id: string;
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  className?: string;
+  muted?: boolean;
+}) {
+  return (
+    <section
+      id={id}
+      className={cn('scroll-mt-24 py-12 lg:py-16', muted && 'bg-muted/40', className)}
+      aria-labelledby={`${id}-title`}
+    >
+      <div className="container-custom">
+        <SectionHeading id={`${id}-title`} eyebrow={eyebrow} title={title} subtitle={subtitle} align="start" className="mb-6 lg:mb-8" />
+        {children}
+      </div>
+    </section>
+  );
+}
+
+export function ServiceDetailClient({ service: initial, related: initialRelated, gallery }: ServiceDetailClientProps) {
+  const { data } = useService(initial.id, initial);
+  const service = data ?? initial;
+  const { data: relatedData } = useRelatedServices(service.id, 3, initialRelated);
+  const related = relatedData ?? initialRelated;
+
+  const ctaRef = React.useRef<HTMLDivElement>(null);
+  const stickyVisible = useStickyCta(ctaRef);
+
+  const [lightboxOpen, setLightboxOpen] = React.useState(false);
+  const [lightboxIndex, setLightboxIndex] = React.useState(0);
+
+  const typeLabel = SERVICE_TYPE_LABELS[service.type] ?? service.type;
+  const startingPrice = service.pricing?.small ?? service.price;
+  const reviews = service.reviews ?? [];
+  const isWrapLike = service.type === 'car_wrap' || service.type === 'ppf';
+  const hero = service.images[0] ?? PLACEHOLDER;
+
+  const galleryItems = React.useMemo<GalleryItem[]>(() => {
+    if (gallery.length > 0) return gallery;
+    const items: GalleryItem[] = [];
+    if (service.beforeAfter) {
+      items.push({
+        id: `${service.id}-before-after`,
+        title: service.beforeAfter.caption ?? service.name,
+        serviceType: service.type,
+        serviceId: service.id,
+        before: service.beforeAfter.before,
+        after: service.beforeAfter.after,
+        cover: service.beforeAfter.after,
+        tags: [typeLabel],
+      });
     }
-  };
+    (service.gallery ?? []).forEach((src, index) => {
+      items.push({
+        id: `${service.id}-gallery-${index}`,
+        title: `${service.name} – نمونهٔ ${toPersianDigits(index + 1)}`,
+        serviceType: service.type,
+        serviceId: service.id,
+        before: src,
+        after: src,
+        cover: src,
+        tags: [typeLabel],
+      });
+    });
+    return items;
+  }, [gallery, service, typeLabel]);
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 },
+  const openLightbox = (index: number) => {
+    setLightboxIndex(index);
+    setLightboxOpen(true);
   };
 
   return (
-    <motion.div
-      initial="hidden"
-      animate="visible"
-      variants={containerVariants}
-      className="min-h-screen bg-background"
-    >
-      {/* Hero Section */}
-      <section className="relative py-8 sm:py-12 lg:py-16 overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-transparent" />
-        <div className="absolute top-20 right-1/4 w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] -z-10" />
-        <div className="absolute bottom-20 left-1/4 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[100px] -z-10" />
-
-        <div className="container-custom px-4 sm:px-6 lg:px-8">
-          {/* Breadcrumbs */}
-          <motion.nav
-            variants={itemVariants}
-            className="flex items-center gap-2 text-sm text-muted-foreground mb-8"
-            aria-label="Breadcrumb"
-          >
-            <Link href={ROUTES.HOME} className="hover:text-foreground transition-colors">
-              خانه
-            </Link>
-            <ChevronLeft className="h-4 w-4" />
-            <Link href={ROUTES.SERVICES} className="hover:text-foreground transition-colors">
-              خدمات
-            </Link>
-            <ChevronLeft className="h-4 w-4" />
-            <span className="text-foreground font-medium truncate max-w-[200px]">{service.name}</span>
-          </motion.nav>
-
-          {/* Main Grid */}
-          <div className="grid lg:grid-cols-2 gap-8 lg:gap-12">
-            {/* Image Gallery */}
-            <motion.div variants={itemVariants} className="space-y-4">
-              {/* Main Image */}
-              <div className="relative aspect-[4/3] rounded-3xl overflow-hidden bg-gradient-to-br from-muted/50 to-muted border border-primary/10 group">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={selectedImage}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.05 }}
-                    transition={{ duration: 0.3 }}
-                    className="relative w-full h-full"
-                  >
-                    <Image
-                      src={service.images[selectedImage] || '/images/placeholder-service.jpg'}
-                      alt={service.name}
-                      fill
-                      className="object-cover"
-                      priority
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
-                  </motion.div>
-                </AnimatePresence>
-
-                {/* Badges */}
-                <div className="absolute top-4 right-4 flex flex-col gap-2">
-                  {service.featured && (
-                    <Badge className="bg-secondary text-secondary-foreground px-4 py-1.5 text-sm">
-                      ⭐ محبوب‌ترین
-                    </Badge>
-                  )}
-                </div>
-
-                {/* Video Play Button (placeholder) */}
-                <button className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/30">
-                  <div className="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center">
-                    <Play className="h-8 w-8 text-primary fill-primary mr-[-4px]" />
-                  </div>
-                </button>
-              </div>
-
-              {/* Thumbnail Gallery */}
-              {service.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-3">
-                  {service.images.map((image, index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => setSelectedImage(index)}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className={`relative aspect-[4/3] rounded-xl overflow-hidden transition-all ${
-                        selectedImage === index
-                          ? 'ring-2 ring-primary ring-offset-2 ring-offset-background'
-                          : 'opacity-60 hover:opacity-100'
-                      }`}
-                    >
-                      <Image
-                        src={image || '/images/placeholder-service.jpg'}
-                        alt={`${service.name} - تصویر ${index + 1}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 25vw, 12vw"
-                      />
-                    </motion.button>
-                  ))}
-                </div>
-              )}
+    <div className="pb-8 lg:pb-16">
+      {/* Cinematic header */}
+      <header className="relative min-h-[420px] overflow-hidden bg-primary text-primary-foreground lg:min-h-[520px]">
+        <Image src={hero} alt="" fill priority sizes="100vw" className="object-cover" />
+        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-primary/20" />
+        <div className="container-custom relative flex min-h-[420px] flex-col justify-end pb-8 pt-4 lg:min-h-[520px] lg:pb-14">
+          <Breadcrumb
+            items={[
+              { label: 'خانه', href: ROUTES.HOME },
+              { label: 'خدمات', href: ROUTES.SERVICES },
+              { label: typeLabel, href: `${ROUTES.SERVICES}?type=${service.type}` },
+              { label: service.name },
+            ]}
+            className="mb-auto [&_a]:text-primary-foreground/70 [&_a:hover]:text-primary-foreground [&_span]:text-primary-foreground"
+          />
+          <motion.div variants={staggerContainer} initial="hidden" animate="visible" className="max-w-3xl">
+            <motion.div variants={fadeInUp} className="flex flex-wrap items-center gap-2">
+              <Badge variant="gold" size="lg">{typeLabel}</Badge>
+              {service.warrantyMonths ? (
+                <Badge variant="secondary" size="lg" className="gap-1">
+                  <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+                  گارانتی {toPersianDigits(service.warrantyMonths)} ماهه
+                </Badge>
+              ) : null}
             </motion.div>
-
-            {/* Service Info */}
-            <motion.div variants={itemVariants} className="space-y-6">
-              {/* Category Badge */}
-              <Badge variant="secondary" className="text-sm px-4 py-1">
-                {SERVICE_TYPE_LABELS[service.type] || service.type}
-              </Badge>
-
-              {/* Title */}
-              <div>
-                <h1 className="text-3xl sm:text-4xl font-black text-foreground mb-2">
-                  {service.name}
-                </h1>
-                <p className="text-lg text-muted-foreground">{service.nameEn}</p>
-              </div>
-
-              {/* Price and Duration Cards */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border border-primary/10">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <Clock className="h-5 w-5" />
-                    <span className="text-sm">مدت زمان</span>
-                  </div>
-                  <p className="text-2xl font-bold">{durationText}</p>
-                </div>
-
-                <div className="p-5 rounded-2xl bg-gradient-to-br from-secondary/5 to-secondary/10 border border-secondary/10">
-                  <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                    <TrendingUp className="h-5 w-5" />
-                    <span className="text-sm">قیمت خدمات</span>
-                  </div>
-                  <p className="text-2xl font-bold text-secondary">
-                    {service.price.toLocaleString('fa-IR')}
-                    <span className="text-sm font-normal text-muted-foreground mr-1">تومان</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Short Description */}
-              <p className="text-muted-foreground leading-relaxed">
-                {service.description}
-              </p>
-
-              {/* Features */}
-              <div>
-                <h3 className="font-bold mb-3">ویژگی‌های خدمات:</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {SERVICE_FEATURES.slice(0, 4).map((feature, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-2 text-sm p-2.5 rounded-xl bg-muted/50 border border-primary/5"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-success shrink-0" />
-                      <span>{feature}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="space-y-3">
-                <Link href={`${ROUTES.BOOKING}?service=${service.id}`} className="block">
-                  <Button variant="primary" size="xl" className="w-full gap-3 text-base">
-                    <Calendar className="h-5 w-5" />
-                    رزرو نوبت برای این خدمات
-                  </Button>
+            <motion.h1 variants={fadeInUp} className="mt-4 text-balance text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
+              {service.name}
+            </motion.h1>
+            <motion.p variants={fadeInUp} className="mt-1 text-sm text-primary-foreground/70" dir="ltr">
+              <span className="block text-start">{service.nameEn}</span>
+            </motion.p>
+            <motion.div variants={fadeInUp} className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+              {service.rating ? (
+                <span className="flex items-center gap-1.5">
+                  <Star className="h-4 w-4 fill-secondary text-secondary" aria-hidden="true" />
+                  <span className="font-bold tabular-nums">{toPersianDigits(service.rating.toFixed(1))}</span>
+                  <span className="text-primary-foreground/70">({toPersianDigits(service.reviewCount ?? reviews.length)} نظر)</span>
+                </span>
+              ) : null}
+              <span className="flex items-center gap-1.5 text-primary-foreground/85">
+                <Clock className="h-4 w-4" aria-hidden="true" />
+                {durationLabel(service.duration)}
+              </span>
+            </motion.div>
+            <motion.p variants={fadeInUp} className="mt-4 max-w-2xl text-sm leading-7 text-primary-foreground/85 sm:text-base">
+              {service.description}
+            </motion.p>
+            <motion.div variants={fadeInUp} ref={ctaRef} className="mt-6 flex flex-wrap items-center gap-3">
+              <Button asChild variant="secondary" size="lg" className="min-h-12 gap-2 px-7 shadow-glow-secondary">
+                <Link href={bookingHref(service.id)}>
+                  <CalendarCheck className="h-5 w-5" aria-hidden="true" />
+                  رزرو این خدمت
                 </Link>
-
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1 gap-2">
-                    <Phone className="h-4 w-4" />
-                    مشاوره رایگان
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsFavorite(!isFavorite)}
-                    className={isFavorite ? 'text-destructive border-destructive' : ''}
-                  >
-                    <Heart className={`h-5 w-5 ${isFavorite ? 'fill-destructive' : ''}`} />
-                  </Button>
-                  <Button variant="outline" onClick={handleShare}>
-                    <Share2 className="h-5 w-5" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Trust Badges */}
-              <div className="grid grid-cols-3 gap-3 pt-6 border-t border-primary/10">
-                <div className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-muted/30">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Award className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">متخصصان مجرب</span>
-                </div>
-                <div className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-muted/30">
-                  <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
-                    <Shield className="h-5 w-5 text-secondary" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">ضمانت کیفیت</span>
-                </div>
-                <div className="flex flex-col items-center gap-2 text-center p-3 rounded-xl bg-muted/30">
-                  <div className="w-10 h-10 rounded-full bg-success/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-success" />
-                  </div>
-                  <span className="text-xs text-muted-foreground">+۵۰۰۰ مشتری</span>
-                </div>
-              </div>
+              </Button>
+              <Button asChild variant="glass" size="lg" className="min-h-12 gap-2">
+                <a href={`tel:${CONTACT.phoneEn}`}>
+                  <Phone className="h-5 w-5" aria-hidden="true" />
+                  مشاورهٔ رایگان
+                </a>
+              </Button>
+              <ShareButton
+                payload={{ title: service.name, text: service.description }}
+                variant="ghost"
+                className="h-12 w-12 text-primary-foreground hover:bg-white/10"
+              />
             </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Details Tabs Section */}
-      <section className="py-12 lg:py-16">
-        <div className="container-custom px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <Tabs defaultValue="description" value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="mb-8 w-full justify-center flex-wrap">
-                <TabsTrigger value="description" className="gap-2">
-                  <CheckCircle2 className="h-4 w-4" />
-                  توضیحات کامل
-                </TabsTrigger>
-                <TabsTrigger value="process" className="gap-2">
-                  <Clock className="h-4 w-4" />
-                  مراحل انجام کار
-                </TabsTrigger>
-                <TabsTrigger value="testimonials" className="gap-2">
-                  <MessageSquare className="h-4 w-4" />
-                  نظرات ({MOCK_TESTIMONIALS.length})
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="description">
-                <div className="space-y-8 p-6 sm:p-8 rounded-2xl bg-muted/30 border border-primary/10">
-                  <div>
-                    <h3 className="text-2xl font-bold mb-4">درباره این خدمات</h3>
-                    <p className="text-lg text-muted-foreground leading-relaxed">
-                      {service.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-6 border-t border-primary/10">
-                    <h4 className="text-xl font-bold mb-4">چرا این خدمات را انتخاب کنید؟</h4>
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <Card className="border-primary/10">
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-                              <Award className="h-6 w-6 text-primary" />
-                            </div>
-                            <div>
-                              <h5 className="font-bold mb-1">کیفیت حرفه‌ای</h5>
-                              <p className="text-sm text-muted-foreground">
-                                استفاده از بهترین ابزار و محصولات روز دنیا برای نتیجه‌ای بی‌نظیر
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="border-primary/10">
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
-                              <Users className="h-6 w-6 text-secondary" />
-                            </div>
-                            <div>
-                              <h5 className="font-bold mb-1">تیم متخصص</h5>
-                              <p className="text-sm text-muted-foreground">
-                                کارشناسان مجرب با سال‌ها تجربه در زمینه مراقبت از خودرو
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="border-primary/10">
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center shrink-0">
-                              <Shield className="h-6 w-6 text-success" />
-                            </div>
-                            <div>
-                              <h5 className="font-bold mb-1">گارانتی کیفیت</h5>
-                              <p className="text-sm text-muted-foreground">
-                                ضمانت یک‌ساله روی تمام خدمات با پشتیبانی کامل
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-
-                      <Card className="border-primary/10">
-                        <CardContent className="p-5">
-                          <div className="flex items-start gap-4">
-                            <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                              <Clock className="h-6 w-6 text-accent-foreground" />
-                            </div>
-                            <div>
-                              <h5 className="font-bold mb-1">وقت‌شناسی</h5>
-                              <p className="text-sm text-muted-foreground">
-                                تحویل به‌موقع و احترام به زمان شما
-                              </p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  </div>
-
-                  {/* All Features */}
-                  <div className="pt-6 border-t border-primary/10">
-                    <h4 className="text-xl font-bold mb-4">شامل این خدمات می‌شود:</h4>
-                    <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {SERVICE_FEATURES.map((feature, index) => (
-                        <li
-                          key={index}
-                          className="flex items-center gap-3 p-3 rounded-xl bg-background/50"
-                        >
-                          <CheckCircle2 className="h-5 w-5 text-success shrink-0" />
-                          <span>{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="process">
-                <div className="p-6 sm:p-8 rounded-2xl bg-muted/30 border border-primary/10">
-                  <h3 className="text-2xl font-bold mb-8">مراحل انجام کار</h3>
-                  <div className="space-y-4">
-                    {SERVICE_STEPS.map((step, index) => (
-                      <motion.div
-                        key={index}
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ delay: index * 0.1 }}
-                        className="flex gap-4"
-                      >
-                        <div className="flex flex-col items-center">
-                          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 text-primary-foreground flex items-center justify-center text-2xl shrink-0">
-                            {step.icon}
-                          </div>
-                          {index < SERVICE_STEPS.length - 1 && (
-                            <div className="w-0.5 h-full bg-gradient-to-b from-primary/50 to-transparent my-2" />
-                          )}
-                        </div>
-                        <div className="flex-1 pb-8">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm text-muted-foreground">مرحله {index + 1}</span>
-                          </div>
-                          <h4 className="text-xl font-bold mb-2">{step.title}</h4>
-                          <p className="text-muted-foreground">{step.description}</p>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="testimonials">
-                <div className="space-y-6 p-6 sm:p-8 rounded-2xl bg-muted/30 border border-primary/10">
-                  {/* Summary */}
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-primary/10">
-                    <div>
-                      <h3 className="text-2xl font-bold mb-2">نظرات مشتریان</h3>
-                      <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }).map((_, index) => (
-                            <Star
-                              key={index}
-                              className="h-6 w-6 fill-yellow-500 text-yellow-500"
-                            />
-                          ))}
-                        </div>
-                        <span className="text-2xl font-bold">۵.۰</span>
-                        <span className="text-muted-foreground">
-                          از {MOCK_TESTIMONIALS.length} نظر
-                        </span>
-                      </div>
-                    </div>
-                    <Button variant="primary" className="gap-2">
-                      <MessageSquare className="h-4 w-4" />
-                      ثبت نظر جدید
-                    </Button>
-                  </div>
-
-                  {/* Testimonials List */}
-                  <div className="space-y-4">
-                    {MOCK_TESTIMONIALS.map((testimonial) => (
-                      <motion.div
-                        key={testimonial.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="p-5 rounded-xl bg-background/50 border border-primary/5"
-                      >
-                        <div className="flex items-start justify-between gap-4 mb-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar size="md" />
-                            <div>
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-bold">{testimonial.userName}</span>
-                                {testimonial.verified && (
-                                  <Badge variant="success" className="text-xs">
-                                    <CheckCircle2 className="h-3 w-3 ml-1" />
-                                    تایید شده
-                                  </Badge>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span>{testimonial.carModel}</span>
-                                <span>•</span>
-                                <span>{testimonial.date}</span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-0.5">
-                            {Array.from({ length: 5 }).map((_, index) => (
-                              <Star
-                                key={index}
-                                className={`h-4 w-4 ${
-                                  index < testimonial.rating
-                                    ? 'fill-yellow-500 text-yellow-500'
-                                    : 'text-muted'
-                                }`}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        <p className="text-foreground leading-relaxed mb-4">{testimonial.comment}</p>
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <button className="flex items-center gap-1.5 hover:text-foreground transition-colors">
-                            <ThumbsUp className="h-4 w-4" />
-                            مفید بود ({testimonial.helpful})
-                          </button>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </TabsContent>
-            </Tabs>
           </motion.div>
         </div>
-      </section>
+      </header>
 
-      {/* Related Services */}
-      <section className="py-12 lg:py-16 bg-muted/30">
-        <div className="container-custom px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-              <div>
-                <Badge variant="secondary" className="mb-3">خدمات مرتبط</Badge>
-                <h2 className="text-2xl sm:text-3xl font-black">
-                  شاید این خدمات هم مناسب شما باشد
-                </h2>
-              </div>
-              <Link href={ROUTES.SERVICES}>
-                <Button variant="outline" className="gap-2">
-                  مشاهده همه
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {RELATED_SERVICES.map((relatedService, index) => (
-                <motion.div
-                  key={relatedService.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
+      {/* Pricing */}
+      <Section id="pricing" eyebrow="تعرفه" title="قیمت بر اساس اندازهٔ خودرو" subtitle="قیمت‌ها شفاف و نهایی هستند؛ خدمات تکمیلی را می‌توانید هنگام رزرو اضافه کنید.">
+        <motion.ul
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportConfig.once}
+          className="grid gap-4 sm:grid-cols-3"
+        >
+          {VEHICLE_SIZES.map((size) => {
+            const amount = service.pricing?.[size.id] ?? service.price;
+            const highlighted = size.id === 'medium';
+            return (
+              <motion.li
+                key={size.id}
+                variants={fadeInUp}
+                className={cn(
+                  'relative flex flex-col rounded-2xl border bg-card p-5 transition-shadow',
+                  highlighted ? 'border-secondary shadow-luxury' : 'border-border'
+                )}
+              >
+                {highlighted && (
+                  <span className="absolute -top-3 start-4 rounded-full bg-secondary px-3 py-0.5 text-[11px] font-bold text-primary">
+                    محبوب‌ترین
+                  </span>
+                )}
+                <p className="text-base font-bold text-foreground">{size.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{size.description}</p>
+                <p className="mt-4 text-2xl font-black text-foreground tabular-nums">{formatToman(amount)}</p>
+                <Button
+                  asChild
+                  variant={highlighted ? 'primary' : 'outline'}
+                  className="mt-5 min-h-11 w-full gap-2"
                 >
-                  <ServiceCard service={relatedService} />
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
+                  <Link href={bookingHref(service.id, size.id)}>
+                    <CalendarCheck className="h-4 w-4" aria-hidden="true" />
+                    انتخاب و رزرو
+                  </Link>
+                </Button>
+              </motion.li>
+            );
+          })}
+        </motion.ul>
+      </Section>
 
-      {/* CTA Section */}
-      <section className="py-16 lg:py-20">
-        <div className="container-custom px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="relative rounded-3xl overflow-hidden"
-          >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80" />
-            <div className="absolute inset-0 bg-[url('/images/pattern.svg')] opacity-10" />
-            
-            <div className="relative p-8 sm:p-12 lg:p-16 text-center">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-primary-foreground mb-4">
-                آماده‌اید خودروتان را متحول کنید؟
-              </h2>
-              <p className="text-lg text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-                همین الان نوبت رزرو کنید و از خدمات حرفه‌ای ما بهره‌مند شوید
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href={`${ROUTES.BOOKING}?service=${service.id}`}>
-                  <Button
-                    size="xl"
-                    className="bg-white text-primary hover:bg-white/90 gap-2 w-full sm:w-auto"
-                  >
-                    <Calendar className="h-5 w-5" />
-                    رزرو نوبت
-                  </Button>
-                </Link>
-                <Link href={ROUTES.CONTACT}>
-                  <Button
-                    variant="outline"
-                    size="xl"
-                    className="border-white text-white hover:bg-white/10 gap-2 w-full sm:w-auto"
-                  >
-                    <Phone className="h-5 w-5" />
-                    تماس با ما
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </motion.div>
+      {/* Quote configurator */}
+      <Section id="quote" eyebrow="برآورد" title="محاسبهٔ دقیق قیمت" subtitle="اندازهٔ خودرو و خدمات تکمیلی را انتخاب کنید تا قیمت نهایی و زمان اجرا را ببینید." muted>
+        <div className="mx-auto max-w-3xl">
+          <QuoteCalculator services={[service, ...related.filter((s) => s.id !== service.id)]} initialServiceId={service.id} compact />
         </div>
-      </section>
-    </motion.div>
+      </Section>
+
+      {/* Features */}
+      {service.features && service.features.length > 0 && (
+        <Section id="features" eyebrow="مزایا" title="این خدمت شامل چه مواردی است؟">
+          <motion.ul
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportConfig.once}
+            className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          >
+            {service.features.map((feature) => (
+              <motion.li
+                key={feature}
+                variants={fadeInUp}
+                className="flex items-start gap-3 rounded-2xl border border-border bg-card p-4 text-sm leading-6 text-foreground"
+              >
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary/15 text-secondary">
+                  <Check className="h-4 w-4" aria-hidden="true" />
+                </span>
+                {feature}
+              </motion.li>
+            ))}
+          </motion.ul>
+        </Section>
+      )}
+
+      {/* Process */}
+      {service.steps && service.steps.length > 0 && (
+        <Section id="process" eyebrow="مراحل" title="روند انجام کار" muted>
+          <ProcessTimeline steps={service.steps} />
+        </Section>
+      )}
+
+      {/* Before / after */}
+      {service.beforeAfter && (
+        <Section id="before-after" eyebrow="نتیجه" title="قبل و بعد">
+          <div className="mx-auto max-w-4xl overflow-hidden rounded-3xl border border-border/60 shadow-luxury">
+            <BeforeAfterSlider
+              before={service.beforeAfter.before}
+              after={service.beforeAfter.after}
+              alt={service.beforeAfter.caption ?? service.name}
+              aspect="16/9"
+              sizes="(max-width: 1024px) 100vw, 896px"
+            />
+          </div>
+          {service.beforeAfter.caption && (
+            <p className="mt-3 text-center text-sm text-muted-foreground">{service.beforeAfter.caption}</p>
+          )}
+        </Section>
+      )}
+
+      {/* Gallery strip */}
+      {galleryItems.length > 0 && (
+        <Section id="gallery" eyebrow="نمونه کارها" title="گالری این خدمت" subtitle="برای مشاهدهٔ بزرگ‌تر و مقایسهٔ قبل/بعد روی هر تصویر بزنید.">
+          <div className="hide-scrollbar -mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6 lg:mx-0 lg:grid lg:grid-cols-4 lg:px-0">
+            {galleryItems.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => openLightbox(index)}
+                aria-label={`نمایش ${item.title}`}
+                className="group relative aspect-[4/3] w-[72%] shrink-0 snap-start overflow-hidden rounded-2xl border border-border/60 bg-muted sm:w-[46%] lg:w-auto"
+              >
+                <Image
+                  src={item.cover ?? item.after}
+                  alt={item.title}
+                  fill
+                  sizes="(max-width: 640px) 72vw, (max-width: 1024px) 46vw, 25vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-start text-xs font-semibold text-white">
+                  {item.title}
+                </span>
+              </button>
+            ))}
+          </div>
+          <Button asChild variant="link" className="mt-4 min-h-11 px-0">
+            <Link href={`${ROUTES.GALLERY}?filter=${service.type}`}>مشاهدهٔ همهٔ نمونه کارها</Link>
+          </Button>
+          {lightboxOpen && (
+            <Lightbox items={galleryItems} index={lightboxIndex} open={lightboxOpen} onOpenChange={setLightboxOpen} />
+          )}
+        </Section>
+      )}
+
+      {/* Add-ons */}
+      {service.addons && service.addons.length > 0 && (
+        <Section id="addons" eyebrow="خدمات تکمیلی" title="افزودنی‌های این خدمت" subtitle="هنگام رزرو می‌توانید هر کدام را به سفارش خود اضافه کنید." muted>
+          <ul className="divide-y divide-border overflow-hidden rounded-2xl border border-border bg-card">
+            {service.addons.map((addon) => (
+              <li key={addon.id} className="flex items-center gap-3 p-4">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold text-foreground">{addon.name}</p>
+                  {addon.description && <p className="mt-0.5 text-xs leading-5 text-muted-foreground">{addon.description}</p>}
+                </div>
+                <span className="shrink-0 text-sm font-bold text-foreground tabular-nums">+{formatToman(addon.price)}</span>
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      {/* Wrap visualiser */}
+      {isWrapLike && (
+        <Section id="visualizer" eyebrow="پیش‌نمایش" title="رنگ و جلوهٔ دلخواه را امتحان کنید">
+          <div className="mx-auto max-w-4xl">
+            <WrapVisualizer
+              colors={WRAP_COLORS}
+              basePrice={service.pricing?.medium ?? service.price}
+              serviceId={service.id}
+            />
+          </div>
+        </Section>
+      )}
+
+      {/* FAQ */}
+      {service.faq && service.faq.length > 0 && (
+        <Section id="faq" eyebrow="سؤالات متداول" title="پرسش‌های رایج" muted>
+          <div className="mx-auto max-w-3xl">
+            <FaqAccordion items={service.faq} />
+          </div>
+        </Section>
+      )}
+
+      {/* Reviews */}
+      <Section id="reviews" eyebrow="نظرات" title="تجربهٔ مشتریان">
+        <ReviewSection kind="service" targetId={service.id} reviews={reviews} rating={service.rating} reviewCount={service.reviewCount} />
+      </Section>
+
+      {/* Related */}
+      {related.length > 0 && (
+        <Section id="related" eyebrow="پیشنهاد" title="خدمات مرتبط" muted>
+          <SnapRow label="خدمات مرتبط" desktopClassName="lg:grid-cols-3">
+            {related.map((item) => (
+              <ServiceCard key={item.id} service={item} className="h-full" />
+            ))}
+          </SnapRow>
+        </Section>
+      )}
+
+      <StickyCtaBar
+        price={startingPrice}
+        priceLabel="شروع از"
+        primaryLabel="رزرو این خدمت"
+        primaryIcon={<CalendarCheck className="h-5 w-5" aria-hidden="true" />}
+        primaryHref={bookingHref(service.id)}
+        secondary={[
+          {
+            icon: <Phone className="h-5 w-5" aria-hidden="true" />,
+            label: 'تماس',
+            onClick: () => {
+              window.location.href = `tel:${CONTACT.phoneEn}`;
+            },
+          },
+        ]}
+        visible={stickyVisible}
+      />
+    </div>
   );
 }

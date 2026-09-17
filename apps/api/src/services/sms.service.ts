@@ -1,240 +1,205 @@
 import axios from 'axios';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
+import { config, hasSmsCredentials } from '../config';
+import { logger } from '../lib/logger';
 
 const MELIPAYAMAK_API = 'https://rest.payamak-panel.com/api/SendSMS/SendSMS';
-
-interface MeliPayamakConfig {
-  username: string;
-  password: string;
-  from: string;
-}
-
-const config: MeliPayamakConfig = {
-  username: process.env.MELIPAYAMAK_USERNAME || '',
-  password: process.env.MELIPAYAMAK_PASSWORD || '',
-  from: process.env.MELIPAYAMAK_FROM || '',
-};
 
 // OTP configuration
 const OTP_EXPIRY_MINUTES = 2;
 const OTP_MAX_ATTEMPTS = 5;
-const OTP_COOLDOWN_MINUTES = 1;
+const OTP_COOLDOWN_SECONDS = 60;
 
-/**
- * Generate a secure 6-digit OTP
- */
+export type OTPFailureReason = 'expired' | 'invalid' | 'max_attempts';
+
+/** Secure 6-digit OTP */
 export function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-/**
- * Hash OTP code for secure storage
- */
 export async function hashOTP(code: string): Promise<string> {
   return bcrypt.hash(code, 10);
 }
 
-/**
- * Verify OTP code against hash
- */
 export async function verifyOTPHash(code: string, hash: string): Promise<boolean> {
   return bcrypt.compare(code, hash);
 }
 
-/**
- * Check if user can request new OTP (cooldown check)
- */
-export async function canRequestOTP(phoneNumber: string): Promise<{ canRequest: boolean; waitSeconds?: number }> {
+/** Cooldown between two OTP requests for the same phone number */
+export async function canRequestOTP(
+  phoneNumber: string
+): Promise<{ canRequest: boolean; waitSeconds?: number }> {
   const lastOTP = await prisma.oTP.findFirst({
     where: { phoneNumber },
     orderBy: { createdAt: 'desc' },
+    select: { createdAt: true },
   });
 
   if (lastOTP) {
-    const cooldownEnd = new Date(lastOTP.createdAt.getTime() + OTP_COOLDOWN_MINUTES * 60 * 1000);
-    const now = new Date();
-
+    const cooldownEnd = lastOTP.createdAt.getTime() + OTP_COOLDOWN_SECONDS * 1000;
+    const now = Date.now();
     if (now < cooldownEnd) {
-      const waitSeconds = Math.ceil((cooldownEnd.getTime() - now.getTime()) / 1000);
-      return { canRequest: false, waitSeconds };
+      return { canRequest: false, waitSeconds: Math.ceil((cooldownEnd - now) / 1000) };
     }
   }
 
   return { canRequest: true };
 }
 
-/**
- * Create and store OTP in database
- */
+/** Create a new OTP (stored hashed); returns the plain code for delivery */
 export async function createOTP(phoneNumber: string): Promise<string> {
   const code = generateOTP();
   const hashedCode = await hashOTP(code);
 
-  // Delete old unused OTPs for this phone
-  await prisma.oTP.deleteMany({
-    where: {
-      phoneNumber,
-      used: false,
-    },
-  });
-
-  // Create new OTP
+  await prisma.oTP.deleteMany({ where: { phoneNumber, used: false } });
   await prisma.oTP.create({
     data: {
       phoneNumber,
-      code: hashedCode, // Store hashed OTP
+      code: hashedCode,
       expiresAt: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
     },
   });
 
-  return code; // Return plain code for SMS
+  return code;
 }
 
 /**
- * Verify OTP code from database
- * Note: After migration, add attempts tracking
+ * Verify an OTP. Outside production, `OTP_DEV_BYPASS_CODE` is always accepted.
  */
 export async function verifyOTP(
   phoneNumber: string,
   code: string
-): Promise<{ valid: boolean; reason?: 'expired' | 'invalid' | 'max_attempts' }> {
-  // Find the latest OTP for this phone number
+): Promise<{ valid: boolean; reason?: OTPFailureReason }> {
+  if (config.otpDevBypassCode && code === config.otpDevBypassCode) {
+    await prisma.oTP.updateMany({ where: { phoneNumber, used: false }, data: { used: true } });
+    logger.info({ phoneNumber }, 'OTP accepted via OTP_DEV_BYPASS_CODE');
+    return { valid: true };
+  }
+
   const otp = await prisma.oTP.findFirst({
-    where: {
-      phoneNumber,
-      used: false,
-      expiresAt: { gt: new Date() },
-    },
+    where: { phoneNumber, used: false, expiresAt: { gt: new Date() } },
     orderBy: { createdAt: 'desc' },
   });
 
-  if (!otp) {
-    return { valid: false, reason: 'expired' };
-  }
+  if (!otp) return { valid: false, reason: 'expired' };
+  if (otp.attempts >= OTP_MAX_ATTEMPTS) return { valid: false, reason: 'max_attempts' };
 
-  // Verify the code
   const isValid = await verifyOTPHash(code, otp.code);
-
   if (!isValid) {
-    return { valid: false, reason: 'invalid' };
+    const updated = await prisma.oTP.update({
+      where: { id: otp.id },
+      data: { attempts: { increment: 1 } },
+      select: { attempts: true },
+    });
+    return {
+      valid: false,
+      reason: updated.attempts >= OTP_MAX_ATTEMPTS ? 'max_attempts' : 'invalid',
+    };
   }
 
-  // Mark OTP as used
-  await prisma.oTP.update({
-    where: { id: otp.id },
-    data: { used: true },
-  });
-
+  await prisma.oTP.update({ where: { id: otp.id }, data: { used: true } });
   return { valid: true };
 }
 
 /**
- * Send OTP code via MeliPayamak SMS Gateway
+ * Low-level MeliPayamak send. Returns false (and logs) when credentials are
+ * missing; throws in production when the gateway rejects the message.
  */
+export async function sendSms(to: string, text: string): Promise<boolean> {
+  if (!hasSmsCredentials()) {
+    logger.info({ to, text }, 'SMS not sent (MELIPAYAMAK_* credentials are empty) — logged instead');
+    return false;
+  }
+
+  try {
+    const response = await axios.post(
+      MELIPAYAMAK_API,
+      {
+        username: config.melipayamak.username,
+        password: config.melipayamak.password,
+        to,
+        from: config.melipayamak.from,
+        text,
+        isFlash: false,
+      },
+      { timeout: 10_000 }
+    );
+
+    if (response.data?.RetStatus !== 1) {
+      throw new Error(`MeliPayamak error: ${response.data?.StrRetStatus ?? 'unknown'}`);
+    }
+
+    logger.info({ to }, 'SMS sent');
+    return true;
+  } catch (error) {
+    logger.error({ err: error, to }, 'Failed to send SMS');
+    if (config.isProduction) throw error;
+    logger.warn({ to, text }, 'DEV MODE — SMS content');
+    return false;
+  }
+}
+
+/** Send the OTP code (logged instead of sent when no credentials are configured) */
 export async function sendOTP(phoneNumber: string, code: string): Promise<void> {
+  if (!hasSmsCredentials()) {
+    logger.info(`OTP for ${phoneNumber}: ${code} (MeliPayamak not configured)`);
+    return;
+  }
   const message = `کد تایید شما در اتولانژ: ${code}\nاین کد به مدت ۲ دقیقه معتبر است.`;
+  await sendSms(phoneNumber, message);
+}
 
+/** Fire-and-forget notification: never throws */
+export async function sendNotification(phoneNumber: string, message: string): Promise<void> {
   try {
-    const response = await axios.post(MELIPAYAMAK_API, {
-      username: config.username,
-      password: config.password,
-      to: phoneNumber,
-      from: config.from,
-      text: message,
-      isFlash: false,
-    });
-
-    if (response.data.RetStatus !== 1) {
-      throw new Error(`MeliPayamak API error: ${response.data.StrRetStatus}`);
-    }
-
-    console.log(`✅ OTP sent to ${phoneNumber}`);
+    await sendSms(phoneNumber, message);
   } catch (error) {
-    console.error('❌ Failed to send OTP:', error);
-    
-    // In development, log the OTP instead of failing
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`📱 DEV MODE - OTP for ${phoneNumber}: ${code}`);
-      return;
-    }
-    
-    throw error;
+    logger.error({ err: error, phoneNumber }, 'Notification SMS failed');
   }
 }
 
-/**
- * Send notification SMS
- */
-export async function sendNotification(
-  phoneNumber: string,
-  message: string
-): Promise<void> {
-  try {
-    const response = await axios.post(MELIPAYAMAK_API, {
-      username: config.username,
-      password: config.password,
-      to: phoneNumber,
-      from: config.from,
-      text: message,
-      isFlash: false,
-    });
-
-    if (response.data.RetStatus !== 1) {
-      throw new Error(`MeliPayamak API error: ${response.data.StrRetStatus}`);
-    }
-
-    console.log(`✅ Notification sent to ${phoneNumber}`);
-  } catch (error) {
-    console.error('❌ Failed to send notification:', error);
-    
-    // In development, log the message instead of failing
-    if (process.env.NODE_ENV === 'development') {
-      console.log(`📱 DEV MODE - Notification for ${phoneNumber}: ${message}`);
-      return;
-    }
-    
-    throw error;
-  }
-}
-
-/**
- * Send booking confirmation SMS
- */
 export async function sendBookingConfirmation(
   phoneNumber: string,
   serviceName: string,
   date: string,
-  timeSlot: string
+  timeSlot: string,
+  trackingCode?: string | null
 ): Promise<void> {
-  const message = `✅ رزرو شما در اتولانژ ثبت شد
+  const message = `رزرو شما در اتولانژ ثبت شد
 خدمت: ${serviceName}
 تاریخ: ${date}
-ساعت: ${timeSlot}
+ساعت: ${timeSlot}${trackingCode ? `\nکد پیگیری: ${trackingCode}` : ''}
 با تشکر از انتخاب شما`;
 
   await sendNotification(phoneNumber, message);
 }
 
-/**
- * Send order confirmation SMS
- */
 export async function sendOrderConfirmation(
   phoneNumber: string,
-  orderId: string,
-  totalPrice: string
+  trackingCode: string,
+  totalPrice: number
 ): Promise<void> {
-  const message = `✅ سفارش شما در اتولانژ ثبت شد
-شماره سفارش: ${orderId.slice(-8).toUpperCase()}
-مبلغ کل: ${totalPrice} تومان
+  const message = `سفارش شما در اتولانژ ثبت شد
+کد پیگیری: ${trackingCode}
+مبلغ کل: ${totalPrice.toLocaleString('fa-IR')} تومان
 برای پیگیری سفارش به پروفایل خود مراجعه کنید`;
 
   await sendNotification(phoneNumber, message);
 }
 
-/**
- * Send status update SMS
- */
+export async function sendPaymentConfirmation(
+  phoneNumber: string,
+  kind: 'order' | 'booking',
+  trackingCode: string,
+  refId: string
+): Promise<void> {
+  const typeText = kind === 'order' ? 'سفارش' : 'رزرو';
+  const message = `پرداخت ${typeText} ${trackingCode} در اتولانژ با موفقیت انجام شد
+شماره پیگیری بانکی: ${refId}`;
+  await sendNotification(phoneNumber, message);
+}
+
 export async function sendStatusUpdate(
   phoneNumber: string,
   type: 'order' | 'booking',
@@ -249,7 +214,7 @@ export async function sendStatusUpdate(
     },
     booking: {
       confirmed: 'تایید شد',
-      'in-progress': 'در حال انجام',
+      in_progress: 'در حال انجام',
       completed: 'تکمیل شد',
       cancelled: 'لغو شد',
     },
@@ -257,7 +222,5 @@ export async function sendStatusUpdate(
 
   const statusText = statusMessages[type][status] || status;
   const typeText = type === 'order' ? 'سفارش' : 'رزرو';
-  const message = `📋 وضعیت ${typeText} شما در اتولانژ: ${statusText}`;
-
-  await sendNotification(phoneNumber, message);
+  await sendNotification(phoneNumber, `وضعیت ${typeText} شما در اتولانژ: ${statusText}`);
 }

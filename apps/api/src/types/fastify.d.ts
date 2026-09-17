@@ -1,28 +1,27 @@
 import '@fastify/jwt';
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply } from 'fastify';
+import type { UserRole } from '@autolounge/shared';
 
-// JWT Payload Interface
+/** JWT payload — `role` is the user's real role (see docs/API.md) */
 export interface JWTPayload {
-  userId: string;
+  id: string;
   phoneNumber: string;
-  role: 'admin' | 'customer';
+  role: UserRole;
   iat?: number;
   exp?: number;
 }
 
-// Extend FastifyRequest to include user
 declare module 'fastify' {
-  interface FastifyRequest {
-    user: JWTPayload;
-  }
-
   interface FastifyInstance {
+    /** preHandler: requires a valid bearer token (401 UNAUTHORIZED) */
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /** preHandler: requires a valid token with role `admin` (401 / 403 FORBIDDEN) */
+    requireAdmin: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /** @deprecated alias of requireAdmin */
     adminOnly: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 }
 
-// Extend @fastify/jwt
 declare module '@fastify/jwt' {
   interface FastifyJWT {
     payload: JWTPayload;

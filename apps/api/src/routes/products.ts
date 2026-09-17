@@ -1,150 +1,128 @@
 import { FastifyPluginAsync } from 'fastify';
+import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma';
-import { productQuerySchema, paginationSchema } from '../schemas';
-import { validateRequest, apiResponse } from '../lib/validation';
+import { productQuerySchema, limitQuerySchema, idParamSchema, reviewSchema } from '../schemas';
+import { parse, apiResponse } from '../lib/validation';
+import { conflict, notFound } from '../lib/errors';
+import { approvedReviews, displayName, reviewSelect, searchFilter } from '../lib/catalog';
 
 export const productRoutes: FastifyPluginAsync = async (fastify) => {
-  // Get all products with filtering and pagination
+  // GET /products
   fastify.get('/', async (request, reply) => {
-    const queryValidation = validateRequest(productQuerySchema, request.query);
-    const paginationValidation = validateRequest(paginationSchema, request.query);
+    const q = parse(productQuerySchema, request.query);
 
-    const {
-      category,
-      minPrice,
-      maxPrice,
-      featured,
-      search,
-    } = queryValidation.success ? queryValidation.data : {};
-
-    const { page = 1, limit = 12, sortBy = 'createdAt', sortOrder = 'desc' } =
-      paginationValidation.success ? paginationValidation.data : { page: 1, limit: 12, sortBy: 'createdAt', sortOrder: 'desc' as const };
-
-    try {
-      const where: any = {
-        isActive: true,
+    const where: Prisma.ProductWhereInput = { isActive: true };
+    if (q.category) where.category = q.category;
+    if (q.brand) where.brand = { equals: q.brand, mode: 'insensitive' };
+    if (q.featured !== undefined) where.featured = q.featured;
+    if (q.inStock === true) where.stock = { gt: 0 };
+    if (q.minPrice !== undefined || q.maxPrice !== undefined) {
+      where.price = {
+        ...(q.minPrice !== undefined ? { gte: q.minPrice } : {}),
+        ...(q.maxPrice !== undefined ? { lte: q.maxPrice } : {}),
       };
-
-      if (category) {
-        where.category = category;
-      }
-
-      if (minPrice !== undefined || maxPrice !== undefined) {
-        where.price = {};
-        if (minPrice !== undefined) where.price.gte = minPrice;
-        if (maxPrice !== undefined) where.price.lte = maxPrice;
-      }
-
-      if (featured !== undefined) {
-        where.featured = featured;
-      }
-
-      if (search) {
-        where.OR = [
-          { name: { contains: search, mode: 'insensitive' } },
-          { description: { contains: search, mode: 'insensitive' } },
-        ];
-      }
-
-      const [products, total] = await Promise.all([
-        prisma.product.findMany({
-          where,
-          orderBy: { [sortBy]: sortOrder },
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-        prisma.product.count({ where }),
-      ]);
-
-      return apiResponse.paginated(reply, products, total, page, limit);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت محصولات', 500);
     }
+    if (q.search) {
+      where.OR = [
+        ...(searchFilter(q.search, ['name', 'nameEn', 'shortDescription', 'description', 'brand']) as Prisma.ProductWhereInput[]),
+        { tags: { has: q.search } },
+      ];
+    }
+
+    const orderBy: Prisma.ProductOrderByWithRelationInput[] =
+      q.sortBy === 'rating'
+        ? [{ rating: q.sortOrder }, { reviewCount: 'desc' }]
+        : [{ [q.sortBy]: q.sortOrder }, { id: 'asc' }];
+
+    const [products, total] = await Promise.all([
+      prisma.product.findMany({ where, orderBy, skip: (q.page - 1) * q.limit, take: q.limit }),
+      prisma.product.count({ where }),
+    ]);
+
+    return apiResponse.paginated(reply, products, total, q.page, q.limit);
   });
 
-  // Get product by ID
-  fastify.get<{ Params: { id: string } }>('/:id', async (request, reply) => {
-    const { id } = request.params;
-
-    try {
-      const product = await prisma.product.findUnique({
-        where: { id },
-      });
-
-      if (!product) {
-        return apiResponse.error(reply, 'محصول یافت نشد', 404);
-      }
-
-      return apiResponse.success(reply, product);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت محصول', 500);
-    }
-  });
-
-  // Get featured products
+  // GET /products/featured/list
   fastify.get('/featured/list', async (request, reply) => {
-    try {
-      const products = await prisma.product.findMany({
-        where: {
-          featured: true,
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 8,
-      });
-
-      return apiResponse.success(reply, products);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت محصولات ویژه', 500);
-    }
+    const { limit } = parse(limitQuerySchema(8), request.query);
+    const products = await prisma.product.findMany({
+      where: { featured: true, isActive: true },
+      orderBy: [{ rating: 'desc' }, { createdAt: 'desc' }],
+      take: limit,
+    });
+    return apiResponse.success(reply, products);
   });
 
-  // Get product categories
-  fastify.get('/categories/list', async (request, reply) => {
-    try {
-      const categories = await prisma.product.findMany({
-        select: { category: true },
-        distinct: ['category'],
-      });
-
-      const categoryList = categories.map((c) => c.category).filter(Boolean);
-
-      return apiResponse.success(reply, categoryList);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت دسته‌بندی‌ها', 500);
-    }
+  // GET /products/categories/list
+  fastify.get('/categories/list', async (_request, reply) => {
+    const rows = await prisma.product.findMany({
+      where: { isActive: true },
+      select: { category: true },
+      distinct: ['category'],
+      orderBy: { category: 'asc' },
+    });
+    return apiResponse.success(
+      reply,
+      rows.map((r) => r.category).filter(Boolean)
+    );
   });
 
-  // Get related products
-  fastify.get<{ Params: { id: string } }>('/:id/related', async (request, reply) => {
-    const { id } = request.params;
+  // GET /products/:id
+  fastify.get('/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const product = await prisma.product.findFirst({
+      where: { id, isActive: true },
+      include: { reviews: approvedReviews },
+    });
+    if (!product) throw notFound('محصول یافت نشد');
+    return apiResponse.success(reply, product);
+  });
 
-    try {
-      const product = await prisma.product.findUnique({
-        where: { id },
-        select: { category: true },
-      });
+  // GET /products/:id/related
+  fastify.get('/:id/related', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const { limit } = parse(limitQuerySchema(4), request.query);
 
-      if (!product) {
-        return apiResponse.error(reply, 'محصول یافت نشد', 404);
-      }
+    const product = await prisma.product.findFirst({
+      where: { id, isActive: true },
+      select: { category: true, brand: true },
+    });
+    if (!product) throw notFound('محصول یافت نشد');
 
-      const relatedProducts = await prisma.product.findMany({
-        where: {
-          category: product.category,
-          id: { not: id },
-        },
-        take: 4,
-        orderBy: { createdAt: 'desc' },
-      });
+    const related = await prisma.product.findMany({
+      where: { isActive: true, id: { not: id }, category: product.category },
+      orderBy: [{ featured: 'desc' }, { rating: 'desc' }, { createdAt: 'desc' }],
+      take: limit,
+    });
+    return apiResponse.success(reply, related);
+  });
 
-      return apiResponse.success(reply, relatedProducts);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت محصولات مرتبط', 500);
-    }
+  // POST /products/:id/reviews (auth) — creates a pending review
+  fastify.post('/:id/reviews', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(reviewSchema, request.body);
+
+    const [product, user, existing] = await Promise.all([
+      prisma.product.findFirst({ where: { id, isActive: true }, select: { id: true } }),
+      prisma.user.findUnique({ where: { id: request.user.id } }),
+      prisma.review.findFirst({ where: { productId: id, userId: request.user.id }, select: { id: true } }),
+    ]);
+    if (!product) throw notFound('محصول یافت نشد');
+    if (!user) throw notFound('کاربر یافت نشد');
+    if (existing) throw conflict('شما قبلاً برای این محصول نظر ثبت کرده‌اید');
+
+    const review = await prisma.review.create({
+      data: {
+        productId: id,
+        userId: user.id,
+        userName: displayName(user),
+        rating: input.rating,
+        comment: input.comment,
+        isApproved: false,
+      },
+      select: { ...reviewSelect, isApproved: true, productId: true },
+    });
+
+    return apiResponse.success(reply, review, 201);
   });
 };

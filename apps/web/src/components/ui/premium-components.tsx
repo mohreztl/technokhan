@@ -135,7 +135,7 @@ export function PremiumButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'relative overflow-hidden rounded-xl transition-all duration-300',
+        'group relative overflow-hidden rounded-xl transition-all duration-300',
         variants[variant],
         sizes[size],
         className
@@ -143,8 +143,11 @@ export function PremiumButton({
       whileHover={{ scale: 1.02, y: -2 }}
       whileTap={{ scale: 0.98 }}
     >
-      {/* Shimmer overlay */}
-      <span className="absolute inset-0 -translate-x-full hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+      {/* Shimmer overlay (driven by the button's hover via `group-hover`, not the span's own hover) */}
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+      />
       <span className="relative z-10">{children}</span>
     </motion.button>
   );
@@ -294,6 +297,7 @@ export function TestimonialCard({
       {/* Author */}
       <div className="flex items-center gap-3">
         {avatar && (
+          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatar}
             alt={author}
@@ -310,32 +314,60 @@ export function TestimonialCard({
 }
 
 /**
- * Section Heading - عنوان سکشن
+ * Section Heading - عنوان سکشن (با برچسب طلایی اختیاری)
  */
 export function SectionHeading({
   title,
   subtitle,
   badge,
+  eyebrow,
   align = 'center',
+  as: Heading = 'h2',
+  id,
   className,
 }: {
   title: string;
   subtitle?: string;
+  /** Pill badge above the title (gold gradient). */
   badge?: string;
-  align?: 'left' | 'center' | 'right';
+  /** Small gold uppercase-style label above the title. */
+  eyebrow?: string;
+  /** Logical alignment; `left`/`right` are kept for backwards compatibility. */
+  align?: 'start' | 'center' | 'end' | 'left' | 'right';
+  as?: 'h1' | 'h2' | 'h3';
+  id?: string;
   className?: string;
 }) {
   const ref = useRef(null);
-  const isInView = useInView(ref, { once: true });
+  const isInView = useInView(ref, { once: true, margin: '-40px' });
 
-  const alignClasses = {
-    left: 'text-right',
+  const alignClasses: Record<NonNullable<typeof align>, string> = {
+    start: 'text-start',
+    left: 'text-start',
     center: 'text-center',
-    right: 'text-left',
+    end: 'text-end',
+    right: 'text-end',
   };
+  const centered = align === 'center';
+  const MotionHeading = motion[Heading];
 
   return (
-    <div ref={ref} className={cn(alignClasses[align], 'mb-12', className)}>
+    <div ref={ref} className={cn(alignClasses[align], 'mb-10 lg:mb-14', className)}>
+      {eyebrow && (
+        <motion.p
+          className={cn(
+            'mb-3 flex items-center gap-2 text-xs font-bold tracking-[0.2em] text-secondary',
+            centered && 'justify-center'
+          )}
+          initial={{ opacity: 0, y: 8 }}
+          animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 8 }}
+          transition={{ duration: 0.4 }}
+        >
+          <span aria-hidden="true" className="h-px w-6 bg-secondary/70" />
+          {eyebrow}
+          {centered && <span aria-hidden="true" className="h-px w-6 bg-secondary/70" />}
+        </motion.p>
+      )}
       {badge && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -345,17 +377,21 @@ export function SectionHeading({
           <GoldBadge className="mb-4">{badge}</GoldBadge>
         </motion.div>
       )}
-      <motion.h2
-        className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4"
+      <MotionHeading
+        id={id}
+        className="mb-3 text-balance text-2xl font-black text-foreground sm:text-3xl md:text-4xl lg:text-5xl"
         initial={{ opacity: 0, y: 20 }}
         animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
         transition={{ duration: 0.5, delay: 0.1 }}
       >
         {title}
-      </motion.h2>
+      </MotionHeading>
       {subtitle && (
         <motion.p
-          className="text-lg text-muted-foreground max-w-2xl mx-auto"
+          className={cn(
+            'max-w-2xl text-base leading-8 text-muted-foreground sm:text-lg',
+            centered && 'mx-auto'
+          )}
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           transition={{ duration: 0.5, delay: 0.2 }}

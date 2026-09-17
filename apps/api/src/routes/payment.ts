@@ -1,352 +1,278 @@
 import { FastifyPluginAsync } from 'fastify';
+import type { PaymentRequestResult, PaymentVerifyResult } from '@autolounge/shared';
 import { prisma } from '../lib/prisma';
-import { paymentRequestSchema, paymentVerifySchema } from '../schemas';
-import { validateRequest, apiResponse } from '../lib/validation';
-import { sendOrderConfirmation } from '../services/sms.service';
+import { config as appConfig, isDemoGateway } from '../config';
+import * as zarinpal from '../services/zarinpal.service';
+import { sendPaymentConfirmation } from '../services/sms.service';
+import { bookingPaymentRequestSchema, paymentRequestSchema, paymentVerifySchema } from '../schemas';
+import { parse, apiResponse } from '../lib/validation';
+import { forbidden, notFound, paymentError } from '../lib/errors';
 
-// Zarinpal Configuration
-const ZARINPAL_MERCHANT_ID = process.env.ZARINPAL_MERCHANT_ID || '';
-const ZARINPAL_SANDBOX = process.env.NODE_ENV !== 'production';
-const ZARINPAL_API_URL = ZARINPAL_SANDBOX
-  ? 'https://sandbox.zarinpal.com/pg/v4/payment'
-  : 'https://api.zarinpal.com/pg/v4/payment';
-const ZARINPAL_GATEWAY_URL = ZARINPAL_SANDBOX
-  ? 'https://sandbox.zarinpal.com/pg/StartPay'
-  : 'https://www.zarinpal.com/pg/StartPay';
-const CALLBACK_URL = process.env.PAYMENT_CALLBACK_URL || 'http://localhost:3000/payment/callback';
+const DEMO_PREFIX = 'DEMO-';
 
-interface ZarinpalRequestResponse {
-  data: {
-    code: number;
-    message: string;
-    authority: string;
-    fee_type?: string;
-    fee?: number;
-  };
-  errors: unknown[];
+interface StartPaymentInput {
+  orderId?: string;
+  bookingId?: string;
+  amount: number;
+  callbackUrl?: string;
+  description: string;
+  mobile: string;
+  email?: string | null;
 }
 
-interface ZarinpalVerifyResponse {
-  data: {
-    code: number;
-    message: string;
-    card_hash?: string;
-    card_pan?: string;
-    ref_id?: number;
-    fee_type?: string;
-    fee?: number;
-  };
-  errors: unknown[];
+/**
+ * Create the PaymentTransaction row and obtain an authority — from Zarinpal,
+ * or simulated when no merchant id is configured outside production.
+ */
+async function startPayment(input: StartPaymentInput): Promise<PaymentRequestResult> {
+  const amount = Math.round(input.amount);
+  const callbackUrl = input.callbackUrl || appConfig.paymentCallbackUrl;
+  const demo = isDemoGateway();
+
+  const tx = await prisma.paymentTransaction.create({
+    data: {
+      orderId: input.orderId,
+      bookingId: input.bookingId,
+      amount,
+      status: 'pending',
+      gateway: demo ? 'demo' : 'zarinpal',
+    },
+  });
+
+  if (demo) {
+    const authority = `${DEMO_PREFIX}${tx.id}`;
+    await prisma.paymentTransaction.update({ where: { id: tx.id }, data: { authority } });
+    const separator = callbackUrl.includes('?') ? '&' : '?';
+    return {
+      authority,
+      paymentUrl: `${callbackUrl}${separator}Authority=${authority}&Status=OK`,
+      amount,
+      demo: true,
+    };
+  }
+
+  const result = await zarinpal.requestPayment({
+    amount,
+    callbackUrl,
+    description: input.description,
+    mobile: input.mobile,
+    email: input.email,
+  });
+
+  if (!result.ok) {
+    await prisma.paymentTransaction.update({
+      where: { id: tx.id },
+      data: { status: 'failed', errorCode: String(result.code), errorMessage: result.message },
+    });
+    throw paymentError(result.message, 502, { gatewayCode: result.code });
+  }
+
+  await prisma.paymentTransaction.update({
+    where: { id: tx.id },
+    data: { authority: result.authority },
+  });
+
+  return { authority: result.authority, paymentUrl: result.paymentUrl, amount };
 }
+
+const txInclude = {
+  order: { include: { user: { select: { phoneNumber: true } } } },
+  booking: { include: { user: { select: { phoneNumber: true } } } },
+} as const;
 
 export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
-  // All payment routes require authentication
-  fastify.addHook('preHandler', fastify.authenticate);
+  // POST /payment/request — order
+  fastify.post('/request', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { orderId, callbackUrl } = parse(paymentRequestSchema, request.body);
 
-  // Request payment for an order
-  fastify.post('/request', async (request, reply) => {
-    const validation = validateRequest(paymentRequestSchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
+    const order = await prisma.order.findUnique({ where: { id: orderId }, include: { user: true } });
+    if (!order) throw notFound('سفارش یافت نشد');
+    if (order.userId !== request.user.id && request.user.role !== 'admin') {
+      throw forbidden('شما به این سفارش دسترسی ندارید');
+    }
+    if (order.paymentStatus === 'paid') throw paymentError('این سفارش قبلاً پرداخت شده است', 400);
+    if (order.status === 'cancelled') throw paymentError('سفارش لغو شده قابل پرداخت نیست', 400);
+    if (order.paymentMethod === 'cod') {
+      throw paymentError('روش پرداخت این سفارش «پرداخت در محل» است', 400);
     }
 
-    const { orderId, callbackUrl } = validation.data;
+    const result = await startPayment({
+      orderId: order.id,
+      amount: order.totalPrice,
+      callbackUrl,
+      description: `پرداخت سفارش ${order.trackingCode ?? order.id} — اتولانژ`,
+      mobile: order.user.phoneNumber,
+      email: order.user.email,
+    });
 
-    try {
-      // Get order details
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: { user: true },
-      });
-
-      if (!order) {
-        return apiResponse.error(reply, 'سفارش یافت نشد', 404);
-      }
-
-      // Check if order belongs to user
-      if (order.userId !== request.user.userId) {
-        return apiResponse.error(reply, 'شما دسترسی به این سفارش ندارید', 403);
-      }
-
-      // Check if order is already paid
-      if (order.paymentStatus === 'paid') {
-        return apiResponse.error(reply, 'این سفارش قبلاً پرداخت شده است', 400);
-      }
-
-      // Convert to Toman (Zarinpal uses Toman)
-      const amountInToman = Math.round(order.totalPrice / 10);
-
-      // Request payment from Zarinpal
-      const response = await fetch(`${ZARINPAL_API_URL}/request.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          merchant_id: ZARINPAL_MERCHANT_ID,
-          amount: amountInToman,
-          callback_url: callbackUrl || CALLBACK_URL,
-          description: `پرداخت سفارش شماره ${order.id}`,
-          metadata: {
-            mobile: order.user.phoneNumber,
-            email: order.user.email || undefined,
-          },
-        }),
-      });
-
-      const data = (await response.json()) as ZarinpalRequestResponse;
-
-      if (data.data.code !== 100) {
-        fastify.log.error({ msg: 'Zarinpal request failed', data });
-        return apiResponse.error(reply, 'خطا در ایجاد درخواست پرداخت', 500);
-      }
-
-      return apiResponse.success(reply, {
-        authority: data.data.authority,
-        paymentUrl: `${ZARINPAL_GATEWAY_URL}/${data.data.authority}`,
-        amount: order.totalPrice,
-        amountInToman,
-      });
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در ایجاد درخواست پرداخت', 500);
-    }
+    return apiResponse.success(reply, result);
   });
 
-  // Verify payment callback
+  // POST /payment/booking/request — booking
+  fastify.post('/booking/request', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { bookingId, callbackUrl } = parse(bookingPaymentRequestSchema, request.body);
+
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { user: true, service: { select: { name: true } } },
+    });
+    if (!booking) throw notFound('رزرو یافت نشد');
+    if (booking.userId !== request.user.id && request.user.role !== 'admin') {
+      throw forbidden('شما به این رزرو دسترسی ندارید');
+    }
+    if (booking.status === 'cancelled') throw paymentError('رزرو لغو شده قابل پرداخت نیست', 400);
+    if (booking.status !== 'pending') throw paymentError('این رزرو قبلاً پرداخت/تأیید شده است', 400);
+
+    const result = await startPayment({
+      bookingId: booking.id,
+      amount: booking.totalPrice,
+      callbackUrl,
+      description: `پرداخت رزرو ${booking.service.name} (${booking.trackingCode ?? booking.id}) — اتولانژ`,
+      mobile: booking.user.phoneNumber,
+      email: booking.user.email,
+    });
+
+    return apiResponse.success(reply, result);
+  });
+
+  // POST /payment/verify — gateway callback (looked up by authority; public)
   fastify.post('/verify', async (request, reply) => {
-    const validation = validateRequest(paymentVerifySchema, request.body);
-    if (!validation.success) {
-      return apiResponse.error(reply, validation.error, 400);
+    const { authority, status } = parse(paymentVerifySchema, request.body);
+
+    const tx = await prisma.paymentTransaction.findUnique({ where: { authority }, include: txInclude });
+    if (!tx) throw notFound('تراکنش یافت نشد');
+
+    const base: PaymentVerifyResult = {
+      success: false,
+      amount: tx.amount,
+      orderId: tx.orderId ?? undefined,
+      bookingId: tx.bookingId ?? undefined,
+    };
+
+    if (tx.status === 'success') {
+      return apiResponse.success(reply, {
+        ...base,
+        success: true,
+        refId: tx.refId ?? undefined,
+        cardNumber: tx.cardNumber ?? undefined,
+        message: 'این تراکنش قبلاً تأیید شده است',
+      });
     }
 
-    const { authority, status } = validation.data;
+    if (status === 'NOK') {
+      await markFailed(tx.id, tx.orderId, 'NOK', 'پرداخت توسط کاربر لغو شد');
+      return apiResponse.success(reply, { ...base, message: 'پرداخت لغو شد' });
+    }
 
-    try {
-      // Get orderId from request body
-      const { orderId } = request.body as { orderId?: string };
-      
-      if (!orderId) {
-        return apiResponse.error(reply, 'شناسه سفارش الزامی است', 400);
+    let refId: string;
+    let cardNumber: string | undefined;
+
+    if (authority.startsWith(DEMO_PREFIX)) {
+      if (appConfig.isProduction || tx.gateway !== 'demo') {
+        throw paymentError('تراکنش نمایشی در این محیط پذیرفته نمی‌شود', 400);
       }
+      refId = `DEMO${Date.now().toString().slice(-9)}`;
+      cardNumber = '6219-86**-****-0000';
+    } else {
+      const result = await zarinpal.verifyPayment({ amount: tx.amount, authority });
+      if (!result.ok) {
+        await markFailed(tx.id, tx.orderId, String(result.code), result.message);
+        return apiResponse.success(reply, { ...base, message: result.message });
+      }
+      refId = result.refId;
+      cardNumber = result.cardPan;
+    }
 
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: { user: true },
+    await prisma.$transaction(async (db) => {
+      await db.paymentTransaction.update({
+        where: { id: tx.id },
+        data: { status: 'success', refId, cardNumber, errorCode: null, errorMessage: null },
       });
-
-      if (!order) {
-        return apiResponse.error(reply, 'تراکنش یافت نشد', 404);
-      }
-
-      // Check if already verified
-      if (order.paymentStatus === 'paid') {
-        return apiResponse.success(reply, {
-          status: 'already_verified',
-          message: 'این تراکنش قبلاً تایید شده است',
-        });
-      }
-
-      // If user cancelled payment
-      if (status === 'NOK') {
-        await prisma.order.update({
-          where: { id: order.id },
-          data: { paymentStatus: 'failed' },
-        });
-
-        return apiResponse.error(reply, 'پرداخت توسط کاربر لغو شد', 400);
-      }
-
-      // Verify with Zarinpal
-      const amountInToman = Math.round(order.totalPrice / 10);
-
-      const response = await fetch(`${ZARINPAL_API_URL}/verify.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          merchant_id: ZARINPAL_MERCHANT_ID,
-          amount: amountInToman,
-          authority,
-        }),
-      });
-
-      const data = (await response.json()) as ZarinpalVerifyResponse;
-
-      if (data.data.code === 100 || data.data.code === 101) {
-        // Payment successful
-        await prisma.order.update({
-          where: { id: order.id },
+      if (tx.orderId) {
+        await db.order.update({
+          where: { id: tx.orderId },
           data: {
             paymentStatus: 'paid',
-            status: 'processing',
-            trackingCode: data.data.ref_id?.toString(),
+            ...(tx.order?.status === 'pending' ? { status: 'processing' } : {}),
           },
         });
-
-        // Send confirmation SMS
-        await sendOrderConfirmation(
-          order.user.phoneNumber,
-          order.id,
-          order.totalPrice.toString()
-        );
-
-        return apiResponse.success(reply, {
-          status: 'success',
-          message: 'پرداخت با موفقیت انجام شد',
-          refId: data.data.ref_id,
-          cardPan: data.data.card_pan,
+      }
+      if (tx.bookingId) {
+        await db.booking.update({
+          where: { id: tx.bookingId },
+          data: { ...(tx.booking?.status === 'pending' ? { status: 'confirmed' } : {}) },
         });
-      } else {
-        // Payment failed
-        await prisma.order.update({
-          where: { id: order.id },
-          data: { paymentStatus: 'failed' },
-        });
-
-        return apiResponse.error(reply, data.data.message || 'خطا در تایید پرداخت', 400);
       }
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در تایید پرداخت', 500);
-    }
+    });
+
+    const phone = tx.order?.user.phoneNumber ?? tx.booking?.user.phoneNumber;
+    const code = tx.order?.trackingCode ?? tx.booking?.trackingCode ?? tx.orderId ?? tx.bookingId ?? '';
+    if (phone) void sendPaymentConfirmation(phone, tx.orderId ? 'order' : 'booking', code, refId);
+
+    return apiResponse.success(reply, {
+      ...base,
+      success: true,
+      refId,
+      cardNumber,
+      message: 'پرداخت با موفقیت انجام شد',
+    });
   });
 
-  // Get payment status by order ID
-  fastify.get<{ Params: { orderId: string } }>('/status/:orderId', async (request, reply) => {
-    const { orderId } = request.params;
-
-    try {
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        select: {
-          id: true,
-          totalPrice: true,
-          status: true,
-          paymentStatus: true,
-          trackingCode: true,
-          createdAt: true,
-        },
-      });
-
-      if (!order) {
-        return apiResponse.error(reply, 'سفارش یافت نشد', 404);
-      }
-
-      return apiResponse.success(reply, {
-        orderId: order.id,
-        status: order.status,
-        paymentStatus: order.paymentStatus,
-        amount: order.totalPrice,
-        refId: order.trackingCode,
-        createdAt: order.createdAt,
-      });
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت وضعیت تراکنش', 500);
+  // GET /payment/status/:orderId
+  fastify.get('/status/:orderId', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const { orderId } = request.params as { orderId: string };
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        userId: true,
+        status: true,
+        paymentStatus: true,
+        paymentMethod: true,
+        totalPrice: true,
+        trackingCode: true,
+        transactions: { orderBy: { createdAt: 'desc' } },
+      },
+    });
+    if (!order) throw notFound('سفارش یافت نشد');
+    if (order.userId !== request.user.id && request.user.role !== 'admin') {
+      throw forbidden('شما به این سفارش دسترسی ندارید');
     }
+    return apiResponse.success(reply, {
+      orderId: order.id,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      paymentMethod: order.paymentMethod,
+      amount: order.totalPrice,
+      trackingCode: order.trackingCode,
+      transactions: order.transactions,
+    });
   });
 
-  // Get user's orders (with payment info)
-  fastify.get('/history', async (request, reply) => {
-    try {
-      const orders = await prisma.order.findMany({
-        where: {
-          userId: request.user.userId,
-        },
-        orderBy: { createdAt: 'desc' },
-        take: 20,
-        select: {
-          id: true,
-          totalPrice: true,
-          status: true,
-          paymentStatus: true,
-          trackingCode: true,
-          createdAt: true,
-        },
-      });
-
-      return apiResponse.success(reply, orders);
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در دریافت تاریخچه پرداخت‌ها', 500);
-    }
-  });
-
-  // Request payment for a booking
-  fastify.post('/booking/request', async (request, reply) => {
-    const { bookingId, callbackUrl } = request.body as { bookingId: string; callbackUrl?: string };
-
-    if (!bookingId) {
-      return apiResponse.error(reply, 'شناسه رزرو الزامی است', 400);
-    }
-
-    try {
-      // Get booking details
-      const booking = await prisma.booking.findUnique({
-        where: { id: bookingId },
-        include: { user: true, service: true },
-      });
-
-      if (!booking) {
-        return apiResponse.error(reply, 'رزرو یافت نشد', 404);
-      }
-
-      // Check if booking belongs to user
-      if (booking.userId !== request.user.userId) {
-        return apiResponse.error(reply, 'شما دسترسی به این رزرو ندارید', 403);
-      }
-
-      // Check if booking is already paid
-      if (booking.status === 'confirmed' || booking.status === 'completed') {
-        return apiResponse.error(reply, 'این رزرو قبلاً پرداخت شده است', 400);
-      }
-
-      // Convert to Toman
-      const amountInToman = Math.round(booking.totalPrice / 10);
-
-      // Request payment from Zarinpal
-      const response = await fetch(`${ZARINPAL_API_URL}/request.json`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          merchant_id: ZARINPAL_MERCHANT_ID,
-          amount: amountInToman,
-          callback_url: callbackUrl || CALLBACK_URL,
-          description: `پرداخت رزرو ${booking.service.name}`,
-          metadata: {
-            mobile: booking.user.phoneNumber,
-          },
-        }),
-      });
-
-      const data = (await response.json()) as ZarinpalRequestResponse;
-
-      if (data.data.code !== 100) {
-        fastify.log.error({ msg: 'Zarinpal request failed', data });
-        return apiResponse.error(reply, 'خطا در ایجاد درخواست پرداخت', 500);
-      }
-
-      // Store authority in booking notes
-      await prisma.booking.update({
-        where: { id: bookingId },
-        data: {
-          notes: `Authority: ${data.data.authority}`,
-        },
-      });
-
-      return apiResponse.success(reply, {
-        authority: data.data.authority,
-        paymentUrl: `${ZARINPAL_GATEWAY_URL}/${data.data.authority}`,
-        amount: booking.totalPrice,
-        amountInToman,
-      });
-    } catch (error) {
-      fastify.log.error(error);
-      return apiResponse.error(reply, 'خطا در ایجاد درخواست پرداخت', 500);
-    }
+  // GET /payment/history
+  fastify.get('/history', { preHandler: [fastify.authenticate] }, async (request, reply) => {
+    const transactions = await prisma.paymentTransaction.findMany({
+      where: {
+        OR: [{ order: { userId: request.user.id } }, { booking: { userId: request.user.id } }],
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+    return apiResponse.success(reply, transactions);
   });
 };
+
+async function markFailed(txId: string, orderId: string | null, code: string, message: string) {
+  await prisma.$transaction(async (db) => {
+    await db.paymentTransaction.update({
+      where: { id: txId },
+      data: { status: 'failed', errorCode: code, errorMessage: message },
+    });
+    if (orderId) {
+      await db.order.updateMany({
+        where: { id: orderId, paymentStatus: 'pending' },
+        data: { paymentStatus: 'failed' },
+      });
+    }
+  });
+}

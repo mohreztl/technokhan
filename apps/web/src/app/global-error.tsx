@@ -19,7 +19,7 @@ export default function GlobalError({
 
   return (
     <html lang="fa" dir="rtl">
-      <body className="font-shabnam bg-background text-foreground">
+      <body className="font-sans bg-background text-foreground">
         <div className="min-h-screen flex items-center justify-center p-8">
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}

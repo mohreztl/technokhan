@@ -26,8 +26,10 @@ export function formatNumber(num: number): string {
  * Convert Persian digits to English
  */
 export function persianToEnglish(str: string): string {
-  const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-  return str.replace(/[۰-۹]/g, (d) => persianDigits.indexOf(d).toString());
+  // Persian (U+06F0–U+06F9) and Arabic-Indic (U+0660–U+0669) digits both appear on Persian keyboards
+  return str
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x06f0))
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x0660));
 }
 
 /**

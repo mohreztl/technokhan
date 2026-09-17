@@ -1,53 +1,42 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import fp from 'fastify-plugin';
-import { JWTPayload } from '../types/fastify.d';
+import type { JWTPayload } from '../types/fastify.d';
+import { forbidden, unauthorized } from '../lib/errors';
 
 /**
- * Authentication middleware plugin
- * Registers authenticate and adminOnly decorators
+ * Authentication plugin: `authenticate` and `requireAdmin` preHandlers.
+ * Errors are thrown as ApiError and formatted by the global error handler.
  */
 async function authPlugin(fastify: FastifyInstance) {
-  // Authenticate decorator - verifies JWT token
-  fastify.decorate('authenticate', async function (
-    request: FastifyRequest,
-    reply: FastifyReply
-  ) {
+  async function verify(request: FastifyRequest): Promise<JWTPayload> {
     try {
-      const decoded = await request.jwtVerify<JWTPayload>();
-      request.user = decoded;
-    } catch (err) {
-      reply.status(401).send({
-        success: false,
-        error: 'احراز هویت نامعتبر. لطفاً دوباره وارد شوید.',
-        code: 'UNAUTHORIZED',
-      });
-    }
-  });
-
-  // Admin only decorator - checks if user is admin
-  fastify.decorate('adminOnly', async function (
-    request: FastifyRequest,
-    reply: FastifyReply
-  ) {
-    try {
-      const decoded = await request.jwtVerify<JWTPayload>();
-      request.user = decoded;
-
-      if (decoded.role !== 'admin') {
-        reply.status(403).send({
-          success: false,
-          error: 'دسترسی محدود به مدیران سیستم',
-          code: 'FORBIDDEN',
-        });
+      return await request.jwtVerify<JWTPayload>();
+    } catch (err: any) {
+      const code: string | undefined = err?.code;
+      if (code === 'FST_JWT_AUTHORIZATION_TOKEN_EXPIRED') {
+        throw unauthorized('نشست شما منقضی شده است. لطفاً دوباره وارد شوید');
       }
-    } catch (err) {
-      reply.status(401).send({
-        success: false,
-        error: 'احراز هویت نامعتبر. لطفاً دوباره وارد شوید.',
-        code: 'UNAUTHORIZED',
-      });
+      throw unauthorized();
+    }
+  }
+
+  fastify.decorate('authenticate', async function (request: FastifyRequest, _reply: FastifyReply) {
+    const decoded = await verify(request);
+    if (!decoded?.id) throw unauthorized();
+    request.user = decoded;
+  });
+
+  fastify.decorate('requireAdmin', async function (request: FastifyRequest, _reply: FastifyReply) {
+    const decoded = await verify(request);
+    if (!decoded?.id) throw unauthorized();
+    request.user = decoded;
+    if (decoded.role !== 'admin') {
+      throw forbidden('دسترسی محدود به مدیران سیستم است');
     }
   });
+
+  // Backward-compatible alias
+  fastify.decorate('adminOnly', fastify.requireAdmin);
 }
 
 export default fp(authPlugin, {

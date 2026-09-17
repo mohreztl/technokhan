@@ -1,8 +1,17 @@
 'use client';
 
 import React, { useRef, useState } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import {
+  motion,
+  useInView,
+  useMotionValue,
+  useScroll,
+  useSpring,
+  useTransform,
+} from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useIsCoarsePointer } from '@/lib/hooks/use-media-query';
+import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 
 interface Card3DProps {
   children: React.ReactNode;
@@ -13,7 +22,7 @@ interface Card3DProps {
 }
 
 /**
- * 3D Tilt Card - کارت با افکت چرخش ۳D
+ * 3D Tilt Card - کارت با افکت چرخش ۳D (pointer devices only)
  */
 export function Card3D({
   children,
@@ -23,6 +32,9 @@ export function Card3D({
   shadowIntensity = 0.3,
 }: Card3DProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const coarse = useIsCoarsePointer();
+  const reduced = useReducedMotion();
+  const tiltEnabled = !coarse && !reduced;
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
@@ -30,23 +42,22 @@ export function Card3D({
   const mouseXSpring = useSpring(x);
   const mouseYSpring = useSpring(y);
 
-  const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], [`${rotationIntensity}deg`, `-${rotationIntensity}deg`]);
-  const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], [`-${rotationIntensity}deg`, `${rotationIntensity}deg`]);
+  const rotateX = useTransform(
+    mouseYSpring,
+    [-0.5, 0.5],
+    [`${rotationIntensity}deg`, `-${rotationIntensity}deg`]
+  );
+  const rotateY = useTransform(
+    mouseXSpring,
+    [-0.5, 0.5],
+    [`-${rotationIntensity}deg`, `${rotationIntensity}deg`]
+  );
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
-
+    if (!ref.current || !tiltEnabled) return;
     const rect = ref.current.getBoundingClientRect();
-    const width = rect.width;
-    const height = rect.height;
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-
-    const xPct = mouseX / width - 0.5;
-    const yPct = mouseY / height - 0.5;
-
-    x.set(xPct);
-    y.set(yPct);
+    x.set((e.clientX - rect.left) / rect.width - 0.5);
+    y.set((e.clientY - rect.top) / rect.height - 0.5);
   };
 
   const handleMouseLeave = () => {
@@ -55,34 +66,22 @@ export function Card3D({
   };
 
   return (
-    <div
-      className={cn('perspective-1000', containerClassName)}
-      style={{ perspective: '1000px' }}
-    >
+    <div className={containerClassName} style={{ perspective: '1000px' }}>
       <motion.div
         ref={ref}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: 'preserve-3d',
-        }}
-        className={cn(
-          'relative transition-shadow duration-500',
-          className
-        )}
+        style={
+          tiltEnabled ? { rotateX, rotateY, transformStyle: 'preserve-3d' } : undefined
+        }
+        className={cn('relative transition-shadow duration-500', className)}
       >
-        {/* Shadow layer */}
-        <motion.div
-          className="absolute inset-0 rounded-2xl bg-black/20 blur-xl -z-10"
-          style={{
-            rotateX,
-            rotateY,
-            translateZ: '-50px',
-            opacity: shadowIntensity,
-          }}
-        />
+        {tiltEnabled && (
+          <motion.div
+            className="absolute inset-0 -z-10 rounded-2xl bg-black/20 blur-xl"
+            style={{ rotateX, rotateY, translateZ: '-50px', opacity: shadowIntensity }}
+          />
+        )}
         {children}
       </motion.div>
     </div>
@@ -90,7 +89,7 @@ export function Card3D({
 }
 
 /**
- * Floating Card - کارت شناور
+ * Floating Card - کارت شناور (only floats while on screen)
  */
 export function FloatingCard({
   children,
@@ -101,18 +100,19 @@ export function FloatingCard({
   className?: string;
   delay?: number;
 }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { margin: '-10%' });
+  const reduced = useReducedMotion();
+  const active = inView && !reduced;
+
   return (
     <motion.div
+      ref={ref}
       className={className}
-      animate={{
-        y: [0, -10, 0],
-      }}
-      transition={{
-        duration: 4,
-        repeat: Infinity,
-        ease: 'easeInOut',
-        delay,
-      }}
+      animate={active ? { y: [0, -10, 0] } : { y: 0 }}
+      transition={
+        active ? { duration: 4, repeat: Infinity, ease: 'easeInOut', delay } : { duration: 0.4 }
+      }
     >
       {children}
     </motion.div>
@@ -126,45 +126,39 @@ export function MagneticButton({
   children,
   className,
   magneticStrength = 0.3,
+  ...props
 }: {
   children: React.ReactNode;
   className?: string;
   magneticStrength?: number;
-}) {
+} & Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className' | 'style'>) {
   const ref = useRef<HTMLButtonElement>(null);
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const coarse = useIsCoarsePointer();
 
   const handleMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (!ref.current) return;
+    if (!ref.current || coarse) return;
     const rect = ref.current.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 2;
-    
     setPosition({
       x: (e.clientX - centerX) * magneticStrength,
       y: (e.clientY - centerY) * magneticStrength,
     });
   };
 
-  const handleMouseLeave = () => {
-    setPosition({ x: 0, y: 0 });
-  };
+  const { onAnimationStart, onDragStart, onDrag, onDragEnd, ...buttonProps } = props as any;
 
   return (
     <motion.button
       ref={ref}
+      type="button"
       className={className}
       onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      animate={{
-        x: position.x,
-        y: position.y,
-      }}
-      transition={{
-        type: 'spring',
-        stiffness: 350,
-        damping: 15,
-      }}
+      onMouseLeave={() => setPosition({ x: 0, y: 0 })}
+      animate={{ x: position.x, y: position.y }}
+      transition={{ type: 'spring', stiffness: 350, damping: 15 }}
+      {...buttonProps}
     >
       {children}
     </motion.button>
@@ -172,7 +166,7 @@ export function MagneticButton({
 }
 
 /**
- * Parallax Section - سکشن با افکت پارالکس
+ * Parallax Section - سکشن با افکت پارالکس (scroll-linked motion value, no state)
  */
 export function ParallaxSection({
   children,
@@ -184,30 +178,13 @@ export function ParallaxSection({
   speed?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const [scrollY, setScrollY] = useState(0);
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      if (ref.current) {
-        const rect = ref.current.getBoundingClientRect();
-        const scrollProgress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
-        setScrollY(scrollProgress * 100 * speed);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [speed]);
+  const reduced = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: ref, offset: ['start end', 'end start'] });
+  const y = useTransform(scrollYProgress, [0, 1], [0, 100 * speed]);
 
   return (
     <div ref={ref} className={cn('relative overflow-hidden', className)}>
-      <motion.div
-        style={{
-          y: scrollY,
-        }}
-      >
-        {children}
-      </motion.div>
+      <motion.div style={reduced ? undefined : { y }}>{children}</motion.div>
     </div>
   );
 }
@@ -227,10 +204,10 @@ export function RevealOnScroll({
   delay?: number;
 }) {
   const directionVariants = {
-    up: { y: 100, opacity: 0 },
-    down: { y: -100, opacity: 0 },
-    left: { x: 100, opacity: 0 },
-    right: { x: -100, opacity: 0 },
+    up: { y: 60, opacity: 0 },
+    down: { y: -60, opacity: 0 },
+    left: { x: 60, opacity: 0 },
+    right: { x: -60, opacity: 0 },
   };
 
   return (
@@ -238,12 +215,8 @@ export function RevealOnScroll({
       className={className}
       initial={directionVariants[direction]}
       whileInView={{ x: 0, y: 0, opacity: 1 }}
-      viewport={{ once: true, margin: '-100px' }}
-      transition={{
-        duration: 0.8,
-        delay,
-        ease: [0.25, 0.1, 0.25, 1],
-      }}
+      viewport={{ once: true, margin: '-80px' }}
+      transition={{ duration: 0.8, delay, ease: [0.25, 0.1, 0.25, 1] }}
     >
       {children}
     </motion.div>

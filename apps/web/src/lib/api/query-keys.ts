@@ -1,0 +1,34 @@
+import type { ProductListQuery, ServiceListQuery } from '@autolounge/shared';
+
+/** Centralized React Query keys */
+export const qk = {
+  products: (q?: ProductListQuery) => ['products', q ?? {}] as const,
+  product: (id: string) => ['product', id] as const,
+  relatedProducts: (id: string) => ['product', id, 'related'] as const,
+  featuredProducts: () => ['products', 'featured'] as const,
+  services: (q?: ServiceListQuery) => ['services', q ?? {}] as const,
+  service: (id: string) => ['service', id] as const,
+  relatedServices: (id: string) => ['service', id, 'related'] as const,
+  featuredServices: () => ['services', 'featured'] as const,
+  me: () => ['me'] as const,
+  orders: () => ['orders'] as const,
+  order: (id: string) => ['order', id] as const,
+  bookings: () => ['bookings'] as const,
+  booking: (id: string) => ['booking', id] as const,
+  slots: (serviceId: string, date: string) => ['slots', serviceId, date] as const,
+  addresses: () => ['addresses'] as const,
+  paymentStatus: (orderId: string) => ['payment', orderId] as const,
+  admin: {
+    dashboard: () => ['admin', 'dashboard'] as const,
+    products: (q?: Record<string, unknown>) => ['admin', 'products', q ?? {}] as const,
+    services: (q?: Record<string, unknown>) => ['admin', 'services', q ?? {}] as const,
+    orders: (q?: Record<string, unknown>) => ['admin', 'orders', q ?? {}] as const,
+    order: (id: string) => ['admin', 'order', id] as const,
+    bookings: (q?: Record<string, unknown>) => ['admin', 'bookings', q ?? {}] as const,
+    booking: (id: string) => ['admin', 'booking', id] as const,
+    users: (q?: Record<string, unknown>) => ['admin', 'users', q ?? {}] as const,
+    user: (id: string) => ['admin', 'user', id] as const,
+    messages: (q?: Record<string, unknown>) => ['admin', 'messages', q ?? {}] as const,
+    reviews: (q?: Record<string, unknown>) => ['admin', 'reviews', q ?? {}] as const,
+  },
+};

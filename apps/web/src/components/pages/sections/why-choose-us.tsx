@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Award, Clock, HeartHandshake, Sparkles, Users } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Award, Clock, HeartHandshake, Shield, Sparkles, Users } from 'lucide-react';
+import { AmbientOrbs } from '@/components/ui/ambient';
+import { staggerContainerFast, cardEntrance } from '@/lib/animation-variants';
 
 const features = [
   {
@@ -40,81 +41,65 @@ const features = [
 
 export const WhyChooseUs: React.FC = () => {
   return (
-    <section className="py-24 relative overflow-hidden bg-background">
-      {/* Background Effects */}
-      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-radial from-primary/10 via-secondary/5 to-transparent rounded-full blur-3xl" />
-
-      {/* Animated Gradient */}
-      <motion.div
-        className="absolute top-0 right-1/4 w-[300px] h-[300px] bg-gradient-to-br from-primary/20 to-transparent rounded-full blur-3xl"
-        animate={{
-          y: [0, 50, 0],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 8,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
+    <section className="relative overflow-hidden bg-background py-16 sm:py-24" aria-labelledby="why-title">
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[40rem] w-[40rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-primary/10 via-secondary/5 to-transparent" />
+      <AmbientOrbs variant="section" />
 
       <div className="container-custom relative z-10">
-        {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-10 text-center sm:mb-16"
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4"
-          >
-            <span className="text-primary font-semibold text-sm">مزایای ما</span>
-          </motion.div>
-          <h2 className="section-title text-gradient-luxury">چرا اتولانژ؟</h2>
-          <p className="section-subtitle">دلایل انتخاب ما به عنوان بهترین مرکز مراقبت از خودرو</p>
+          <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-semibold text-primary dark:text-secondary">
+            مزایای ما
+          </span>
+          <h2 id="why-title" className="section-title text-gradient-luxury">
+            چرا اتولانژ؟
+          </h2>
+          <p className="section-subtitle !mb-0">
+            دلایل انتخاب ما به عنوان بهترین مرکز مراقبت از خودرو
+          </p>
         </motion.div>
 
-        {/* Features Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => {
+        <motion.ul
+          className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-8"
+          variants={staggerContainerFast}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <motion.div
+              <motion.li
                 key={feature.title}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                variants={cardEntrance}
+                className="group h-full rounded-2xl border border-border/40 glass-effect p-6 transition-all duration-300 hover:border-primary/50 hover:shadow-luxury sm:p-8"
               >
-                <Card className="h-full group hover:border-primary/50 transition-all duration-300 hover:shadow-luxury">
-                  <CardContent className="p-8">
-                    <div className="flex flex-col items-center text-center">
-                      <motion.div
-                        className="relative w-20 h-20 rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary flex items-center justify-center mb-6 shadow-glow-primary group-hover:shadow-glow-secondary transition-all duration-300"
-                        whileHover={{ scale: 1.1, rotate: 5 }}
-                        transition={{ type: 'spring', stiffness: 400 }}
-                      >
-                        <Icon className="h-9 w-9 text-primary-foreground relative z-10" />
-                        <div className="absolute inset-0 bg-gradient-shine bg-[length:200%_100%] animate-shine rounded-2xl" />
-                      </motion.div>
-
-                      <h3 className="text-xl font-bold text-foreground mb-3 group-hover:text-primary transition-colors">
-                        {feature.title}
-                      </h3>
-
-                      <p className="text-muted-foreground leading-relaxed">{feature.description}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
+                <div className="flex items-start gap-4 text-start sm:flex-col sm:items-center sm:text-center">
+                  <span className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-primary via-secondary to-primary shadow-glow-primary transition-all duration-300 group-hover:scale-105 group-hover:shadow-glow-secondary sm:mb-2 sm:h-20 sm:w-20">
+                    <Icon className="relative z-10 h-7 w-7 text-primary-foreground sm:h-9 sm:w-9" aria-hidden="true" />
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/25 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                    />
+                  </span>
+                  <div>
+                    <h3 className="mb-1.5 text-lg font-bold text-foreground transition-colors group-hover:text-primary dark:group-hover:text-secondary sm:mb-3 sm:text-xl">
+                      {feature.title}
+                    </h3>
+                    <p className="text-sm leading-relaxed text-muted-foreground sm:text-base">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              </motion.li>
             );
           })}
-        </div>
+        </motion.ul>
       </div>
     </section>
   );

@@ -1,0 +1,140 @@
+'use client';
+
+import {
+  Award,
+  BadgeCheck,
+  Brush,
+  Calendar,
+  CalendarCheck,
+  Car,
+  Check,
+  CheckCircle,
+  CircleDot,
+  ClipboardCheck,
+  Clock,
+  Cog,
+  Contrast,
+  Crown,
+  Diamond,
+  Droplet,
+  Droplets,
+  Eye,
+  Fan,
+  FileCheck,
+  Film,
+  Flame,
+  Gem,
+  Hammer,
+  Key,
+  Layers,
+  Lightbulb,
+  Package,
+  PaintBucket,
+  Paintbrush,
+  Palette,
+  PartyPopper,
+  Scan,
+  Search,
+  SearchCheck,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Sofa,
+  Sparkles,
+  SprayCan,
+  Star,
+  Sun,
+  ThumbsUp,
+  Timer,
+  Truck,
+  Wand2,
+  Waves,
+  Wind,
+  Wrench,
+  Zap,
+  type LucideIcon,
+} from 'lucide-react';
+import { ServiceType } from '@autolounge/shared';
+
+/** Icon per service type (used by the configurator, gallery filters, timeline fallbacks). */
+export const SERVICE_TYPE_ICONS: Record<ServiceType, LucideIcon> = {
+  [ServiceType.PAINT_RESTORATION]: Paintbrush,
+  [ServiceType.DETAILING]: Sparkles,
+  [ServiceType.CAR_WRAP]: Layers,
+  [ServiceType.CERAMIC_COATING]: ShieldCheck,
+  [ServiceType.PPF]: Shield,
+  [ServiceType.INTERIOR_CLEANING]: Sofa,
+  [ServiceType.ENGINE_CLEANING]: Cog,
+  [ServiceType.HEADLIGHT_RESTORATION]: Lightbulb,
+  [ServiceType.CUSTOM]: Wand2,
+};
+
+const ICONS: Record<string, LucideIcon> = {
+  award: Award,
+  'badge-check': BadgeCheck,
+  brush: Brush,
+  calendar: Calendar,
+  'calendar-check': CalendarCheck,
+  car: Car,
+  check: Check,
+  'check-circle': CheckCircle,
+  'circle-dot': CircleDot,
+  'clipboard-check': ClipboardCheck,
+  clock: Clock,
+  cog: Cog,
+  contrast: Contrast,
+  crown: Crown,
+  diamond: Diamond,
+  droplet: Droplet,
+  droplets: Droplets,
+  eye: Eye,
+  fan: Fan,
+  'file-check': FileCheck,
+  film: Film,
+  flame: Flame,
+  gem: Gem,
+  hammer: Hammer,
+  key: Key,
+  layers: Layers,
+  lightbulb: Lightbulb,
+  package: Package,
+  'paint-bucket': PaintBucket,
+  paintbrush: Paintbrush,
+  palette: Palette,
+  'party-popper': PartyPopper,
+  scan: Scan,
+  search: Search,
+  'search-check': SearchCheck,
+  settings: Settings,
+  shield: Shield,
+  'shield-check': ShieldCheck,
+  sofa: Sofa,
+  sparkles: Sparkles,
+  'spray-can': SprayCan,
+  star: Star,
+  sun: Sun,
+  'thumbs-up': ThumbsUp,
+  timer: Timer,
+  truck: Truck,
+  wand: Wand2,
+  'wand-2': Wand2,
+  waves: Waves,
+  wind: Wind,
+  wrench: Wrench,
+  zap: Zap,
+};
+
+/** "ShieldCheck" | "shield_check" | "shield check" -> "shield-check" */
+function normalizeIconName(name: string): string {
+  return name
+    .trim()
+    .replace(/([a-z0-9])([A-Z])/g, '$1-$2')
+    .replace(/[\s_]+/g, '-')
+    .toLowerCase();
+}
+
+/** Resolves a lucide icon from a data string (e.g. `ServiceStep.icon`) with a safe fallback. */
+export function resolveIcon(name?: string | null, fallback: LucideIcon = CircleDot): LucideIcon {
+  if (!name) return fallback;
+  return ICONS[normalizeIconName(name)] ?? fallback;
+}
