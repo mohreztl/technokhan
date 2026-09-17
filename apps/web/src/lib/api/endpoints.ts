@@ -300,14 +300,16 @@ export const paymentApi = {
       () => apiPost('/payment/booking/request', { bookingId, callbackUrl }),
       () => demoPayment.requestBooking(bookingId, callbackUrl)
     ),
+  /**
+   * Verification is the call that settles money, so it deliberately does NOT use
+   * withDemoFallback: a transaction created by the demo transport is settled locally,
+   * and anything else must reach the API. Falling back here would report a captured
+   * payment as failed and invite a second charge.
+   */
   verify: (authority: string, status: 'OK' | 'NOK') =>
-    // DEMO-* authorities are always settled locally
-    authority.startsWith('DEMO-') && isBrowser
+    isBrowser && demoPayment.has(authority)
       ? demoPayment.verify(authority, status)
-      : withDemoFallback<PaymentVerifyResult>(
-          () => apiPost('/payment/verify', { authority, status }, pub),
-          () => demoPayment.verify(authority, status)
-        ),
+      : apiPost<PaymentVerifyResult>('/payment/verify', { authority, status }, pub),
   status: (orderId: string) =>
     withDemoFallback<PaymentStatusResult>(
       () => apiGet(`/payment/status/${encodeURIComponent(orderId)}`),

@@ -163,7 +163,7 @@ export function BookingSuccess({ booking, service, durationMinutes, locationLabe
             className="sm:col-span-2"
           >
             <CreditCard className="h-5 w-5" aria-hidden="true" />
-            پرداخت آنلاین بیعانه
+            پرداخت آنلاین رزرو
           </Button>
           <Button variant="outline" size="lg" onClick={addToCalendar}>
             <CalendarPlus className="h-5 w-5" aria-hidden="true" />

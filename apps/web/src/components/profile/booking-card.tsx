@@ -125,7 +125,7 @@ export function BookingCard({ booking, compact, className }: BookingCardProps) {
           {canPay && (
             <Button size="sm" onClick={payDeposit} loading={payment.isPending} loadingText="انتقال به درگاه…">
               <CreditCard className="h-4 w-4" aria-hidden="true" />
-              پرداخت بیعانه
+              پرداخت آنلاین
             </Button>
           )}
           {canCancel && (
@@ -159,7 +159,7 @@ export function BookingCard({ booking, compact, className }: BookingCardProps) {
         }
       >
         <p className="text-sm leading-7 text-muted-foreground">
-          رزرو «{service?.name ?? 'خدمت'}» برای {formatJalali(date, true)} لغو خواهد شد. در صورت پرداخت بیعانه، مبلغ طی ۷۲
+          رزرو «{service?.name ?? 'خدمت'}» برای {formatJalali(date, true)} لغو خواهد شد. در صورت پرداخت آنلاین، مبلغ طی ۷۲
           ساعت بازمی‌گردد.
         </p>
       </ResponsiveDialog>

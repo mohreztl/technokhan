@@ -73,8 +73,8 @@ function sortItems<T extends { createdAt: unknown; rating?: number; name: string
   });
 }
 
-export function queryLocalProducts(q: ProductListQuery = {}): PagedList<Product> {
-  let items = PRODUCTS.filter((p) => p.isActive !== false);
+export function queryLocalProducts(q: ProductListQuery = {}, source: Product[] = PRODUCTS): PagedList<Product> {
+  let items = source.filter((p) => p.isActive !== false);
   if (q.category) items = items.filter((p) => p.category === q.category);
   if (q.brand) items = items.filter((p) => p.brand === q.brand);
   if (q.featured !== undefined) items = items.filter((p) => p.featured === q.featured);
@@ -90,8 +90,8 @@ export function queryLocalProducts(q: ProductListQuery = {}): PagedList<Product>
   return paginate(items, q.page, q.limit);
 }
 
-export function queryLocalServices(q: ServiceListQuery = {}): PagedList<Service> {
-  let items = SERVICES.filter((s) => s.isActive !== false);
+export function queryLocalServices(q: ServiceListQuery = {}, source: Service[] = SERVICES): PagedList<Service> {
+  let items = source.filter((s) => s.isActive !== false);
   if (q.type) items = items.filter((s) => s.type === q.type);
   if (q.featured !== undefined) items = items.filter((s) => s.featured === q.featured);
   if (q.search) {
@@ -103,27 +103,27 @@ export function queryLocalServices(q: ServiceListQuery = {}): PagedList<Service>
   return paginate(items, q.page, q.limit);
 }
 
-export function findLocalProduct(id: string): Product | undefined {
-  return PRODUCTS.find((p) => p.id === id);
+export function findLocalProduct(id: string, source: Product[] = PRODUCTS): Product | undefined {
+  return source.find((p) => p.id === id);
 }
 
-export function findLocalService(id: string): Service | undefined {
-  return SERVICES.find((s) => s.id === id);
+export function findLocalService(id: string, source: Service[] = SERVICES): Service | undefined {
+  return source.find((s) => s.id === id);
 }
 
-export function relatedLocalProducts(id: string, limit = 4): Product[] {
-  const base = findLocalProduct(id);
+export function relatedLocalProducts(id: string, limit = 4, source: Product[] = PRODUCTS): Product[] {
+  const base = findLocalProduct(id, source);
   if (!base) return [];
-  const same = PRODUCTS.filter((p) => p.id !== id && p.category === base.category);
-  const others = PRODUCTS.filter((p) => p.id !== id && p.category !== base.category);
+  const same = source.filter((p) => p.id !== id && p.category === base.category);
+  const others = source.filter((p) => p.id !== id && p.category !== base.category);
   return [...same, ...others].slice(0, limit);
 }
 
-export function relatedLocalServices(id: string, limit = 3): Service[] {
-  const base = findLocalService(id);
+export function relatedLocalServices(id: string, limit = 3, source: Service[] = SERVICES): Service[] {
+  const base = findLocalService(id, source);
   if (!base) return [];
-  const same = SERVICES.filter((s) => s.id !== id && s.type === base.type);
-  const others = SERVICES.filter((s) => s.id !== id && s.type !== base.type);
+  const same = source.filter((s) => s.id !== id && s.type === base.type);
+  const others = source.filter((s) => s.id !== id && s.type !== base.type);
   return [...same, ...others].slice(0, limit);
 }
 

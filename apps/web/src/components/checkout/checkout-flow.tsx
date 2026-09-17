@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import { ArrowLeft, ArrowRight, LogIn, ShoppingBag } from 'lucide-react';
 import type { Address, PaymentMethod } from '@autolounge/shared';
 import { ROUTES, createOrderSchema } from '@autolounge/shared';
@@ -282,65 +282,65 @@ export function CheckoutFlow() {
 
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start lg:gap-8">
         <section className="min-w-0">
-          <AnimatePresence mode="wait" custom={direction} initial={false}>
-            <motion.div
-              key={step}
-              custom={direction}
-              variants={reduced ? fadeVariants : slideVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: reduced ? 0.15 : 0.28, ease: [0.22, 1, 0.36, 1] }}
-            >
-              {step === 0 && (
-                <StepAddress
-                  addresses={allAddresses}
-                  loading={addresses.isLoading}
-                  loadError={addresses.isError ? 'دریافت آدرس‌ها ناموفق بود.' : null}
-                  onRetry={() => addresses.refetch()}
-                  selected={selectedAddress}
-                  onSelect={(a) => {
-                    setSelectedAddress(a);
-                    setError(null);
-                  }}
-                  onCreated={(a) => {
-                    if (a.id?.startsWith('local-')) setLocalAddresses((prev) => [...prev, a]);
-                    setSelectedAddress(a);
-                    setError(null);
-                  }}
-                  error={error}
-                />
-              )}
-              {step === 1 && (
-                <StepPayment
-                  method={method}
-                  onMethodChange={(m) => {
-                    setMethod(m);
-                    setError(null);
-                  }}
-                  notes={notes}
-                  onNotesChange={setNotes}
-                  subtotal={totals.subtotal}
-                  couponCode={couponCode}
-                />
-              )}
-              {step === 2 && (
-                <StepReview
-                  items={items}
-                  address={selectedAddress}
-                  method={method}
-                  totals={totals}
-                  accepted={accepted}
-                  onAcceptedChange={(v) => {
-                    setAccepted(v);
-                    if (v) setError(null);
-                  }}
-                  error={error}
-                  onEdit={(target) => goTo(target, -1)}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
+          {/* Keyed enter animation, deliberately without AnimatePresence: mode="wait" holds the
+              new step back until the old one reports its exit, and when that report never
+              arrives the wizard is stranded on the previous step. */}
+          <motion.div
+            key={step}
+            custom={direction}
+            variants={reduced ? fadeVariants : slideVariants}
+            initial="enter"
+            animate="center"
+            transition={{ duration: reduced ? 0.15 : 0.28, ease: [0.22, 1, 0.36, 1] }}
+          >
+            {step === 0 && (
+              <StepAddress
+                addresses={allAddresses}
+                loading={addresses.isLoading}
+                loadError={addresses.isError ? 'دریافت آدرس‌ها ناموفق بود.' : null}
+                onRetry={() => addresses.refetch()}
+                selected={selectedAddress}
+                onSelect={(a) => {
+                  setSelectedAddress(a);
+                  setError(null);
+                }}
+                onCreated={(a) => {
+                  if (a.id?.startsWith('local-')) setLocalAddresses((prev) => [...prev, a]);
+                  setSelectedAddress(a);
+                  setError(null);
+                }}
+                error={error}
+              />
+            )}
+            {step === 1 && (
+              <StepPayment
+                method={method}
+                onMethodChange={(m) => {
+                  setMethod(m);
+                  setError(null);
+                }}
+                notes={notes}
+                onNotesChange={setNotes}
+                subtotal={totals.subtotal}
+                couponCode={couponCode}
+              />
+            )}
+            {step === 2 && (
+              <StepReview
+                items={items}
+                address={selectedAddress}
+                method={method}
+                totals={totals}
+                accepted={accepted}
+                onAcceptedChange={(v) => {
+                  setAccepted(v);
+                  if (v) setError(null);
+                }}
+                error={error}
+                onEdit={(target) => goTo(target, -1)}
+              />
+            )}
+          </motion.div>
 
           {createdOrderId && error && (
             <p className="mt-4 text-sm text-muted-foreground">

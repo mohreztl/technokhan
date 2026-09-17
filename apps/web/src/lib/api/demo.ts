@@ -228,33 +228,35 @@ function catalogServices(): Service[] {
 // ---------------------------------------------------------------------------
 
 export const demoProducts = {
+  // reads the admin-overridden catalog, so a product created or edited in /admin shows up here
   list: (q: ProductListQuery = {}) => {
-    const { items, pagination } = queryLocalProducts(q);
+    const { items, pagination } = queryLocalProducts(q, catalogProducts());
     return ok(items, pagination);
   },
   get: (id: string) => {
-    const p = findLocalProduct(id);
+    const p = findLocalProduct(id, catalogProducts());
     return p ? ok(p) : fail<Product>('محصول یافت نشد', 404, 'NOT_FOUND');
   },
-  featured: (limit = 8) => ok(PRODUCTS.filter((p) => p.featured).slice(0, limit)),
-  related: (id: string, limit = 4) => ok(relatedLocalProducts(id, limit)),
-  categories: () => ok(Array.from(new Set(PRODUCTS.map((p) => p.category)))),
+  featured: (limit = 8) => ok(catalogProducts().filter((p) => p.featured && p.isActive !== false).slice(0, limit)),
+  related: (id: string, limit = 4) => ok(relatedLocalProducts(id, limit, catalogProducts())),
+  categories: () => ok(Array.from(new Set(catalogProducts().map((p) => p.category)))),
   addReview: (id: string, input: { rating: number; comment: string }) =>
     demoReview('product', id, input),
 };
 
 export const demoServices = {
+  // reads the admin-overridden catalog, so a service created or edited in /admin shows up here
   list: (q: ServiceListQuery = {}) => {
-    const { items, pagination } = queryLocalServices(q);
+    const { items, pagination } = queryLocalServices(q, catalogServices());
     return ok(items, pagination);
   },
   get: (id: string) => {
-    const s = findLocalService(id);
+    const s = findLocalService(id, catalogServices());
     return s ? ok(s) : fail<Service>('خدمت یافت نشد', 404, 'NOT_FOUND');
   },
-  featured: (limit = 6) => ok(SERVICES.filter((s) => s.featured).slice(0, limit)),
-  related: (id: string, limit = 3) => ok(relatedLocalServices(id, limit)),
-  categories: () => ok(Array.from(new Set(SERVICES.map((s) => s.type)))),
+  featured: (limit = 6) => ok(catalogServices().filter((s) => s.featured && s.isActive !== false).slice(0, limit)),
+  related: (id: string, limit = 3) => ok(relatedLocalServices(id, limit, catalogServices())),
+  categories: () => ok(Array.from(new Set(catalogServices().map((s) => s.type)))),
   addReview: (id: string, input: { rating: number; comment: string }) =>
     demoReview('service', id, input),
 };
@@ -364,7 +366,8 @@ export const demoAuth = {
 // ---------------------------------------------------------------------------
 
 function slotHour(slot: string): number {
-  const m = /^(\d{1,2}):(\d{2})/.exec(normalizePhoneNumber(slot));
+  // normalizePhoneNumber strips the colon, so the localized digits are parsed directly here
+  const m = /^(\d{1,2}):(\d{2})/.exec(toEnglishDigits(slot));
   return m ? Number(m[1]) + Number(m[2]) / 60 : 0;
 }
 
@@ -391,7 +394,7 @@ export const demoBookings = {
   create: (input: CreateBookingInput) => {
     const auth = requireUser();
     if ('error' in auth) return Promise.resolve(auth.error);
-    const service = findLocalService(input.serviceId);
+    const service = findLocalService(input.serviceId, catalogServices());
     if (!service) return fail<Booking>('خدمت یافت نشد', 404, 'NOT_FOUND');
     const taken = load().bookings.some(
       (b) =>
@@ -478,7 +481,7 @@ export const demoOrders = {
     const auth = requireUser();
     if ('error' in auth) return Promise.resolve(auth.error);
     if (!input.items?.length) return fail<Order>('سبد خرید خالی است');
-    const lines = input.items.map((it) => ({ product: findLocalProduct(it.productId), quantity: it.quantity }));
+    const lines = input.items.map((it) => ({ product: findLocalProduct(it.productId, catalogProducts()), quantity: it.quantity }));
     const missing = lines.find((l) => !l.product);
     if (missing) return fail<Order>('یکی از محصولات موجود نیست', 404, 'NOT_FOUND');
     const outOfStock = lines.find((l) => l.product!.stock < l.quantity);
@@ -621,6 +624,9 @@ export const demoPayment = {
     return ok(createTransaction({ bookingId }, b.totalPrice, callbackUrl));
   },
 
+  /** Whether this authority belongs to a transaction stored in the browser. */
+  has: (authority: string): boolean => load().transactions.some((t) => t.authority === authority),
+
   verify: (authority: string, status: 'OK' | 'NOK') => {
     const result = mutate((db): PaymentVerifyResult => {
       const tx = db.transactions.find((t) => t.authority === authority);
@@ -635,6 +641,20 @@ export const demoPayment = {
         const o = db.orders.find((x) => x.id === tx.orderId);
         if (o) o.paymentStatus = PaymentStatus.FAILED;
         return { success: false, orderId: tx.orderId, bookingId: tx.bookingId, amount: tx.amount, message: 'پرداخت لغو شد' };
+      }
+      const cancelledOrder = db.orders.find((x) => x.id === tx.orderId && x.status === OrderStatus.CANCELLED);
+      const cancelledBooking = db.bookings.find((x) => x.id === tx.bookingId && x.status === BookingStatus.CANCELLED);
+      if (cancelledOrder || cancelledBooking) {
+        tx.status = 'failed';
+        tx.errorCode = 'CANCELLED';
+        tx.errorMessage = 'سفارش یا رزرو پیش از پرداخت لغو شده بود';
+        return {
+          success: false,
+          orderId: tx.orderId,
+          bookingId: tx.bookingId,
+          amount: tx.amount,
+          message: 'این سفارش پیش از تکمیل پرداخت لغو شده بود و مبلغی کسر نشد',
+        };
       }
       tx.status = 'success';
       tx.refId = String(100000000000 + Math.floor(Math.random() * 899999999999));

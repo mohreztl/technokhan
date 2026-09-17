@@ -9,9 +9,11 @@ import {
   Check,
   CheckCircle2,
   ClipboardList,
+  Clock,
   CreditCard,
   Home,
   Loader2,
+  RefreshCw,
   ShoppingBag,
   XCircle,
 } from 'lucide-react';
@@ -35,7 +37,8 @@ import { cn } from '@/lib/utils';
 type CallbackState =
   | { kind: 'verifying' }
   | { kind: 'success'; result: PaymentVerifyResult }
-  | { kind: 'failed'; message: string; cancelled: boolean };
+  | { kind: 'failed'; message: string; cancelled: boolean }
+  | { kind: 'unconfirmed'; message: string };
 
 const VERIFY_STEPS = ['دریافت پاسخ درگاه', 'تأیید تراکنش', 'به‌روزرسانی سفارش'];
 
@@ -151,6 +154,16 @@ export function PaymentCallbackClient() {
         }
       })
       .catch((e: unknown) => {
+        // The payment may well have been captured; we simply could not reach the API to
+        // confirm it. Never present that as a failure with a "pay again" button.
+        const offline = typeof e === 'object' && e !== null && (e as { offline?: boolean }).offline === true;
+        if (offline) {
+          setState({
+            kind: 'unconfirmed',
+            message: 'ارتباط با سرور برقرار نشد، بنابراین نتیجهٔ پرداخت هنوز تأیید نشده است.',
+          });
+          return;
+        }
         setState({
           kind: 'failed',
           message: e instanceof Error ? e.message : 'بررسی پرداخت ناموفق بود.',
@@ -198,7 +211,7 @@ export function PaymentCallbackClient() {
             </motion.div>
             <h1 className="text-2xl font-black">پرداخت با موفقیت انجام شد</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {bookingId ? 'بیعانهٔ رزرو شما ثبت شد.' : 'سفارش شما در حال پردازش است.'}
+              {bookingId ? 'پرداخت رزرو شما ثبت شد.' : 'سفارش شما در حال پردازش است.'}
             </p>
           </div>
 
@@ -250,6 +263,50 @@ export function PaymentCallbackClient() {
                 صفحهٔ اصلی
               </Link>
             </Button>
+          </div>
+        </motion.div>
+      )}
+
+      {state.kind === 'unconfirmed' && (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-md space-y-6"
+        >
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-warning/10 text-warning">
+              <Clock className="h-11 w-11" aria-hidden="true" />
+            </div>
+            <h1 className="text-2xl font-black">نتیجهٔ پرداخت هنوز مشخص نیست</h1>
+            <p className="mt-2 text-sm leading-7 text-muted-foreground">{state.message}</p>
+            <p className="mt-1 text-xs leading-6 text-muted-foreground">
+              اگر مبلغ از حساب شما کسر شده باشد، سفارش پس از برقراری ارتباط به‌صورت خودکار تأیید می‌شود. لطفاً پیش از
+              بررسی وضعیت سفارش، دوباره پرداخت نکنید.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            <Button size="lg" onClick={() => window.location.reload()}>
+              <RefreshCw className="h-5 w-5" aria-hidden="true" />
+              بررسی دوباره
+            </Button>
+            {orderId && (
+              <Button variant="outline" size="lg" asChild>
+                <Link href={`${ROUTES.ORDERS}/${orderId}`}>
+                  <ClipboardList className="h-5 w-5" aria-hidden="true" />
+                  مشاهدهٔ وضعیت سفارش
+                </Link>
+              </Button>
+            )}
+            {bookingId && (
+              <Button variant="outline" size="lg" asChild>
+                <Link href={`${ROUTES.PROFILE}?tab=bookings`}>
+                  <CalendarCheck className="h-5 w-5" aria-hidden="true" />
+                  مشاهدهٔ رزروها
+                </Link>
+              </Button>
+            )}
           </div>
         </motion.div>
       )}

@@ -124,7 +124,7 @@ export function StepReview({ draft, service, quote, errors, onEdit }: StepProps)
           </div>
         </dl>
         <p className="mt-3 text-xs leading-6 text-muted-foreground">
-          پس از ثبت رزرو می‌توانید بیعانه را آنلاین پرداخت کنید؛ مابقی هنگام تحویل خودرو تسویه می‌شود.
+          پرداخت آنلاین اختیاری است؛ می‌توانید کل مبلغ را همین حالا بپردازید یا هنگام تحویل خودرو تسویه کنید.
         </p>
       </section>
 

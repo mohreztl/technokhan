@@ -26,7 +26,9 @@ interface StartPaymentInput {
  */
 async function startPayment(input: StartPaymentInput): Promise<PaymentRequestResult> {
   const amount = Math.round(input.amount);
-  const callbackUrl = input.callbackUrl || appConfig.paymentCallbackUrl;
+  // The web app sends a site-relative path; Zarinpal needs an absolute URL.
+  const requested = input.callbackUrl || appConfig.paymentCallbackUrl;
+  const callbackUrl = requested.startsWith('/') ? `${appConfig.webUrl}${requested}` : requested;
   const demo = isDemoGateway();
 
   const tx = await prisma.paymentTransaction.create({
@@ -156,6 +158,16 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
         refId: tx.refId ?? undefined,
         cardNumber: tx.cardNumber ?? undefined,
         message: 'این تراکنش قبلاً تأیید شده است',
+      });
+    }
+
+    // Refuse before capturing: an unverified Zarinpal transaction is reversed automatically,
+    // so bailing out here is what keeps a cancelled order from being charged.
+    if (tx.order?.status === 'cancelled' || tx.booking?.status === 'cancelled') {
+      await markFailed(tx.id, tx.orderId, 'CANCELLED', 'سفارش یا رزرو پیش از پرداخت لغو شده بود');
+      return apiResponse.success(reply, {
+        ...base,
+        message: 'این سفارش پیش از تکمیل پرداخت لغو شده بود و مبلغی کسر نشد',
       });
     }
 

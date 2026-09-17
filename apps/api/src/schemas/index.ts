@@ -113,14 +113,23 @@ export const validateCouponSchema = z.object({
   subtotal: z.number().min(0),
 });
 
+/** Absolute URL, or a site-relative path the API resolves against WEB_URL. */
+const callbackUrlSchema = z
+  .string()
+  .refine(
+    (v) => v.startsWith('/') || v.startsWith('http://') || v.startsWith('https://'),
+    'آدرس بازگشت نامعتبر است'
+  )
+  .optional();
+
 export const paymentRequestSchema = z.object({
   orderId: z.string().min(1, 'شناسه سفارش الزامی است'),
-  callbackUrl: z.string().url('آدرس بازگشت نامعتبر است').optional(),
+  callbackUrl: callbackUrlSchema,
 });
 
 export const bookingPaymentRequestSchema = z.object({
   bookingId: z.string().min(1, 'شناسه رزرو الزامی است'),
-  callbackUrl: z.string().url('آدرس بازگشت نامعتبر است').optional(),
+  callbackUrl: callbackUrlSchema,
 });
 
 export const paymentVerifySchema = z.object({
