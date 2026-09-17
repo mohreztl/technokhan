@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, type Variants } from 'framer-motion';
@@ -129,8 +129,9 @@ export function CheckoutFlow() {
   const topRef = useRef<HTMLDivElement>(null);
 
   const isAuthenticated = status === 'authenticated';
-  const savedAddresses = addresses.data ?? [];
-  const allAddresses = [...savedAddresses, ...localAddresses];
+  // memoised so the preselect effect below does not re-run on every render
+  const savedAddresses = useMemo(() => addresses.data ?? [], [addresses.data]);
+  const allAddresses = useMemo(() => [...savedAddresses, ...localAddresses], [savedAddresses, localAddresses]);
 
   /* empty cart → back to the cart page (never while idle / submitting) */
   useEffect(() => {
