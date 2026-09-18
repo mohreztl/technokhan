@@ -158,7 +158,7 @@ export function ProductDetailClient({ product: initial, related: initialRelated 
               size="lg"
               onClick={handleAddToCart}
               disabled={!inStock}
-              className="min-h-12 min-w-[10rem] flex-1 gap-2 shadow-glow-primary"
+              className="min-h-12 min-w-40 flex-1 gap-2 shadow-glow-primary"
             >
               <ShoppingCart className="h-5 w-5" aria-hidden="true" />
               {inStock ? 'افزودن به سبد' : 'ناموجود'}

@@ -57,7 +57,7 @@ export function StepService({ draft, dispatch, errors }: StepProps) {
         initialSize={draft.size}
         initialAddonIds={draft.addonIds}
         onChange={onChange}
-        className="lg:!grid-cols-1 [&>aside]:hidden"
+        className="lg:grid-cols-1! [&>aside]:hidden"
       />
 
       {(errors.serviceId || errors.size) && (

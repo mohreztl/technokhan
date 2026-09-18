@@ -107,7 +107,7 @@ export function AdminMessagesClient() {
             />
           </div>
         ) : (
-          <ul className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm">
+          <ul className="overflow-hidden rounded-2xl border border-border/60 bg-background shadow-xs">
             {items.map((m) => (
               <li key={m.id} className="border-b border-border/50 last:border-b-0">
                 <div
@@ -124,14 +124,14 @@ export function AdminMessagesClient() {
                   aria-label={`${m.isRead ? '' : 'خوانده‌نشده، '}${m.name}: ${m.subject}`}
                   className={cn(
                     'flex w-full cursor-pointer items-start gap-3 px-4 py-3 text-start transition-colors',
-                    'hover:bg-secondary/10 focus-visible:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                    'hover:bg-secondary/10 focus-visible:bg-secondary/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                     !m.isRead && 'bg-secondary/5'
                   )}
                 >
                   <span className="relative mt-0.5 shrink-0">
                     <Avatar size="md" fallback={m.name.charAt(0)} className={cn(!m.isRead && 'ring-2 ring-secondary/60')} />
                     {!m.isRead && (
-                      <span className="absolute -end-0.5 -top-0.5 h-3 w-3 rounded-full bg-secondary ring-2 ring-background" aria-hidden="true" />
+                      <span className="absolute -inset-e-0.5 -top-0.5 h-3 w-3 rounded-full bg-secondary ring-2 ring-background" aria-hidden="true" />
                     )}
                   </span>
                   <span className="min-w-0 flex-1">

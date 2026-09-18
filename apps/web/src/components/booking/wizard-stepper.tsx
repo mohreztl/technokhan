@@ -49,7 +49,7 @@ export function WizardStepper({
           style={{ insetInline: `${50 / total}%` }}
         >
           <motion.div
-            className="absolute inset-y-0 start-0 bg-secondary"
+            className="absolute inset-y-0 inset-s-0 bg-secondary"
             initial={false}
             animate={{ width: `${progress}%` }}
             transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 220, damping: 30 }}
@@ -69,7 +69,7 @@ export function WizardStepper({
                 aria-current={active ? 'step' : undefined}
                 aria-label={`مرحلهٔ ${toPersianDigits(String(index + 1))}: ${step.label}`}
                 className={cn(
-                  'relative flex h-11 w-11 items-center justify-center rounded-full outline-none',
+                  'relative flex h-11 w-11 items-center justify-center rounded-full outline-hidden',
                   'focus-visible:ring-2 focus-visible:ring-secondary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                   reachable ? 'cursor-pointer' : 'cursor-default'
                 )}

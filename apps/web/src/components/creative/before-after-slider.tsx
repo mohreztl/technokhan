@@ -41,7 +41,7 @@ export interface BeforeAfterSliderProps {
 }
 
 const ASPECT_CLASS: Record<BeforeAfterAspect, string> = {
-  '4/3': 'aspect-[4/3]',
+  '4/3': 'aspect-4/3',
   '16/9': 'aspect-video',
   '1/1': 'aspect-square',
 };
@@ -265,7 +265,7 @@ export function BeforeAfterSlider({
         onDrag={clampDrag}
         onKeyDown={onKeyDown}
         style={{ x, left: `${start}%` }}
-        className="absolute inset-y-0 w-0 cursor-ew-resize touch-pan-y outline-none"
+        className="absolute inset-y-0 w-0 cursor-ew-resize touch-pan-y outline-hidden"
       >
         <span
           aria-hidden="true"

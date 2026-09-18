@@ -160,7 +160,7 @@ export function OtpForm({ onSuccess, compact, initialPhone = '', className }: Ot
                   placeholder="0912 345 6789"
                   value={phone}
                   onChange={(e) => setPhone(normalizePhone(e.target.value))}
-                  className="h-14 w-full bg-transparent text-start font-mono text-lg tracking-[0.15em] text-foreground outline-none placeholder:text-muted-foreground/60"
+                  className="h-14 w-full bg-transparent text-start font-mono text-lg tracking-[0.15em] text-foreground outline-hidden placeholder:text-muted-foreground/60"
                   aria-invalid={!!error}
                   aria-describedby={error ? 'otp-phone-error' : undefined}
                 />

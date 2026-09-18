@@ -75,11 +75,11 @@ function TimelineNode({
         <motion.span
           aria-hidden="true"
           style={{ opacity: lit }}
-          className="absolute inset-0 flex items-center justify-center text-[#001F3F]"
+          className="absolute inset-0 flex items-center justify-center text-primary-500"
         >
           <Icon className="h-6 w-6" />
         </motion.span>
-        <span className="absolute -start-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-background text-[10px] font-bold text-foreground ring-1 ring-border">
+        <span className="absolute -inset-s-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-background text-[10px] font-bold text-foreground ring-1 ring-border">
           {toPersianDigits(index + 1)}
         </span>
       </motion.div>
@@ -135,7 +135,7 @@ export function ProcessTimeline({
               viewBox="0 0 100 1000"
               preserveAspectRatio="none"
               className={cn(
-                'pointer-events-none absolute start-0 w-14',
+                'pointer-events-none absolute inset-s-0 w-14',
                 orientation === 'auto' && 'lg:hidden'
               )}
               style={{ top: NODE / 2, bottom: NODE / 2 }}

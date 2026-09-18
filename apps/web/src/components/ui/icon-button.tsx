@@ -65,7 +65,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
         {showBadge && (
           <span
             className={cn(
-              'absolute -top-0.5 -end-0.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full px-1',
+              'absolute -top-0.5 -inset-e-0.5 flex h-5 min-w-5 items-center justify-center rounded-full px-1',
               'bg-secondary text-secondary-foreground text-[11px] font-bold leading-none tabular-nums',
               'shadow-[0_2px_10px_hsl(var(--secondary)/0.5)] ring-2 ring-background'
             )}

@@ -47,7 +47,7 @@ const WrapVisualizer = dynamic(
     ssr: false,
     loading: () => (
       <div className="space-y-4 rounded-3xl border border-border bg-card p-4 sm:p-6" aria-busy="true">
-        <Skeleton className="aspect-[16/9] w-full rounded-2xl" />
+        <Skeleton className="aspect-video w-full rounded-2xl" />
         <Skeleton className="h-12 w-full rounded-xl" />
       </div>
     ),
@@ -161,7 +161,7 @@ export function ServiceDetailClient({ service: initial, related: initialRelated,
       {/* Cinematic header */}
       <header className="relative min-h-[420px] overflow-hidden bg-primary text-primary-foreground lg:min-h-[520px]">
         <Image src={hero} alt="" fill priority sizes="100vw" className="object-cover" />
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary via-primary/70 to-primary/20" />
+        <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-primary via-primary/70 to-primary/20" />
         <div className="container-custom relative flex min-h-[420px] flex-col justify-end pb-8 pt-4 lg:min-h-[520px] lg:pb-14">
           <Breadcrumb
             items={[
@@ -249,7 +249,7 @@ export function ServiceDetailClient({ service: initial, related: initialRelated,
                 )}
               >
                 {highlighted && (
-                  <span className="absolute -top-3 start-4 rounded-full bg-secondary px-3 py-0.5 text-[11px] font-bold text-primary">
+                  <span className="absolute -top-3 inset-s-4 rounded-full bg-secondary px-3 py-0.5 text-[11px] font-bold text-primary">
                     محبوب‌ترین
                   </span>
                 )}
@@ -340,7 +340,7 @@ export function ServiceDetailClient({ service: initial, related: initialRelated,
                 type="button"
                 onClick={() => openLightbox(index)}
                 aria-label={`نمایش ${item.title}`}
-                className="group relative aspect-[4/3] w-[72%] shrink-0 snap-start overflow-hidden rounded-2xl border border-border/60 bg-muted sm:w-[46%] lg:w-auto"
+                className="group relative aspect-4/3 w-[72%] shrink-0 snap-start overflow-hidden rounded-2xl border border-border/60 bg-muted sm:w-[46%] lg:w-auto"
               >
                 <Image
                   src={item.cover ?? item.after}
@@ -349,7 +349,7 @@ export function ServiceDetailClient({ service: initial, related: initialRelated,
                   sizes="(max-width: 640px) 72vw, (max-width: 1024px) 46vw, 25vw"
                   className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
-                <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-start text-xs font-semibold text-white">
+                <span className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-3 text-start text-xs font-semibold text-white">
                   {item.title}
                 </span>
               </button>

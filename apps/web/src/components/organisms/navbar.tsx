@@ -86,7 +86,7 @@ export const Navbar: React.FC = () => {
       <div
         aria-hidden="true"
         className={cn(
-          'pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/70 to-transparent transition-opacity duration-500',
+          'pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-secondary/70 to-transparent transition-opacity duration-500',
           isScrolled ? 'opacity-100' : 'opacity-0'
         )}
       />
@@ -96,7 +96,7 @@ export const Navbar: React.FC = () => {
           {/* Logo */}
           <Link
             href={ROUTES.HOME}
-            className="group flex shrink-0 items-center gap-3 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group flex shrink-0 items-center gap-3 rounded-xl outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
             aria-label={`${APP_NAME} - صفحه اصلی`}
           >
             <motion.span
@@ -104,11 +104,11 @@ export const Navbar: React.FC = () => {
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
             >
-              <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary via-primary-700 to-secondary shadow-lg shadow-primary/20 transition-shadow duration-500 group-hover:shadow-xl group-hover:shadow-secondary/30">
+              <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-primary via-primary-700 to-secondary shadow-lg shadow-primary/20 transition-shadow duration-500 group-hover:shadow-xl group-hover:shadow-secondary/30">
                 <span className="text-2xl font-black text-white">A</span>
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+                  className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
                 />
               </span>
             </motion.span>
@@ -118,7 +118,7 @@ export const Navbar: React.FC = () => {
                   'text-2xl font-black leading-tight',
                   overHero
                     ? 'text-white'
-                    : 'bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent'
+                    : 'bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent'
                 )}
               >
                 {APP_NAME}
@@ -149,7 +149,7 @@ export const Navbar: React.FC = () => {
                     href={item.href}
                     aria-current={active ? 'page' : undefined}
                     className={cn(
-                      'relative block rounded-full px-4 py-2 text-sm font-medium transition-colors outline-none',
+                      'relative block rounded-full px-4 py-2 text-sm font-medium transition-colors outline-hidden',
                       'focus-visible:ring-2 focus-visible:ring-ring',
                       overHero
                         ? 'text-white/85 hover:bg-white/10 hover:text-white'
@@ -204,7 +204,7 @@ export const Navbar: React.FC = () => {
             <Button
               asChild
               variant="secondary"
-              className="hidden gap-2 bg-gradient-to-r from-secondary via-secondary/90 to-secondary shadow-lg shadow-secondary/20 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/30 lg:inline-flex"
+              className="hidden gap-2 bg-linear-to-r from-secondary via-secondary/90 to-secondary shadow-lg shadow-secondary/20 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/30 lg:inline-flex"
             >
               <a href={`tel:${CONTACT.phoneEn}`}>
                 <Phone className="h-4 w-4" aria-hidden="true" />

@@ -41,9 +41,9 @@ export function TeamSection({ members }: TeamSectionProps) {
                 type="button"
                 onClick={() => setActive(member)}
                 aria-haspopup="dialog"
-                className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-start transition-shadow hover:shadow-luxury focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                className="group flex h-full w-full flex-col overflow-hidden rounded-2xl border border-border bg-card text-start transition-shadow hover:shadow-luxury focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
               >
-                <div className="relative aspect-[4/5] w-full overflow-hidden bg-muted">
+                <div className="relative aspect-4/5 w-full overflow-hidden bg-muted">
                   <Image
                     src={member.image}
                     alt={member.name}
@@ -52,7 +52,7 @@ export function TeamSection({ members }: TeamSectionProps) {
                     className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   {member.experienceYears ? (
-                    <span className="absolute start-3 top-3 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-bold text-primary">
+                    <span className="absolute inset-s-3 top-3 rounded-full bg-secondary px-2.5 py-1 text-[11px] font-bold text-primary">
                       {toPersianDigits(member.experienceYears)} سال تجربه
                     </span>
                   ) : null}

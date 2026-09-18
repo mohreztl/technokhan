@@ -37,10 +37,10 @@ import { springSheet } from '@/lib/animation-variants';
 
 function EmptyCart({ onClose }: { onClose: () => void }) {
   return (
-    <div className="flex h-full min-h-[18rem] flex-col items-center justify-center py-10 text-center">
+    <div className="flex h-full min-h-72 flex-col items-center justify-center py-10 text-center">
       <div className="relative mb-5">
         <span className="absolute inset-0 rounded-full bg-secondary/20 blur-2xl" aria-hidden="true" />
-        <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-primary/15 to-secondary/25 ring-1 ring-secondary/30">
+        <span className="relative flex h-24 w-24 items-center justify-center rounded-full bg-linear-to-br from-primary/15 to-secondary/25 ring-1 ring-secondary/30">
           <ShoppingBag className="h-11 w-11 text-primary dark:text-secondary" aria-hidden="true" />
         </span>
       </div>
@@ -204,7 +204,7 @@ function CouponField() {
         </label>
         <div className="relative flex-1">
           <Ticket
-            className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute inset-s-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
           <input
@@ -215,7 +215,7 @@ function CouponField() {
             placeholder="کد تخفیف دارید؟"
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            className="h-11 w-full rounded-xl border border-input bg-background/70 ps-9 pe-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring"
+            className="h-11 w-full rounded-xl border border-input bg-background/70 ps-9 pe-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-hidden focus:ring-2 focus:ring-ring"
           />
         </div>
         <Button type="submit" variant="outline" size="sm" className="h-11" disabled={!code.trim()}>
@@ -360,7 +360,7 @@ function DesktopDrawer({ open, onClose }: { open: boolean; onClose: () => void }
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={springSheet}
-            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border/50 bg-background shadow-2xl outline-none"
+            className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-border/50 bg-background shadow-2xl outline-hidden"
           >
             <div className="flex items-center justify-between border-b border-border/50 p-5">
               <div className="flex items-center gap-3">

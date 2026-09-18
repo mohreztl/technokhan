@@ -37,8 +37,8 @@ const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
             isCard
               ? cn(
                   'rounded-2xl border border-border/60 bg-muted/30 p-4 transition-all duration-300',
-                  'hover:border-border has-[:checked]:border-secondary has-[:checked]:bg-secondary/10',
-                  'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-secondary/50'
+                  'hover:border-border has-checked:border-secondary has-checked:bg-secondary/10',
+                  'has-focus-visible:ring-2 has-focus-visible:ring-secondary/50'
                 )
               : hasText && 'py-2',
             disabled && 'cursor-not-allowed opacity-60'

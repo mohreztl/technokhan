@@ -15,7 +15,7 @@ const WrapVisualizer = dynamic(
     ssr: false,
     loading: () => (
       <div className="space-y-4 rounded-3xl border border-border bg-card p-4 sm:p-6" aria-busy="true">
-        <Skeleton className="aspect-[16/9] w-full rounded-2xl" />
+        <Skeleton className="aspect-video w-full rounded-2xl" />
         <div className="flex gap-2">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-11 w-11 rounded-full" />

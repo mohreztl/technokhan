@@ -5,10 +5,10 @@ import { cn } from '@/lib/utils';
 
 /** Shared control chrome for text-like fields (48px tall, 16px text so iOS never zooms). */
 export const fieldControlClass = cn(
-  'flex h-12 w-full rounded-xl border border-input bg-background px-4 text-base text-foreground shadow-sm',
+  'flex h-12 w-full rounded-xl border border-input bg-background px-4 text-base text-foreground shadow-xs',
   'transition-[border-color,box-shadow,background-color] duration-200',
   'placeholder:text-muted-foreground/70',
-  'focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/40',
+  'focus:border-secondary focus:outline-hidden focus:ring-2 focus:ring-secondary/40',
   'disabled:cursor-not-allowed disabled:opacity-50 read-only:bg-muted/40'
 );
 
@@ -43,7 +43,7 @@ export function FieldShell({ id, label, error, hint, required, className, childr
         <p
           id={`${id}-error`}
           role="alert"
-          className="mt-1.5 text-xs leading-5 text-destructive animate-in fade-in slide-in-from-top-1 duration-200"
+          className="mt-1.5 animate-field-error text-xs leading-5 text-destructive"
         >
           {error}
         </p>
@@ -86,7 +86,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         <div className="relative">
           {startIcon && (
             <span
-              className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
+              className="pointer-events-none absolute inset-s-3.5 top-1/2 -translate-y-1/2 text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
               aria-hidden="true"
             >
               {startIcon}
@@ -111,7 +111,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
           {endIcon && (
             <span
-              className="pointer-events-none absolute end-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
+              className="pointer-events-none absolute inset-e-3.5 top-1/2 -translate-y-1/2 text-sm text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
               aria-hidden="true"
             >
               {endIcon}

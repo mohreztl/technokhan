@@ -136,7 +136,7 @@ function MobileLightbox({ items, index, open, onOpenChange, onIndexChange }: Lig
           role="dialog"
           aria-modal="true"
           aria-label={item?.title ?? 'گالری'}
-          className="fixed inset-0 z-[70] flex flex-col text-white"
+          className="fixed inset-0 z-70 flex flex-col text-white"
           initial={reduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -281,7 +281,7 @@ function DesktopLightbox({ items, index, open, onOpenChange, onIndexChange }: Li
                   <ChevronRight className="h-5 w-5" aria-hidden="true" />
                 </Button>
                 <span
-                  className="min-w-[4.5rem] text-center text-sm tabular-nums text-muted-foreground"
+                  className="min-w-18 text-center text-sm tabular-nums text-muted-foreground"
                   aria-live="polite"
                 >
                   {counterFa(current, items.length)}

@@ -98,7 +98,7 @@ export interface PlateInputProps {
 }
 
 const CELL =
-  'h-11 w-full rounded-md bg-transparent text-center text-xl font-bold tabular-nums text-neutral-900 outline-none placeholder:text-neutral-300 focus:bg-secondary/25 disabled:cursor-not-allowed';
+  'h-11 w-full rounded-md bg-transparent text-center text-xl font-bold tabular-nums text-neutral-900 outline-hidden placeholder:text-neutral-300 focus:bg-secondary/25 disabled:cursor-not-allowed';
 
 /**
  * Iranian licence plate input: [2 digits][letter][3 digits] | «ایران» [2 digits].
@@ -208,7 +208,7 @@ export function PlateInput({
         aria-describedby={errorText ? errorId : undefined}
         dir="ltr"
         className={cn(
-          'flex h-16 w-full overflow-hidden rounded-lg border-2 bg-white shadow-sm transition-colors',
+          'flex h-16 w-full overflow-hidden rounded-lg border-2 bg-white shadow-xs transition-colors',
           hasError ? 'border-destructive ring-2 ring-destructive/30' : 'border-neutral-800',
           disabled && 'opacity-60'
         )}
@@ -255,7 +255,7 @@ export function PlateInput({
             onClick={() => setPickerOpen((o) => !o)}
             disabled={disabled}
             className={cn(
-              'h-11 w-12 rounded-md font-bold text-neutral-900 outline-none transition-colors focus-visible:bg-secondary/25 disabled:cursor-not-allowed',
+              'h-11 w-12 rounded-md font-bold text-neutral-900 outline-hidden transition-colors focus-visible:bg-secondary/25 disabled:cursor-not-allowed',
               parts.letter.length > 1 ? 'text-base' : 'text-xl',
               !parts.letter && 'text-sm text-neutral-400',
               pickerOpen && 'bg-secondary/25'
@@ -323,7 +323,7 @@ export function PlateInput({
                   title={LETTER_HINTS[l]}
                   onClick={() => chooseLetter(l)}
                   className={cn(
-                    'h-11 rounded-lg text-base font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                    'h-11 rounded-lg text-base font-bold transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
                     selected
                       ? 'bg-secondary text-secondary-foreground'
                       : 'text-foreground hover:bg-muted'

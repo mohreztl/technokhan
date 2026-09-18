@@ -44,7 +44,7 @@ const columns: DataTableColumn<Booking>[] = [
   {
     key: 'service',
     header: 'خدمت',
-    cell: (b) => <span className="block max-w-[14rem] truncate font-semibold text-foreground">{bookingServiceName(b)}</span>,
+    cell: (b) => <span className="block max-w-56 truncate font-semibold text-foreground">{bookingServiceName(b)}</span>,
   },
   {
     key: 'car',

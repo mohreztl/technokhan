@@ -72,7 +72,7 @@ export function ThemeSwitcher({ className, variant = 'icon' }: ThemeSwitcherProp
         onClick={toggle}
         className={cn(
           'flex h-11 items-center gap-3 rounded-full px-4 glass-effect text-sm font-medium text-foreground',
-          'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+          'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
           className
         )}
         aria-label={label}
@@ -90,7 +90,7 @@ export function ThemeSwitcher({ className, variant = 'icon' }: ThemeSwitcherProp
       className={cn(
         'relative flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300',
         'glass-effect hover:scale-110 hover:shadow-glow-primary',
-        'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'focus:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         className
       )}
       aria-label={label}

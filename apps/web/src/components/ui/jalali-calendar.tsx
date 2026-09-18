@@ -132,7 +132,7 @@ export function JalaliCalendar({
           onClick={() => go(-1)}
           disabled={!canPrev}
           aria-label="ماه قبل"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary/15 disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary/15 disabled:opacity-30 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
         >
           <ChevronRight className="h-5 w-5" aria-hidden />
         </button>
@@ -146,7 +146,7 @@ export function JalaliCalendar({
           onClick={() => go(1)}
           disabled={!canNext}
           aria-label="ماه بعد"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary/15 disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-secondary/15 disabled:opacity-30 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
         >
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
@@ -204,7 +204,7 @@ export function JalaliCalendar({
                   onKeyDown={(e) => onKeyDown(e, d)}
                   className={cn(
                     'relative flex aspect-square min-h-[40px] flex-col items-center justify-center rounded-xl text-sm font-semibold transition-all',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
                     isDisabled
                       ? 'cursor-not-allowed text-muted-foreground/40 line-through decoration-muted-foreground/30'
                       : 'hover:bg-secondary/15 active:scale-95',

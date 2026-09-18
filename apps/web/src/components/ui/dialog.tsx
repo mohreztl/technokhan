@@ -108,7 +108,7 @@ export function DialogContent({ className, children, onClose }: DialogContentPro
                   onOpenChange(false);
                   onClose?.();
                 }}
-                className="absolute left-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                className="absolute left-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2"
               >
                 <X className="h-5 w-5" />
                 <span className="sr-only">بستن</span>

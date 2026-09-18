@@ -20,7 +20,7 @@ export function LuxuryCard({
     <div
       className={cn(
         'relative overflow-hidden rounded-2xl',
-        'bg-gradient-to-br from-white/10 via-white/5 to-transparent',
+        'bg-linear-to-br from-white/10 via-white/5 to-transparent',
         'backdrop-blur-xl border border-white/20',
         'shadow-[0_8px_32px_rgba(0,0,0,0.12)]',
         'group',
@@ -29,12 +29,12 @@ export function LuxuryCard({
     >
       {/* Shimmer Effect */}
       {shimmer && (
-        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out bg-linear-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
       )}
 
       {/* Gold Border Glow */}
       <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
-        <div className="absolute inset-[-1px] rounded-2xl bg-gradient-to-br from-secondary/50 via-secondary/20 to-secondary/50 blur-sm" />
+        <div className="absolute -inset-px rounded-2xl bg-linear-to-br from-secondary/50 via-secondary/20 to-secondary/50 blur-xs" />
       </div>
 
       {/* Content */}
@@ -65,7 +65,7 @@ export function GoldBadge({
     <motion.span
       className={cn(
         'inline-flex items-center font-semibold rounded-full',
-        'bg-gradient-to-r from-secondary-400 via-secondary-300 to-secondary-400',
+        'bg-linear-to-r from-secondary-400 via-secondary-300 to-secondary-400',
         'text-primary-900',
         'shadow-[0_2px_10px_rgba(194,178,128,0.4)]',
         'border border-secondary-200/50',
@@ -102,14 +102,14 @@ export function PremiumButton({
 }) {
   const variants = {
     gold: cn(
-      'bg-gradient-to-r from-secondary-500 via-secondary-400 to-secondary-500',
+      'bg-linear-to-r from-secondary-500 via-secondary-400 to-secondary-500',
       'text-primary-900 font-bold',
       'shadow-[0_4px_20px_rgba(194,178,128,0.4)]',
       'hover:shadow-[0_6px_30px_rgba(194,178,128,0.6)]',
       'border border-secondary-300/50'
     ),
     navy: cn(
-      'bg-gradient-to-r from-primary-800 via-primary-700 to-primary-800',
+      'bg-linear-to-r from-primary-800 via-primary-700 to-primary-800',
       'text-white font-bold',
       'shadow-[0_4px_20px_rgba(0,31,63,0.4)]',
       'hover:shadow-[0_6px_30px_rgba(0,31,63,0.6)]',
@@ -146,7 +146,7 @@ export function PremiumButton({
       {/* Shimmer overlay (driven by the button's hover via `group-hover`, not the span's own hover) */}
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
+        className="pointer-events-none absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full"
       />
       <span className="relative z-10">{children}</span>
     </motion.button>
@@ -169,7 +169,7 @@ export function LuxuryDivider({
   return (
     <div ref={ref} className={cn('flex items-center gap-4 my-8', className)}>
       <motion.div
-        className="flex-1 h-px bg-gradient-to-r from-transparent via-secondary/50 to-secondary/50"
+        className="flex-1 h-px bg-linear-to-r from-transparent via-secondary/50 to-secondary/50"
         initial={{ scaleX: 0 }}
         animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
         transition={{ duration: 0.8 }}
@@ -186,7 +186,7 @@ export function LuxuryDivider({
         </motion.div>
       )}
       <motion.div
-        className="flex-1 h-px bg-gradient-to-r from-secondary/50 via-secondary/50 to-transparent"
+        className="flex-1 h-px bg-linear-to-r from-secondary/50 via-secondary/50 to-transparent"
         initial={{ scaleX: 0 }}
         animate={isInView ? { scaleX: 1 } : { scaleX: 0 }}
         transition={{ duration: 0.8 }}
@@ -220,7 +220,7 @@ export function StatsCard({
       ref={ref}
       className={cn(
         'relative p-6 rounded-2xl text-center',
-        'bg-gradient-to-br from-primary/5 to-primary/10',
+        'bg-linear-to-br from-primary/5 to-primary/10',
         'border border-primary/10',
         'group hover:border-secondary/30 transition-colors',
         className

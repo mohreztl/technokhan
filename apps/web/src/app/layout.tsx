@@ -102,7 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ScrollProgress />
           <div className="flex min-h-dvh flex-col">
             <Navbar />
-            <main className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+            <main className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-tabbar lg:pb-0">
               {children}
             </main>
             <Footer />

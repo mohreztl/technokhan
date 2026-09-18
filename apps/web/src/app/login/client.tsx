@@ -38,10 +38,10 @@ export function LoginClient() {
         <motion.aside
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-primary via-primary to-[#0B3560] p-10 text-white lg:flex"
+          className="relative hidden flex-col justify-between overflow-hidden bg-linear-to-br from-primary via-primary to-[#0B3560] p-10 text-white lg:flex"
         >
-          <div className="pointer-events-none absolute -start-20 -top-20 h-72 w-72 rounded-full bg-secondary/25 blur-3xl" aria-hidden />
-          <div className="pointer-events-none absolute -bottom-24 -end-24 h-80 w-80 rounded-full bg-secondary/15 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -inset-s-20 -top-20 h-72 w-72 rounded-full bg-secondary/25 blur-3xl" aria-hidden />
+          <div className="pointer-events-none absolute -bottom-24 -inset-e-24 h-80 w-80 rounded-full bg-secondary/15 blur-3xl" aria-hidden />
           <div className="relative">
             <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs text-secondary ring-1 ring-white/15">
               <Sparkles className="h-3.5 w-3.5" aria-hidden />

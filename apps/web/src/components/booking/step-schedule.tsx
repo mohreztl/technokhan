@@ -95,7 +95,7 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
                   onClick={() => dispatch({ type: 'slot', timeSlot: slot })}
                   className={cn(
                     'flex min-h-[56px] flex-col items-center justify-center rounded-xl border px-3 py-2 text-sm font-semibold transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50',
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/50',
                     isSelected && 'border-secondary bg-secondary/15 text-foreground shadow-glow-secondary',
                     !isSelected && isAvailable && 'border-border bg-card hover:border-secondary/60',
                     !isAvailable && 'cursor-not-allowed border-border/40 bg-muted/40 text-muted-foreground'

@@ -90,7 +90,7 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       tabIndex={isActive ? 0 : -1}
       onClick={() => setActiveTab(value)}
       className={cn(
-        'relative inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'relative inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
         isActive ? 'text-foreground' : 'hover:text-foreground',
         className
       )}
@@ -98,7 +98,7 @@ export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
       {isActive && (
         <motion.span
           layoutId={`${baseId}-active-tab`}
-          className="absolute inset-0 -z-10 rounded-lg bg-background shadow-sm"
+          className="absolute inset-0 -z-10 rounded-lg bg-background shadow-xs"
           transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
         />
       )}

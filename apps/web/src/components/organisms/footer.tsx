@@ -135,11 +135,11 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <motion.div {...columnMotion}>
             <Link href={ROUTES.HOME} className="mb-4 inline-flex items-center gap-3" aria-label={APP_NAME}>
-              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary via-secondary to-primary shadow-glow-primary">
+              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-primary via-secondary to-primary shadow-glow-primary">
                 <span className="text-2xl font-black text-primary-foreground">A</span>
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 animate-shine rounded-xl bg-gradient-shine bg-[length:200%_100%]"
+                  className="absolute inset-0 animate-shine rounded-xl bg-gradient-shine bg-size-[200%_100%]"
                 />
               </span>
               <span className="text-2xl font-black text-gradient-luxury">{APP_NAME}</span>
@@ -158,7 +158,7 @@ export const Footer: React.FC = () => {
           {/* Services */}
           <motion.nav {...columnMotion} transition={{ delay: 0.05 }} aria-labelledby="footer-services">
             <h3 id="footer-services" className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
               خدمات ما
             </h3>
             <ul className="space-y-1">
@@ -178,7 +178,7 @@ export const Footer: React.FC = () => {
           {/* Quick links */}
           <motion.nav {...columnMotion} transition={{ delay: 0.1 }} aria-labelledby="footer-quick">
             <h3 id="footer-quick" className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
               دسترسی سریع
             </h3>
             <ul className="space-y-1">
@@ -198,7 +198,7 @@ export const Footer: React.FC = () => {
           {/* Contact */}
           <motion.div {...columnMotion} transition={{ delay: 0.15 }}>
             <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
               تماس با ما
             </h3>
             <ul className="space-y-3">

@@ -69,7 +69,7 @@ export function CustomCursor({ className }: { className?: string }) {
       <motion.div
         aria-hidden="true"
         className={cn(
-          'pointer-events-none fixed left-0 top-0 z-[9999] mix-blend-difference',
+          'pointer-events-none fixed left-0 top-0 z-9999 mix-blend-difference',
           !isVisible && 'opacity-0',
           className
         )}
@@ -87,7 +87,7 @@ export function CustomCursor({ className }: { className?: string }) {
 
       <motion.div
         aria-hidden="true"
-        className={cn('pointer-events-none fixed left-0 top-0 z-[9998]', !isVisible && 'opacity-0')}
+        className={cn('pointer-events-none fixed left-0 top-0 z-9998', !isVisible && 'opacity-0')}
         style={{ x: cursorX, y: cursorY, translateX: '-50%', translateY: '-50%' }}
       >
         <motion.div
@@ -327,7 +327,7 @@ export function ScrollProgress({
 
   return (
     <div
-      className={cn('pointer-events-none fixed inset-x-0 top-0 z-[60] h-1', className)}
+      className={cn('pointer-events-none fixed inset-x-0 top-0 z-60 h-1', className)}
       aria-hidden="true"
     >
       <motion.div

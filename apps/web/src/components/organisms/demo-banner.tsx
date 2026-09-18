@@ -45,7 +45,7 @@ export function DemoBanner({ className }: { className?: string }) {
           exit={{ opacity: 0, y: 24, scale: 0.96 }}
           transition={{ type: 'spring', damping: 26, stiffness: 320 }}
           className={cn(
-            'fixed z-[45] start-3 end-3 lg:start-4 lg:end-auto lg:max-w-md',
+            'fixed z-45 inset-s-3 inset-e-3 lg:inset-s-4 lg:inset-e-auto lg:max-w-md',
             aboveTabBar
               ? 'bottom-[calc(4rem+env(safe-area-inset-bottom)+0.75rem)] lg:bottom-4'
               : 'bottom-[calc(env(safe-area-inset-bottom)+0.75rem)] lg:bottom-4',
@@ -74,7 +74,7 @@ export function DemoBanner({ className }: { className?: string }) {
                   retryLiveApi();
                   dismiss();
                 }}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-secondary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-secondary/15 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
                 aria-label="تلاش مجدد برای اتصال به سرور"
                 title="تلاش مجدد"
               >
@@ -84,7 +84,7 @@ export function DemoBanner({ className }: { className?: string }) {
             <button
               type="button"
               onClick={dismiss}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
               aria-label="بستن اعلان حالت نمایشی"
             >
               <X className="h-4 w-4" />

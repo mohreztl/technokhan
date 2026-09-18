@@ -60,7 +60,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
           sizes="100vw"
           className="object-cover opacity-30"
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary via-primary/85 to-primary/60" />
+        <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-primary via-primary/85 to-primary/60" />
         <div className="container-custom relative py-14 text-center lg:py-24">
           <p className="mb-3 text-xs font-bold tracking-[0.25em] text-secondary">خدمات اتولانژ</p>
           <h1 id="services-hero-title" className="mx-auto max-w-3xl text-balance text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">

@@ -62,7 +62,7 @@ export function MobileTabBar() {
                   href={href}
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={`${tab.label} نوبت`}
-                  className="group relative -mt-6 flex flex-col items-center gap-1 pb-1.5 outline-none"
+                  className="group relative -mt-6 flex flex-col items-center gap-1 pb-1.5 outline-hidden"
                 >
                   <motion.span
                     whileTap={{ scale: 0.88 }}
@@ -70,7 +70,7 @@ export function MobileTabBar() {
                     animate={{ y: isActive ? -2 : 0 }}
                     className={cn(
                       'flex h-14 w-14 items-center justify-center rounded-full',
-                      'bg-gradient-to-br from-secondary-400 via-secondary-500 to-secondary-600 text-primary-900',
+                      'bg-linear-to-br from-secondary-400 via-secondary-500 to-secondary-600 text-primary-900',
                       'shadow-[0_8px_24px_hsl(var(--secondary)/0.55)] ring-4 ring-background',
                       'transition-shadow group-focus-visible:ring-ring',
                       isActive && 'shadow-[0_10px_32px_hsl(var(--secondary)/0.8)]'
@@ -97,7 +97,7 @@ export function MobileTabBar() {
                 href={href}
                 aria-current={isActive ? 'page' : undefined}
                 className={cn(
-                  'relative flex min-w-[44px] flex-1 flex-col items-center justify-center gap-1 outline-none',
+                  'relative flex min-w-[44px] flex-1 flex-col items-center justify-center gap-1 outline-hidden',
                   'text-foreground-muted transition-colors focus-visible:text-foreground',
                   isActive && 'text-primary dark:text-secondary'
                 )}

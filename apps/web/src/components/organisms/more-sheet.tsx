@@ -77,7 +77,7 @@ export function MoreSheet() {
     >
       {/* Account row */}
       <div className="mb-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-secondary text-primary-foreground">
           <User className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
@@ -123,9 +123,9 @@ export function MoreSheet() {
                   href={link.href}
                   onClick={close}
                   className={cn(
-                    'flex min-h-[3.25rem] items-center gap-3 rounded-2xl border border-border/40 bg-background/60 px-3 py-2.5',
+                    'flex min-h-13 items-center gap-3 rounded-2xl border border-border/40 bg-background/60 px-3 py-2.5',
                     'text-sm font-medium text-foreground transition-colors hover:bg-primary/10 active:scale-[0.98]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring'
                   )}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:text-secondary">

@@ -79,7 +79,7 @@ export function BeforeAfterShowcase({ items }: BeforeAfterShowcaseProps) {
                       aria-label={item.title}
                       onClick={() => setIndex(i)}
                       className={cn(
-                        'relative h-14 w-[4.5rem] shrink-0 overflow-hidden rounded-xl border-2 transition-all',
+                        'relative h-14 w-18 shrink-0 overflow-hidden rounded-xl border-2 transition-all',
                         selected
                           ? 'border-secondary shadow-glow-secondary'
                           : 'border-transparent opacity-70 hover:opacity-100'

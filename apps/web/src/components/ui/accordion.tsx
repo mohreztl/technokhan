@@ -95,7 +95,7 @@ export function AccordionTrigger({ children, className }: AccordionTriggerProps)
       aria-controls={item.contentId}
       onClick={() => context.toggleItem(item.value)}
       className={cn(
-        'flex min-h-11 w-full items-center justify-between gap-3 py-3 text-start font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'flex min-h-11 w-full items-center justify-between gap-3 py-3 text-start font-semibold text-foreground transition-colors hover:text-primary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         className
       )}
     >

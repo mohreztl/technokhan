@@ -19,7 +19,7 @@ const SUGGESTED_PAGES = [
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[calc(100dvh-9rem)] items-center justify-center bg-gradient-to-b from-background to-muted/30 px-4 py-12">
+    <div className="flex min-h-[calc(100dvh-9rem)] items-center justify-center bg-linear-to-b from-background to-muted/30 px-4 py-12">
       <div className="w-full max-w-2xl text-center">
         <div className="relative mb-6">
           <div className="select-none text-[120px] font-black leading-none text-muted/20 sm:text-[200px]" aria-hidden="true">
@@ -54,7 +54,7 @@ export default function NotFound() {
               <Link
                 key={page.href}
                 href={page.href}
-                className="group flex min-h-[4.5rem] items-start gap-3 rounded-xl bg-muted/50 p-4 text-start transition-colors hover:bg-muted"
+                className="group flex min-h-18 items-start gap-3 rounded-xl bg-muted/50 p-4 text-start transition-colors hover:bg-muted"
               >
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 transition-colors group-hover:bg-primary/20">
                   <page.icon className="h-5 w-5 text-primary" aria-hidden="true" />

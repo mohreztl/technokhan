@@ -48,7 +48,7 @@ export function QuantityStepper({
       >
         <Plus className="h-4 w-4" />
       </button>
-      <output className="min-w-[3rem] text-center text-base font-bold tabular-nums" aria-live="polite">
+      <output className="min-w-12 text-center text-base font-bold tabular-nums" aria-live="polite">
         {toPersianDigits(value)}
       </output>
       <button

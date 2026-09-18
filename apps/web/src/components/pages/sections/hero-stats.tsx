@@ -46,7 +46,7 @@ export function HeroStats() {
               >
                 <span
                   aria-hidden="true"
-                  className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-secondary/60 to-transparent"
+                  className="absolute inset-x-6 top-0 h-px bg-linear-to-r from-transparent via-secondary/60 to-transparent"
                 />
                 <span className="mx-auto mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-secondary/20 group-hover:text-secondary dark:text-secondary sm:mb-3 sm:h-11 sm:w-11">
                   <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />

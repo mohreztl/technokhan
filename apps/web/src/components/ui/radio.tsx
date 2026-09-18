@@ -36,8 +36,8 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
           isCard
             ? cn(
                 'rounded-2xl border border-border/60 bg-muted/30 p-4 transition-all duration-300',
-                'hover:border-border has-[:checked]:border-secondary has-[:checked]:bg-secondary/10 has-[:checked]:shadow-glow-secondary',
-                'has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-secondary/50'
+                'hover:border-border has-checked:border-secondary has-checked:bg-secondary/10 has-checked:shadow-glow-secondary',
+                'has-focus-visible:ring-2 has-focus-visible:ring-secondary/50'
               )
             : 'py-2',
           disabled && 'cursor-not-allowed opacity-60',
@@ -76,7 +76,7 @@ const Radio = React.forwardRef<HTMLInputElement, RadioProps>(
             className={cn(
               'flex shrink-0 items-center justify-center text-secondary [&_svg]:h-5 [&_svg]:w-5',
               isCard &&
-                'h-11 w-11 rounded-xl bg-background/80 shadow-sm transition-colors group-has-[:checked]:bg-secondary group-has-[:checked]:text-secondary-foreground'
+                'h-11 w-11 rounded-xl bg-background/80 shadow-xs transition-colors group-has-checked:bg-secondary group-has-checked:text-secondary-foreground'
             )}
             aria-hidden="true"
           >

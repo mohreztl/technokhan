@@ -42,13 +42,13 @@ export function MobileCartPill() {
             className={cn(
               'pointer-events-auto flex h-14 w-full max-w-md items-center gap-3 rounded-2xl px-3 pe-4 text-start',
               'bg-primary text-primary-foreground shadow-luxury ring-1 ring-white/10',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary'
+              'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary'
             )}
           >
             <span className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
               <ShoppingBag className="h-5 w-5" aria-hidden="true" />
               <span
-                className="absolute -end-1.5 -top-1.5 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-secondary px-1 text-[11px] font-bold text-secondary-foreground tabular-nums"
+                className="absolute -inset-e-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-secondary px-1 text-[11px] font-bold text-secondary-foreground tabular-nums"
                 aria-hidden="true"
               >
                 {toPersianDigits(totalItems > 99 ? '99+' : totalItems)}
