@@ -22,6 +22,7 @@ const menuItems = [
   { title: 'محصولات', href: ROUTES.PRODUCTS },
   { title: 'رزرو نوبت', href: ROUTES.BOOKING },
   { title: 'نمونه کارها', href: ROUTES.GALLERY },
+  { title: 'مجله', href: ROUTES.BLOG },
   { title: 'درباره ما', href: ROUTES.ABOUT },
   { title: 'تماس با ما', href: ROUTES.CONTACT },
 ];

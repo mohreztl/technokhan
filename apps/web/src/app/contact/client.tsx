@@ -1,12 +1,14 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ArrowLeft,
   CheckCircle2,
   Clock,
   Copy,
@@ -17,7 +19,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
-import { FAQ, contactSchema, toPersianDigits } from '@autolounge/shared';
+import { FAQ, ROUTES, contactSchema, toPersianDigits } from '@autolounge/shared';
 import type { SiteSettings } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { contactApi } from '@/lib/api/endpoints';
@@ -358,6 +360,15 @@ export function ContactPageClient() {
             })}
           </div>
           <FaqAccordion key={faqCategory} items={faqItems} />
+          {/* Service-specific questions are collected on /faq, not duplicated here. */}
+          <div className="mt-6 text-center">
+            <Button asChild variant="outline">
+              <Link href={ROUTES.FAQ}>
+                دیدن همهٔ پرسش‌ها، شامل سؤالات هر خدمت
+                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+              </Link>
+            </Button>
+          </div>
         </div>
       </section>
     </div>

@@ -41,6 +41,8 @@ const QUICK_LINKS = [
   { title: 'نمونه کارها', href: ROUTES.GALLERY },
   { title: 'رزرو نوبت', href: ROUTES.BOOKING },
   { title: 'پیگیری سفارش', href: ROUTES.TRACK },
+  { title: 'مجله', href: ROUTES.BLOG },
+  { title: 'سؤالات متداول', href: ROUTES.FAQ },
   { title: 'درباره ما', href: ROUTES.ABOUT },
   { title: 'تماس با ما', href: ROUTES.CONTACT },
 ];

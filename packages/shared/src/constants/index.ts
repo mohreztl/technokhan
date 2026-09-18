@@ -46,6 +46,8 @@ export const ROUTES = {
   ABOUT: '/about',
   CONTACT: '/contact',
   TRACK: '/track',
+  FAQ: '/faq',
+  BLOG: '/blog',
   LOGIN: '/login',
   PRIVACY: '/privacy',
   TERMS: '/terms',

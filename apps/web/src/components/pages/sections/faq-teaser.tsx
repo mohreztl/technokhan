@@ -27,7 +27,7 @@ export function FaqTeaser({ limit = 4 }: FaqTeaserProps) {
         <FaqAccordion items={items} />
         <div className="mt-8 flex justify-center">
           <Button asChild variant="outline" size="lg" className="min-h-12 gap-2">
-            <Link href={`${ROUTES.CONTACT}#faq`}>
+            <Link href={ROUTES.FAQ}>
               <MessageCircleQuestion className="h-4 w-4" aria-hidden="true" />
               همهٔ سؤالات متداول
               <ArrowRight className="h-4 w-4 rtl:rotate-180" aria-hidden="true" />

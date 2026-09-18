@@ -453,6 +453,49 @@ export interface FaqItem {
   category?: string;
 }
 
+// ---------------------------------------------------------------------------
+// Magazine
+// ---------------------------------------------------------------------------
+
+/**
+ * An article body is structured rather than markdown: the renderer stays typed,
+ * nothing needs a parser at runtime, and headings can be collected into a table
+ * of contents without re-parsing the text.
+ */
+export type ArticleBlock =
+  | { kind: 'heading'; id: string; text: string }
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'list'; ordered?: boolean; items: string[] }
+  | { kind: 'quote'; text: string; attribution?: string }
+  | { kind: 'callout'; tone: 'tip' | 'warning'; title: string; text: string }
+  | { kind: 'image'; src: string; alt: string; caption?: string }
+  | { kind: 'steps'; items: { title: string; text: string }[] };
+
+export type ArticleCategory = 'نگهداری' | 'راهنمای خرید' | 'دانش فنی' | 'پشت صحنه';
+
+export interface Article {
+  /** URL slug; also the id. */
+  slug: string;
+  title: string;
+  /** One or two sentences; used on cards, meta description and OG. */
+  excerpt: string;
+  category: ArticleCategory;
+  cover: string;
+  /** ISO date the piece was published. */
+  publishedAt: string;
+  updatedAt?: string;
+  author: { name: string; role: string; avatar?: string };
+  /** Minutes to read, rounded. */
+  readingMinutes: number;
+  tags: string[];
+  /** Shown on the homepage magazine rail. */
+  featured?: boolean;
+  /** Services and products the piece is about, linked at the end. */
+  relatedServiceIds?: string[];
+  relatedProductIds?: string[];
+  body: ArticleBlock[];
+}
+
 export interface LegalSection {
   heading: string;
   paragraphs: string[];

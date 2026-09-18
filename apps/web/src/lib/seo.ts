@@ -8,6 +8,8 @@ import {
   SERVICE_TYPE_LABELS,
   SOCIAL_MEDIA,
   effectivePrice,
+  type Article,
+  type FaqItem,
   type Product,
   type Service,
 } from '@autolounge/shared';
@@ -156,6 +158,43 @@ export function serviceJsonLd(service: Service, url: string): JsonLdData {
         : undefined,
       availability: 'https://schema.org/InStock',
     },
+  };
+}
+
+/**
+ * Google shows FAQ rich results only for a page whose visible content is the
+ * questions themselves — so this belongs on /faq and on a service page, never
+ * on a page that merely links to them.
+ */
+export function faqJsonLd(items: FaqItem[]): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.question,
+      acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    })),
+  };
+}
+
+export function articleJsonLd(article: Article, url: string): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    '@id': `${url}#article`,
+    headline: article.title,
+    description: article.excerpt,
+    image: [toAbsolute(article.cover)],
+    datePublished: article.publishedAt,
+    dateModified: article.updatedAt ?? article.publishedAt,
+    author: { '@type': 'Person', name: article.author.name, jobTitle: article.author.role },
+    publisher: { '@id': ORGANIZATION_ID() },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
+    articleSection: article.category,
+    keywords: article.tags.join('، '),
+    inLanguage: 'fa-IR',
+    url,
   };
 }
 

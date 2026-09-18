@@ -1,12 +1,14 @@
 // Bundled catalog & content data for AutoLounge (used by the web app in demo
 // mode, by the API seed script and as the fallback when the API is offline).
-import type { Coupon, GalleryItem, Product, Service, WrapColor } from '../types';
+import type { Article, Coupon, GalleryItem, Product, Service, WrapColor } from '../types';
+import { ARTICLES } from './articles';
 import { PRODUCTS } from './products';
 import { SERVICES } from './services';
 import { GALLERY } from './gallery';
 import { COUPONS } from './coupons';
 import { WRAP_COLORS } from './wrap-colors';
 
+export { ARTICLES } from './articles';
 export { PRODUCTS, PRODUCT_BRANDS } from './products';
 export { SERVICES } from './services';
 export { TESTIMONIALS } from './testimonials';
@@ -34,6 +36,25 @@ export const findCoupon = (code: string): Coupon | undefined => {
 
 export const findWrapColor = (id: string): WrapColor | undefined =>
   WRAP_COLORS.find((c) => c.id === id);
+
+export const findArticle = (slug: string): Article | undefined =>
+  ARTICLES.find((a) => a.slug === slug);
+
+/** Newest first — the order the magazine index and the homepage rail use. */
+export const sortedArticles = (): Article[] =>
+  [...ARTICLES].sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+
+export const ARTICLE_CATEGORIES = Array.from(new Set(ARTICLES.map((a) => a.category)));
+
+/** Shared tags first, then same category, then whatever is newest. */
+export function getRelatedArticles(slug: string, limit = 3): Article[] {
+  const base = findArticle(slug);
+  if (!base) return [];
+  const others = sortedArticles().filter((a) => a.slug !== slug);
+  const score = (a: Article) =>
+    a.tags.filter((t) => base.tags.includes(t)).length * 2 + (a.category === base.category ? 1 : 0);
+  return [...others].sort((a, b) => score(b) - score(a)).slice(0, limit);
+}
 
 export const findGalleryByService = (serviceId: string): GalleryItem[] =>
   GALLERY.filter((g) => g.serviceId === serviceId);

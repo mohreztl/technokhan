@@ -9,6 +9,7 @@ import { FeaturedProducts } from './sections/featured-products';
 import { ProcessSection } from './sections/process-section';
 import { WrapTeaser } from './sections/wrap-teaser';
 import { Testimonials } from './sections/testimonials';
+import { MagazineTeaser } from './sections/magazine-teaser';
 import { FaqTeaser } from './sections/faq-teaser';
 import { CTASection } from './sections/cta-section';
 
@@ -36,6 +37,7 @@ export function LandingPage({ products, services, gallery }: LandingPageProps) {
       <ProcessSection />
       <WrapTeaser basePrice={wrapService?.pricing?.medium ?? wrapService?.price} />
       <Testimonials />
+      <MagazineTeaser />
       <FaqTeaser />
       <CTASection />
     </>

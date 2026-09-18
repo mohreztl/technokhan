@@ -4,13 +4,16 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  BookOpen,
   Camera,
   FileText,
   Heart,
+  HelpCircle,
   Info,
   LogIn,
   LogOut,
   Package,
+  PackageSearch,
   Phone,
   Send,
   ShieldCheck,
@@ -18,7 +21,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
-import { APP_NAME, CONTACT, ROUTES, SOCIAL_MEDIA, toPersianDigits } from '@autolounge/shared';
+import { APP_NAME, ROUTES, toPersianDigits } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
@@ -27,6 +30,7 @@ import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import { showToast } from '@/components/ui/toaster';
 import { useUIStore } from '@/lib/store/ui-store';
 import { useAuth } from '@/lib/store/auth-store';
+import { useSettings } from '@/lib/hooks/use-settings';
 import { useWishlist } from '@/lib/store/wishlist-store';
 
 interface MoreLink {
@@ -42,6 +46,7 @@ export function MoreSheet() {
   const moreOpen = useUIStore((s) => s.moreOpen);
   const setMoreOpen = useUIStore((s) => s.setMoreOpen);
   const { user, status, isAuthenticated, logout } = useAuth();
+  const settings = useSettings();
   const { count: wishlistCount } = useWishlist();
 
   const close = React.useCallback(() => setMoreOpen(false), [setMoreOpen]);
@@ -55,6 +60,9 @@ export function MoreSheet() {
     { label: 'درباره ما', href: ROUTES.ABOUT, icon: Info },
     { label: 'تماس با ما', href: ROUTES.CONTACT, icon: Phone },
     { label: 'نمونه کارها', href: ROUTES.GALLERY, icon: Camera },
+    { label: 'مجله', href: ROUTES.BLOG, icon: BookOpen },
+    { label: 'سؤالات متداول', href: ROUTES.FAQ, icon: HelpCircle },
+    { label: 'پیگیری سفارش', href: ROUTES.TRACK, icon: PackageSearch },
     { label: 'علاقه‌مندی‌ها', href: ROUTES.WISHLIST, icon: Heart, badge: wishlistCount },
     { label: 'سفارش‌های من', href: ROUTES.ORDERS, icon: Package },
     { label: 'قوانین', href: ROUTES.TERMS, icon: FileText },
@@ -148,7 +156,7 @@ export function MoreSheet() {
       <div className="mt-4 flex items-center gap-2">
         <ThemeSwitcher variant="pill" className="flex-1 justify-center" />
         <Button asChild variant="secondary" className="flex-1 gap-2 shadow-glow-secondary">
-          <a href={`tel:${CONTACT.phoneEn}`}>
+          <a href={`tel:${settings.phone}`}>
             <Phone className="h-4 w-4" aria-hidden="true" />
             تماس فوری
           </a>
@@ -157,17 +165,23 @@ export function MoreSheet() {
 
       {/* Social */}
       <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/40 px-4 py-2">
-        <span className="text-xs text-muted-foreground">{CONTACT.workingHours}</span>
+        <span className="text-xs text-muted-foreground">{settings.workingHours}</span>
         <div className="flex items-center gap-1">
-          <IconButton asChild label="واتس‌اپ" icon={<WhatsappIcon />} variant="ghost">
-            <a href={SOCIAL_MEDIA.whatsapp} target="_blank" rel="noopener noreferrer" />
-          </IconButton>
-          <IconButton asChild label="اینستاگرام" icon={<InstagramIcon />} variant="ghost">
-            <a href={SOCIAL_MEDIA.instagram} target="_blank" rel="noopener noreferrer" />
-          </IconButton>
-          <IconButton asChild label="تلگرام" icon={<Send />} variant="ghost">
-            <a href={SOCIAL_MEDIA.telegram} target="_blank" rel="noopener noreferrer" />
-          </IconButton>
+          {settings.whatsapp && (
+            <IconButton asChild label="واتس‌اپ" icon={<WhatsappIcon />} variant="ghost">
+              <a href={settings.whatsapp} target="_blank" rel="noopener noreferrer" />
+            </IconButton>
+          )}
+          {settings.instagram && (
+            <IconButton asChild label="اینستاگرام" icon={<InstagramIcon />} variant="ghost">
+              <a href={settings.instagram} target="_blank" rel="noopener noreferrer" />
+            </IconButton>
+          )}
+          {settings.telegram && (
+            <IconButton asChild label="تلگرام" icon={<Send />} variant="ghost">
+              <a href={settings.telegram} target="_blank" rel="noopener noreferrer" />
+            </IconButton>
+          )}
         </div>
       </div>
     </BottomSheet>
