@@ -28,7 +28,7 @@
     "fastify-plugin": "^4.5.1",
     "prisma": "^5.7.1",
     "tsx": "^4.7.0",
-    "zod": "^3.22.4"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

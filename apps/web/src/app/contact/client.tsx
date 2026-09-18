@@ -10,14 +10,13 @@ import {
   CheckCircle2,
   Clock,
   Copy,
-  Instagram,
   Mail,
   MapPin,
-  MessageCircle,
   Phone,
   Send,
   Smartphone,
 } from 'lucide-react';
+import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
 import { CONTACT, FAQ, SOCIAL_MEDIA, contactSchema, toPersianDigits } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { contactApi } from '@/lib/api/endpoints';
@@ -42,9 +41,9 @@ const CONTACT_CARDS = [
   { icon: Phone, label: 'تلفن ثابت', value: CONTACT.phone, href: `tel:${CONTACT.phoneEn}`, ltr: true },
   { icon: Smartphone, label: 'موبایل', value: CONTACT.mobile, href: `tel:${CONTACT.mobileEn}`, ltr: true },
   { icon: Mail, label: 'ایمیل', value: CONTACT.email, href: `mailto:${CONTACT.email}`, ltr: true },
-  { icon: MessageCircle, label: 'واتس‌اپ', value: 'گفت‌وگو در واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, external: true },
+  { icon: WhatsappIcon, label: 'واتس‌اپ', value: 'گفت‌وگو در واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, external: true },
   { icon: Send, label: 'تلگرام', value: 'پیام در تلگرام', href: SOCIAL_MEDIA.telegram, external: true },
-  { icon: Instagram, label: 'اینستاگرام', value: 'autolounge.ir', href: SOCIAL_MEDIA.instagram, external: true, ltr: true },
+  { icon: InstagramIcon, label: 'اینستاگرام', value: 'autolounge.ir', href: SOCIAL_MEDIA.instagram, external: true, ltr: true },
 ];
 
 function useFaqCategories() {

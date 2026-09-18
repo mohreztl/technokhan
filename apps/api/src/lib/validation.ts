@@ -14,9 +14,10 @@ export function parse<S extends ZodTypeAny>(schema: S, data: unknown): z.output<
 export const validateSchema = parse;
 
 export function formatZodError(error: ZodError): { field: string; message: string }[] {
-  return error.errors.map((err) => ({
-    field: err.path.join('.'),
-    message: err.message,
+  // zod 4 dropped the `.errors` alias; `.issues` is the only accessor now.
+  return error.issues.map((issue) => ({
+    field: issue.path.join('.'),
+    message: issue.message,
   }));
 }
 

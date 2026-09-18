@@ -8,10 +8,8 @@ import {
   FileText,
   Heart,
   Info,
-  Instagram,
   LogIn,
   LogOut,
-  MessageCircle,
   Package,
   Phone,
   Send,
@@ -19,6 +17,7 @@ import {
   User,
   type LucideIcon,
 } from 'lucide-react';
+import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
 import { APP_NAME, CONTACT, ROUTES, SOCIAL_MEDIA, toPersianDigits } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
@@ -160,10 +159,10 @@ export function MoreSheet() {
       <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/40 px-4 py-2">
         <span className="text-xs text-muted-foreground">{CONTACT.workingHours}</span>
         <div className="flex items-center gap-1">
-          <IconButton asChild label="واتس‌اپ" icon={<MessageCircle />} variant="ghost">
+          <IconButton asChild label="واتس‌اپ" icon={<WhatsappIcon />} variant="ghost">
             <a href={SOCIAL_MEDIA.whatsapp} target="_blank" rel="noopener noreferrer" />
           </IconButton>
-          <IconButton asChild label="اینستاگرام" icon={<Instagram />} variant="ghost">
+          <IconButton asChild label="اینستاگرام" icon={<InstagramIcon />} variant="ghost">
             <a href={SOCIAL_MEDIA.instagram} target="_blank" rel="noopener noreferrer" />
           </IconButton>
           <IconButton asChild label="تلگرام" icon={<Send />} variant="ghost">

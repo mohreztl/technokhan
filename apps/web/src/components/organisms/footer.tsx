@@ -7,15 +7,13 @@ import { motion } from 'framer-motion';
 import {
   Award,
   Clock,
-  Instagram,
   Mail,
   MapPin,
-  MessageCircle,
   Phone,
-  Send,
   ShieldCheck,
   Truck,
 } from 'lucide-react';
+import { InstagramIcon, TelegramIcon, WhatsappIcon } from '@/components/icons/brands';
 import {
   APP_DESCRIPTION,
   APP_NAME,
@@ -48,9 +46,9 @@ const QUICK_LINKS = [
 ];
 
 const SOCIALS = [
-  { label: 'اینستاگرام', href: SOCIAL_MEDIA.instagram, icon: <Instagram /> },
-  { label: 'تلگرام', href: SOCIAL_MEDIA.telegram, icon: <Send /> },
-  { label: 'واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, icon: <MessageCircle /> },
+  { label: 'اینستاگرام', href: SOCIAL_MEDIA.instagram, icon: <InstagramIcon /> },
+  { label: 'تلگرام', href: SOCIAL_MEDIA.telegram, icon: <TelegramIcon /> },
+  { label: 'واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, icon: <WhatsappIcon /> },
 ];
 
 const TRUST = [

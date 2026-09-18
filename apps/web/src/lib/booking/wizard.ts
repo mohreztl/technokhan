@@ -253,22 +253,16 @@ export type StepErrors = Record<string, string>;
 
 const serviceStepSchema = z.object({
   serviceId: z.string().min(1, 'خدمت را انتخاب کنید'),
-  size: z.enum(VEHICLE_SIZE_IDS, { errorMap: () => ({ message: 'اندازهٔ خودرو را انتخاب کنید' }) }),
+  size: z.enum(VEHICLE_SIZE_IDS, { error: () => 'اندازهٔ خودرو را انتخاب کنید' }),
 });
 
 const scheduleStepSchema = z.object({
   date: z
-    .string({
-      required_error: 'روز مراجعه را انتخاب کنید',
-      invalid_type_error: 'روز مراجعه را انتخاب کنید',
-    })
+    .string({ error: 'روز مراجعه را انتخاب کنید' })
     .regex(ISO_DATE, 'تاریخ نامعتبر است')
     .refine(isBookableDate, 'این روز قابل رزرو نیست'),
   timeSlot: z
-    .string({
-      required_error: 'بازهٔ زمانی را انتخاب کنید',
-      invalid_type_error: 'بازهٔ زمانی را انتخاب کنید',
-    })
+    .string({ error: 'بازهٔ زمانی را انتخاب کنید' })
     .min(1, 'بازهٔ زمانی را انتخاب کنید'),
 });
 
@@ -277,10 +271,7 @@ const vehicleStepSchema = z
     brand: z.string().min(1, 'برند خودرو را انتخاب کنید'),
     model: z.string().trim().min(2, 'مدل خودرو را وارد کنید').max(60, 'مدل خودرو خیلی طولانی است'),
     year: z
-      .number({
-        required_error: 'سال ساخت را انتخاب کنید',
-        invalid_type_error: 'سال ساخت را انتخاب کنید',
-      })
+      .number({ error: 'سال ساخت را انتخاب کنید' })
       .int()
       .min(1350, 'سال ساخت نامعتبر است')
       .max(1420, 'سال ساخت نامعتبر است'),
@@ -293,14 +284,14 @@ const vehicleStepSchema = z
   .superRefine((v, ctx) => {
     if (v.location === 'onsite' && v.onsiteAddress.trim().length < 10) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['onsiteAddress'],
         message: 'آدرس محل را کامل وارد کنید (حداقل ۱۰ حرف)',
       });
     }
   });
 
-function issuesToErrors(result: z.SafeParseReturnType<unknown, unknown>): StepErrors {
+function issuesToErrors(result: z.ZodSafeParseResult<unknown>): StepErrors {
   if (result.success) return {};
   const errors: StepErrors = {};
   for (const issue of result.error.issues) {

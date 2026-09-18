@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { Instagram, Linkedin } from 'lucide-react';
+import { InstagramIcon, LinkedinIcon } from '@/components/icons/brands';
 import { toPersianDigits, type TeamMember } from '@autolounge/shared';
 import { fadeInUp, staggerContainer, viewportConfig } from '@/lib/animation-variants';
 import { Badge } from '@/components/ui/badge';
@@ -102,12 +102,12 @@ export function TeamSection({ members }: TeamSectionProps) {
                 {active.socials && (
                   <div className="mt-2 flex gap-2">
                     {active.socials.instagram && (
-                      <IconButton asChild label="اینستاگرام" icon={<Instagram />} variant="outline" size="sm">
+                      <IconButton asChild label="اینستاگرام" icon={<InstagramIcon />} variant="outline" size="sm">
                         <a href={active.socials.instagram} target="_blank" rel="noopener noreferrer" />
                       </IconButton>
                     )}
                     {active.socials.linkedin && (
-                      <IconButton asChild label="لینکدین" icon={<Linkedin />} variant="outline" size="sm">
+                      <IconButton asChild label="لینکدین" icon={<LinkedinIcon />} variant="outline" size="sm">
                         <a href={active.socials.linkedin} target="_blank" rel="noopener noreferrer" />
                       </IconButton>
                     )}
