@@ -135,10 +135,11 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# next-pwa generated service worker (regenerated on build)
+# Service worker, written into public/ by `serwist build` (see apps/web/serwist.config.mjs)
 apps/web/public/sw.js
 apps/web/public/sw.js.map
+apps/web/public/swe-worker-*.js
+# next-pwa leftovers, in case an old checkout still has them
 apps/web/public/workbox-*.js
 apps/web/public/workbox-*.js.map
 apps/web/public/fallback-*.js
-apps/web/public/swe-worker-*.js
