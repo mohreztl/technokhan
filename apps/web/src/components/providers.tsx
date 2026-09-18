@@ -2,6 +2,7 @@
 
 import { ThemeProvider as NextThemesProvider, useTheme as useNextTheme } from 'next-themes';
 import { MotionConfig } from 'framer-motion';
+import { SerwistProvider } from '@serwist/next/react';
 import { QueryProvider } from '@/lib/providers/query-provider';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { StoreHydrator } from '@/lib/store/hydration';
@@ -29,22 +30,29 @@ export const useBrandColors = () => ({ colors: BRAND_COLORS });
  */
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <NextThemesProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-      themes={['light', 'dark']}
-      disableTransitionOnChange
+    <SerwistProvider
+      swUrl="/sw.js"
+      // No worker is built for `next dev`, so registering one there would 404.
+      disable={process.env.NODE_ENV === 'development'}
+      reloadOnOnline={false}
     >
-      <QueryProvider>
-        <MotionConfig reducedMotion="user">
-          <StoreHydrator />
-          <ErrorBoundary>
-            {children}
-            <AppShell />
-          </ErrorBoundary>
-        </MotionConfig>
-      </QueryProvider>
-    </NextThemesProvider>
+      <NextThemesProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem
+        themes={['light', 'dark']}
+        disableTransitionOnChange
+      >
+        <QueryProvider>
+          <MotionConfig reducedMotion="user">
+            <StoreHydrator />
+            <ErrorBoundary>
+              {children}
+              <AppShell />
+            </ErrorBoundary>
+          </MotionConfig>
+        </QueryProvider>
+      </NextThemesProvider>
+    </SerwistProvider>
   );
 }

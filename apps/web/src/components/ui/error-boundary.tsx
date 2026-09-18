@@ -46,6 +46,9 @@ export class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoHome = () => {
+    // A class component has no router hook, and a hard load is deliberate here:
+    // it throws away the React tree that just crashed.
+    // eslint-disable-next-line @next/next/no-location-assign-relative-destination
     window.location.href = '/';
   };
 
