@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { Product } from '@autolounge/shared';
-import { COUPONS, computeOrderTotals } from '@autolounge/shared';
+import type { CouponTerms, Product } from '@autolounge/shared';
+import { computeOrderTotals } from '@autolounge/shared';
 
 export interface CartItem {
   product: Product;
@@ -12,6 +12,12 @@ export interface CartState {
   items: CartItem[];
   isOpen: boolean;
   couponCode: string | null;
+  /**
+   * The coupon definition the API returned when the code was accepted. Kept so
+   * the cart can re-price itself locally as items change; the server validates
+   * again when the order is placed, and that answer is the binding one.
+   */
+  coupon: CouponTerms | null;
   addItem: (product: Product, quantity?: number) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
@@ -19,7 +25,7 @@ export interface CartState {
   toggleCart: () => void;
   openCart: () => void;
   closeCart: () => void;
-  setCoupon: (code: string | null) => void;
+  setCoupon: (code: string | null, coupon?: CouponTerms | null) => void;
 }
 
 export const CART_STORAGE_KEY = 'autolounge_cart';
@@ -30,6 +36,7 @@ export const useCartStore = create<CartState>()(
       items: [],
       isOpen: false,
       couponCode: null,
+      coupon: null,
       addItem: (product, quantity = 1) =>
         set((s) => {
           const existing = s.items.find((i) => i.product.id === product.id);
@@ -54,16 +61,17 @@ export const useCartStore = create<CartState>()(
               ? s.items.filter((i) => i.product.id !== productId)
               : s.items.map((i) => (i.product.id === productId ? { ...i, quantity } : i)),
         })),
-      clearCart: () => set({ items: [], couponCode: null }),
+      clearCart: () => set({ items: [], couponCode: null, coupon: null }),
       toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),
       openCart: () => set({ isOpen: true }),
       closeCart: () => set({ isOpen: false }),
-      setCoupon: (code) => set({ couponCode: code ? code.trim().toUpperCase() : null }),
+      setCoupon: (code, coupon) =>
+        set({ couponCode: code ? code.trim().toUpperCase() : null, coupon: code ? coupon ?? null : null }),
     }),
     {
       name: CART_STORAGE_KEY,
       storage: createJSONStorage(() => localStorage),
-      partialize: (s) => ({ items: s.items, couponCode: s.couponCode }),
+      partialize: (s) => ({ items: s.items, couponCode: s.couponCode, coupon: s.coupon }),
       skipHydration: true,
       // legacy format was a bare CartItem[] under the same key
       merge: (persisted, current) => {
@@ -79,6 +87,7 @@ export function useCart() {
   const items = useCartStore((s) => s.items);
   const isOpen = useCartStore((s) => s.isOpen);
   const couponCode = useCartStore((s) => s.couponCode);
+  const coupon = useCartStore((s) => s.coupon);
   const addItem = useCartStore((s) => s.addItem);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -88,13 +97,16 @@ export function useCart() {
   const closeCart = useCartStore((s) => s.closeCart);
   const setCoupon = useCartStore((s) => s.setCoupon);
 
-  const totals = computeOrderTotals(items, couponCode, COUPONS);
+  // Only the coupon the API vouched for: the bundled list is seed data now, and
+  // pricing a cart against it would quietly ignore whatever an admin has changed.
+  const totals = computeOrderTotals(items, couponCode, coupon ? [coupon] : []);
 
   return {
     state: { items, isOpen },
     items,
     isOpen,
     couponCode,
+    coupon,
     addItem,
     removeItem,
     updateQuantity,

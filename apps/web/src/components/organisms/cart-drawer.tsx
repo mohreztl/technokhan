@@ -19,10 +19,12 @@ import {
   SHIPPING,
   effectivePrice,
   formatToman,
+  toEnglishDigits,
   toPersianDigits,
 } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { useCart, type CartItem } from '@/lib/store/cart-store';
+import { useValidateCoupon } from '@/lib/hooks/use-orders';
 import { useIsMobile } from '@/lib/hooks/use-media-query';
 import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
 import { Button } from '@/components/ui/button';
@@ -160,16 +162,30 @@ function CartLine({
 function CouponField() {
   const { couponCode, setCoupon, totals } = useCart();
   const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const validate = useValidateCoupon();
   const { coupon } = totals;
 
   useEffect(() => {
     if (!couponCode) setCode('');
   }, [couponCode]);
 
-  const apply = () => {
-    const trimmed = code.trim();
+  // Codes live in the database now, so only the API can say whether one is real.
+  const apply = async () => {
+    const trimmed = toEnglishDigits(code).trim().toUpperCase();
     if (!trimmed) return;
-    setCoupon(trimmed);
+    setError(null);
+    try {
+      const r = await validate.mutateAsync({ code: trimmed, subtotal: totals.subtotal });
+      if (r.valid) setCoupon(r.code ?? trimmed, r.coupon);
+      else {
+        setCoupon(null);
+        setError(r.message || 'کد تخفیف نامعتبر است');
+      }
+    } catch (e) {
+      setCoupon(null);
+      setError(e instanceof Error ? e.message : 'بررسی کد ناموفق بود');
+    }
   };
 
   if (couponCode && coupon.valid) {
@@ -195,7 +211,7 @@ function CouponField() {
       className="space-y-1.5"
       onSubmit={(e) => {
         e.preventDefault();
-        apply();
+        void apply();
       }}
     >
       <div className="flex items-center gap-2">
@@ -214,17 +230,27 @@ function CouponField() {
             autoComplete="off"
             placeholder="کد تخفیف دارید؟"
             value={code}
-            onChange={(e) => setCode(e.target.value)}
+            onChange={(e) => {
+              setCode(e.target.value);
+              setError(null);
+            }}
             className="h-11 w-full rounded-xl border border-input bg-background/70 ps-9 pe-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-transparent focus:outline-hidden focus:ring-2 focus:ring-ring"
           />
         </div>
-        <Button type="submit" variant="outline" size="sm" className="h-11" disabled={!code.trim()}>
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          className="h-11"
+          loading={validate.isPending}
+          disabled={!code.trim()}
+        >
           اعمال
         </Button>
       </div>
-      {couponCode && !coupon.valid && coupon.message && (
+      {(error || (couponCode && !coupon.valid && coupon.message)) && (
         <p className="text-xs text-destructive" role="alert">
-          {coupon.message}
+          {error ?? coupon.message}
         </p>
       )}
     </form>

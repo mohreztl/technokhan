@@ -177,7 +177,7 @@ function CouponBox({ subtotal }: { subtotal: number }) {
     try {
       const r = await validate.mutateAsync({ code: normalized, subtotal });
       if (r.valid) {
-        setCoupon(r.code ?? normalized);
+        setCoupon(r.code ?? normalized, r.coupon);
         setCode(r.code ?? normalized);
         setMessage({ ok: true, text: r.message ?? `تخفیف ${formatToman(r.discount)} اعمال شد` });
         showToast.success('کد تخفیف اعمال شد', formatToman(r.discount));

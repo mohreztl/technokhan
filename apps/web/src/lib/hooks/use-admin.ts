@@ -1,7 +1,17 @@
 'use client';
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Booking, BookingStatus, Order, OrderStatus, Pagination, Product, Service } from '@autolounge/shared';
+import type {
+  Booking,
+  BookingStatus,
+  Coupon,
+  Order,
+  OrderStatus,
+  Pagination,
+  Product,
+  Service,
+  SiteSettings,
+} from '@autolounge/shared';
 import { adminApi } from '@/lib/api/endpoints';
 import type { AdminQuery } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';
@@ -123,6 +133,24 @@ export function useAdminReviews(q: AdminQuery = {}) {
   });
 }
 
+export function useAdminCoupons() {
+  const enabled = useAdminEnabled();
+  return useQuery({
+    queryKey: qk.admin.coupons(),
+    queryFn: () => unwrap(adminApi.coupons.list()),
+    enabled,
+  });
+}
+
+export function useAdminSettings() {
+  const enabled = useAdminEnabled();
+  return useQuery({
+    queryKey: qk.admin.settings(),
+    queryFn: () => unwrap(adminApi.settings.get()),
+    enabled,
+  });
+}
+
 /** All admin write operations, each invalidating the relevant lists + dashboard. */
 export function useAdminMutations() {
   const qc = useQueryClient();
@@ -185,6 +213,27 @@ export function useAdminMutations() {
     deleteReview: useMutation({
       mutationFn: (id: string) => unwrap(adminApi.reviews.remove(id)),
       onSuccess: () => bust(['admin', 'reviews']),
+    }),
+    createCoupon: useMutation({
+      mutationFn: (input: Partial<Coupon>) => unwrap(adminApi.coupons.create(input)),
+      onSuccess: () => bust(qk.admin.coupons()),
+    }),
+    updateCoupon: useMutation({
+      mutationFn: ({ id, patch }: { id: string; patch: Partial<Coupon> }) =>
+        unwrap(adminApi.coupons.update(id, patch)),
+      onSuccess: () => bust(qk.admin.coupons()),
+    }),
+    deleteCoupon: useMutation({
+      mutationFn: (id: string) => unwrap(adminApi.coupons.remove(id)),
+      onSuccess: () => bust(qk.admin.coupons()),
+    }),
+    saveSettings: useMutation({
+      mutationFn: (input: SiteSettings) => unwrap(adminApi.settings.update(input)),
+      onSuccess: (settings: SiteSettings) => {
+        qc.setQueryData(qk.admin.settings(), settings);
+        // The public footer/contact and the booking calendar read the same row.
+        bust(qk.settings(), ['slots']);
+      },
     }),
   };
 }

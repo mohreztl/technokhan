@@ -15,12 +15,15 @@ import {
   adminServiceSchema,
   adminServiceUpdateSchema,
   adminUserQuerySchema,
+  couponSchema,
+  couponUpdateSchema,
   idParamSchema,
+  siteSettingsSchema,
   updateBookingStatusSchema,
   updateOrderStatusSchema,
 } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
-import { conflict, notFound } from '../lib/errors';
+import { badRequest, conflict, notFound } from '../lib/errors';
 import {
   bookingInclude,
   orderInclude,
@@ -31,6 +34,7 @@ import {
   userSummarySelect,
 } from '../lib/catalog';
 import { dayRange } from '../lib/booking-time';
+import { getSettings, saveSettings } from '../lib/settings';
 import { sendStatusUpdate } from '../services/sms.service';
 
 type ProductInput = z.infer<typeof adminProductSchema>;
@@ -507,5 +511,101 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       return deleted;
     });
     return apiResponse.success(reply, review);
+  });
+
+  // ------------------------------------------------------------------
+  // Coupons
+  // ------------------------------------------------------------------
+
+  /** `expiresAt` arrives as yyyy-MM-dd or an ISO string; store end-of-day UTC for a bare date. */
+  const expiryDate = (value: string | undefined): Date | null | undefined => {
+    if (value === undefined) return undefined;
+    if (!value) return null;
+    const iso = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T23:59:59.999Z` : value;
+    const parsed = new Date(iso);
+    if (Number.isNaN(parsed.getTime())) throw badRequest('تاریخ انقضا معتبر نیست');
+    return parsed;
+  };
+
+  fastify.get('/coupons', async (_request, reply) => {
+    const coupons = await prisma.coupon.findMany({ orderBy: { createdAt: 'desc' } });
+    return apiResponse.success(reply, coupons);
+  });
+
+  fastify.post('/coupons', async (request, reply) => {
+    const input = parse(couponSchema, request.body);
+    const existing = await prisma.coupon.findUnique({ where: { code: input.code }, select: { id: true } });
+    if (existing) throw conflict('کد تخفیف با این عنوان از قبل وجود دارد');
+
+    const coupon = await prisma.coupon.create({
+      data: {
+        code: input.code,
+        type: input.type,
+        value: input.value,
+        description: input.description,
+        minTotal: input.minTotal ?? null,
+        maxDiscount: input.maxDiscount ?? null,
+        expiresAt: expiryDate(input.expiresAt) ?? null,
+        isActive: input.isActive,
+        usageLimit: input.usageLimit ?? null,
+      },
+    });
+    return apiResponse.success(reply, coupon, 201);
+  });
+
+  fastify.put('/coupons/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(couponUpdateSchema, request.body);
+
+    if (input.code) {
+      const clash = await prisma.coupon.findUnique({ where: { code: input.code }, select: { id: true } });
+      if (clash && clash.id !== id) throw conflict('کد تخفیف با این عنوان از قبل وجود دارد');
+    }
+
+    // The schema can only cap a percentage when the edit carries both fields.
+    // Switching a 500,000-toman fixed coupon to `percent` sends just the type,
+    // so the cap is re-checked against what the row will actually hold.
+    const current = await prisma.coupon.findUnique({ where: { id }, select: { type: true, value: true } });
+    if (!current) throw notFound('کد تخفیف پیدا نشد');
+    const merged = { type: input.type ?? current.type, value: input.value ?? current.value };
+    if (merged.type === 'percent' && merged.value > 100) {
+      throw badRequest('درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد');
+    }
+
+    const coupon = await prisma.coupon.update({
+      where: { id },
+      data: stripUndefined({
+        code: input.code,
+        type: input.type,
+        value: input.value,
+        description: input.description,
+        minTotal: input.minTotal,
+        maxDiscount: input.maxDiscount,
+        expiresAt: expiryDate(input.expiresAt),
+        isActive: input.isActive,
+        usageLimit: input.usageLimit,
+      }),
+    });
+    return apiResponse.success(reply, coupon);
+  });
+
+  fastify.delete('/coupons/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    // Orders keep the code they were placed with, so deleting one is safe.
+    const deleted = await prisma.coupon.delete({ where: { id }, select: { id: true } });
+    return apiResponse.success(reply, deleted);
+  });
+
+  // ------------------------------------------------------------------
+  // Site settings
+  // ------------------------------------------------------------------
+
+  fastify.get('/settings', async (_request, reply) => {
+    return apiResponse.success(reply, await getSettings());
+  });
+
+  fastify.put('/settings', async (request, reply) => {
+    const input = parse(siteSettingsSchema, request.body);
+    return apiResponse.success(reply, await saveSettings(input));
   });
 };

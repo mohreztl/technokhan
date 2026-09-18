@@ -17,16 +17,16 @@ import { InstagramIcon, TelegramIcon, WhatsappIcon } from '@/components/icons/br
 import {
   APP_DESCRIPTION,
   APP_NAME,
-  CONTACT,
   ROUTES,
   SERVICES,
-  SOCIAL_MEDIA,
   toPersianDigits,
 } from '@autolounge/shared';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
 import { Input } from '@/components/ui/input';
 import { showToast } from '@/components/ui/toaster';
+import { useSettings } from '@/lib/hooks/use-settings';
+import { closedDaysLabel } from '@/lib/settings-format';
 import { fadeInUp, viewportConfig } from '@/lib/animation-variants';
 import { isChromeHidden } from '@/lib/routes';
 
@@ -45,11 +45,11 @@ const QUICK_LINKS = [
   { title: 'تماس با ما', href: ROUTES.CONTACT },
 ];
 
-const SOCIALS = [
-  { label: 'اینستاگرام', href: SOCIAL_MEDIA.instagram, icon: <InstagramIcon /> },
-  { label: 'تلگرام', href: SOCIAL_MEDIA.telegram, icon: <TelegramIcon /> },
-  { label: 'واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, icon: <WhatsappIcon /> },
-];
+const SOCIAL_ICONS = {
+  instagram: { label: 'اینستاگرام', icon: <InstagramIcon /> },
+  telegram: { label: 'تلگرام', icon: <TelegramIcon /> },
+  whatsapp: { label: 'واتس‌اپ', icon: <WhatsappIcon /> },
+} as const;
 
 const TRUST = [
   { icon: ShieldCheck, label: 'گارانتی کتبی خدمات' },
@@ -111,6 +111,7 @@ function NewsletterForm() {
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
+  const settings = useSettings();
   // The admin dashboard has its own shell.
   if (isChromeHidden(pathname ?? '')) return null;
 
@@ -146,9 +147,12 @@ export const Footer: React.FC = () => {
             </Link>
             <p className="leading-relaxed text-muted-foreground">{APP_DESCRIPTION}</p>
             <div className="mt-5 flex gap-2">
-              {SOCIALS.map((social) => (
-                <IconButton key={social.label} asChild label={social.label} icon={social.icon} variant="outline">
-                  <a href={social.href} target="_blank" rel="noopener noreferrer" />
+              {/* A shop that cleared a link in the admin panel has no icon for it. */}
+              {(Object.keys(SOCIAL_ICONS) as (keyof typeof SOCIAL_ICONS)[])
+                .filter((key) => settings[key])
+                .map((key) => (
+                <IconButton key={key} asChild label={SOCIAL_ICONS[key].label} icon={SOCIAL_ICONS[key].icon} variant="outline">
+                  <a href={settings[key]} target="_blank" rel="noopener noreferrer" />
                 </IconButton>
               ))}
             </div>
@@ -204,42 +208,42 @@ export const Footer: React.FC = () => {
             <ul className="space-y-3">
               <li>
                 <a
-                  href={`tel:${CONTACT.phoneEn}`}
+                  href={`tel:${settings.phone}`}
                   className="group flex min-h-11 items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
                     <Phone className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <span className="tabular-nums" dir="ltr">
-                    {CONTACT.phone}
+                    {toPersianDigits(settings.phone)}
                   </span>
                 </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${CONTACT.email}`}
+                  href={`mailto:${settings.email}`}
                   className="group flex min-h-11 items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
                     <Mail className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <span dir="ltr">{CONTACT.email}</span>
+                  <span dir="ltr">{settings.email}</span>
                 </a>
               </li>
               <li className="flex items-start gap-3 text-muted-foreground">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span className="pt-2 leading-relaxed">{CONTACT.address}</span>
+                <span className="pt-2 leading-relaxed">{settings.address}</span>
               </li>
               <li className="flex items-start gap-3 text-muted-foreground">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Clock className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="pt-2 leading-relaxed">
-                  {CONTACT.workingHours}
+                  {settings.workingHours}
                   <br />
-                  <span className="text-xs">{CONTACT.closedDays}</span>
+                  <span className="text-xs">{closedDaysLabel(settings.closedWeekdays)}</span>
                 </span>
               </li>
             </ul>

@@ -1,5 +1,5 @@
 // Shared constants
-import type { VehicleSize } from '../types';
+import type { SiteSettings, VehicleSize } from '../types';
 
 export const APP_NAME = 'اتولانژ';
 export const APP_NAME_EN = 'AutoLounge';
@@ -66,6 +66,25 @@ export const CLOSED_WEEKDAYS: number[] = [5];
 
 /** How many days ahead a booking can be made */
 export const BOOKING_MAX_DAYS_AHEAD = 45;
+
+/**
+ * What the shop looks like before anyone has saved settings: a fresh database,
+ * or a demo build with no API at all. The seed writes exactly these values into
+ * the SiteSettings row, so a real deployment and a demo start out identical.
+ */
+export const DEFAULT_SITE_SETTINGS: SiteSettings = {
+  closedWeekdays: [...CLOSED_WEEKDAYS],
+  closedDates: [],
+  timeSlots: [...BOOKING_TIME_SLOTS],
+  phone: CONTACT.phoneEn,
+  mobile: CONTACT.mobileEn,
+  email: CONTACT.email,
+  address: CONTACT.address,
+  workingHours: CONTACT.workingHours,
+  instagram: SOCIAL_MEDIA.instagram,
+  telegram: SOCIAL_MEDIA.telegram,
+  whatsapp: SOCIAL_MEDIA.whatsapp,
+};
 
 export const VEHICLE_SIZES: { id: VehicleSize; label: string; description: string }[] = [
   { id: 'small', label: 'سواری', description: 'پراید، ۲۰۶، تیبا، سایپا' },

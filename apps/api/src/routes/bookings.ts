@@ -1,7 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Prisma, BookingStatus } from '@prisma/client';
 import {
-  BOOKING_TIME_SLOTS,
   computeQuote,
   trackingCodeFromId,
   type ServiceAddon,
@@ -19,6 +18,7 @@ import { parse, apiResponse } from '../lib/validation';
 import { badRequest, conflict, forbidden, notFound } from '../lib/errors';
 import { bookingInclude } from '../lib/catalog';
 import { dayRange, isSlotPast, utcMidnight, validateBookingDate } from '../lib/booking-time';
+import { getSettings } from '../lib/settings';
 
 const BOOKING_STATUSES = Object.values(BookingStatus) as string[];
 const ACTIVE_STATUSES: BookingStatus[] = ['pending', 'confirmed', 'in_progress', 'completed'];
@@ -52,7 +52,8 @@ export const bookingRoutes: FastifyPluginAsync = async (fastify) => {
     });
     if (!service) throw notFound('خدمت یافت نشد');
 
-    const dateCheck = validateBookingDate(date);
+    const settings = await getSettings();
+    const dateCheck = validateBookingDate(date, settings);
     const booked = dateCheck.ok
       ? await prisma.booking.findMany({
           where: { serviceId, date: dayRange(date), status: { not: 'cancelled' } },
@@ -62,7 +63,7 @@ export const bookingRoutes: FastifyPluginAsync = async (fastify) => {
     const bookedSlots = Array.from(new Set(booked.map((b) => b.timeSlot)));
 
     const availableSlots = dateCheck.ok
-      ? BOOKING_TIME_SLOTS.filter((slot) => !bookedSlots.includes(slot) && !isSlotPast(date, slot))
+      ? settings.timeSlots.filter((slot) => !bookedSlots.includes(slot) && !isSlotPast(date, slot))
       : [];
 
     return apiResponse.success(reply, { date, serviceId, availableSlots, bookedSlots });
@@ -75,9 +76,10 @@ export const bookingRoutes: FastifyPluginAsync = async (fastify) => {
     const service = await prisma.service.findFirst({ where: { id: input.serviceId, isActive: true } });
     if (!service) throw notFound('خدمت یافت نشد');
 
-    const dateCheck = validateBookingDate(input.date);
+    const settings = await getSettings();
+    const dateCheck = validateBookingDate(input.date, settings);
     if (!dateCheck.ok) throw badRequest(dateCheck.message);
-    if (!BOOKING_TIME_SLOTS.includes(input.timeSlot)) throw badRequest('بازه زمانی نامعتبر است');
+    if (!settings.timeSlots.includes(input.timeSlot)) throw badRequest('بازه زمانی نامعتبر است');
     if (isSlotPast(input.date, input.timeSlot)) throw badRequest('این بازه زمانی گذشته است');
 
     const addons = (service.addons as unknown as ServiceAddon[] | null) ?? [];

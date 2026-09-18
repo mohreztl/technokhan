@@ -47,7 +47,7 @@ Auth: `Authorization: Bearer <jwt>`. JWT payload `{ id, phoneNumber, role }`, 7d
 
 | Method | Path | Body / query | data |
 |---|---|---|---|
-| GET | `/bookings/available-slots` (public) | `serviceId, date=yyyy-MM-dd` | `{ date, serviceId, availableSlots: string[], bookedSlots: string[] }` — slots are `BOOKING_TIME_SLOTS`; past slots for today and closed days (Friday) are excluded |
+| GET | `/bookings/available-slots` (public) | `serviceId, date=yyyy-MM-dd` | `{ date, serviceId, availableSlots: string[], bookedSlots: string[] }` — slots come from `SiteSettings.timeSlots`; past slots for today, `closedWeekdays` and one-off `closedDates` are excluded |
 | POST | `/bookings` | `CreateBookingInput` (`totalPrice` must be within 1% of `computeQuote`) | `Booking` (with `service`, `trackingCode = "BK-XXXXXX"`) |
 | GET | `/bookings/my-bookings` | `status?` | `Booking[]` |
 | GET | `/bookings/:id` | | `Booking` |
@@ -57,12 +57,32 @@ Auth: `Authorization: Bearer <jwt>`. JWT payload `{ id, phoneNumber, role }`, 7d
 
 | Method | Path | Body / query | data |
 |---|---|---|---|
-| POST | `/orders/validate-coupon` (public) | `{ code, subtotal }` | `CouponResult` |
+| POST | `/orders/validate-coupon` (public) | `{ code, subtotal }` | `CouponResult` — on success also carries `coupon: CouponTerms` so the cart can re-price itself as items change. Coupons live in the database; the bundled `COUPONS` list is only seed data |
 | POST | `/orders` | `CreateOrderInput` | `Order` (server computes `subtotal`, `discount`, `shippingCost`, `totalPrice` with `computeOrderTotals`; `paymentMethod: "cod"` → status `processing`) |
 | GET | `/orders/my-orders` | `status?` | `Order[]` (items with `product`) |
 | GET | `/orders/:id` | | `Order` (with `transactions`) |
 | DELETE | `/orders/:id` | | `Order` (cancel; only `pending`) |
 | PUT | `/orders/:id/address` | `Address` | `Order` |
+
+## Tracking
+
+| Method | Path | Body | data |
+|---|---|---|---|
+| POST | `/track` (public, OTP rate limit) | `{ code, phoneNumber }` | `TrackResult` — an order (`OR-…`) or booking (`BK-…`), its status timeline and `destination` (province، city) |
+
+The code alone is not enough: the phone number on the order must match. A wrong
+code and a wrong phone return the same 404 message, so the endpoint cannot be
+used to discover which codes exist.
+
+## Site settings
+
+| Method | Path | data |
+|---|---|---|
+| GET | `/settings` (public) | `SiteSettings` — closed days, bookable windows, contact details and social links. `Cache-Control: public, max-age=60, stale-while-revalidate=600` |
+
+Backed by a single row (`id = "default"`) seeded from `DEFAULT_SITE_SETTINGS`;
+the API holds it in memory for 30s. A field an admin clears stays cleared — the
+bundled defaults only stand in when the row does not exist at all.
 
 ## Payment (Zarinpal, server-side only)
 
@@ -92,13 +112,15 @@ Rules: a `PaymentTransaction` row is created on request with the `authority`; ve
 | GET/POST | `/admin/products`, `PUT/DELETE /admin/products/:id` | `adminProductSchema`; GET supports `page, limit, search, category, isActive` |
 | GET/POST | `/admin/services`, `PUT/DELETE /admin/services/:id` | `adminServiceSchema` |
 | GET | `/admin/orders` (`status, page, limit, search`), `/admin/orders/:id` | |
-| PUT | `/admin/orders/:id/status` | `{ status, trackingCode? }` |
+| PUT | `/admin/orders/:id/status` | `{ status, shipmentCode? }` — the courier's consignment number, not the shop's own `trackingCode` |
 | GET | `/admin/bookings` (`status, date, page, limit`), `/admin/bookings/:id` | |
 | PUT | `/admin/bookings/:id/status` | `{ status }` |
 | GET | `/admin/users` (`page, limit, search`), `/admin/users/:id` | user + counts |
 | GET | `/admin/messages` (`unread, page, limit`) | `ContactMessage[]` |
 | PUT | `/admin/messages/:id/read` | |
 | GET | `/admin/reviews` (`approved, page`) ; `PUT /admin/reviews/:id/approve` ; `DELETE /admin/reviews/:id` | |
+| GET/POST | `/admin/coupons`, `PUT/DELETE /admin/coupons/:id` | `couponSchema` / `couponUpdateSchema`; codes are upper-cased, `expiresAt` accepts `yyyy-MM-dd` (stored as end-of-day UTC) |
+| GET/PUT | `/admin/settings` | `siteSettingsSchema` — the single `SiteSettings` row |
 
 ## Environment
 

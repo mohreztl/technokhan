@@ -17,9 +17,12 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
-import { CONTACT, FAQ, SOCIAL_MEDIA, contactSchema, toPersianDigits } from '@autolounge/shared';
+import { FAQ, contactSchema, toPersianDigits } from '@autolounge/shared';
+import type { SiteSettings } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { contactApi } from '@/lib/api/endpoints';
+import { useSettings } from '@/lib/hooks/use-settings';
+import { closedDaysLabel } from '@/lib/settings-format';
 import { fadeInUp, staggerContainer, viewportConfig } from '@/lib/animation-variants';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,16 +38,36 @@ type ContactFormValues = z.input<typeof contactSchema>;
 
 const SUBJECTS = ['رزرو نوبت', 'مشاورهٔ خدمات', 'سفارش و ارسال محصولات', 'همکاری و استخدام', 'انتقاد و پیشنهاد', 'سایر'];
 
-const workingTime = CONTACT.workingHours.replace(CONTACT.workingDays, '').trim();
-
-const CONTACT_CARDS = [
-  { icon: Phone, label: 'تلفن ثابت', value: CONTACT.phone, href: `tel:${CONTACT.phoneEn}`, ltr: true },
-  { icon: Smartphone, label: 'موبایل', value: CONTACT.mobile, href: `tel:${CONTACT.mobileEn}`, ltr: true },
-  { icon: Mail, label: 'ایمیل', value: CONTACT.email, href: `mailto:${CONTACT.email}`, ltr: true },
-  { icon: WhatsappIcon, label: 'واتس‌اپ', value: 'گفت‌وگو در واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, external: true },
-  { icon: Send, label: 'تلگرام', value: 'پیام در تلگرام', href: SOCIAL_MEDIA.telegram, external: true },
-  { icon: InstagramIcon, label: 'اینستاگرام', value: 'autolounge.ir', href: SOCIAL_MEDIA.instagram, external: true, ltr: true },
-];
+/** Contact cards, built from whatever the shop has saved; a cleared field drops its card. */
+function contactCards(settings: SiteSettings) {
+  return [
+    settings.phone && {
+      icon: Phone, label: 'تلفن ثابت', value: toPersianDigits(settings.phone), href: `tel:${settings.phone}`, ltr: true,
+    },
+    settings.mobile && {
+      icon: Smartphone, label: 'موبایل', value: toPersianDigits(settings.mobile), href: `tel:${settings.mobile}`, ltr: true,
+    },
+    settings.email && {
+      icon: Mail, label: 'ایمیل', value: settings.email, href: `mailto:${settings.email}`, ltr: true,
+    },
+    settings.whatsapp && {
+      icon: WhatsappIcon, label: 'واتس‌اپ', value: 'گفت‌وگو در واتس‌اپ', href: settings.whatsapp, external: true,
+    },
+    settings.telegram && {
+      icon: Send, label: 'تلگرام', value: 'پیام در تلگرام', href: settings.telegram, external: true,
+    },
+    settings.instagram && {
+      icon: InstagramIcon, label: 'اینستاگرام', value: 'autolounge.ir', href: settings.instagram, external: true, ltr: true,
+    },
+  ].filter(Boolean) as {
+    icon: React.ComponentType<{ className?: string }>;
+    label: string;
+    value: string;
+    href: string;
+    ltr?: boolean;
+    external?: boolean;
+  }[];
+}
 
 function useFaqCategories() {
   return React.useMemo(() => {
@@ -54,6 +77,7 @@ function useFaqCategories() {
 }
 
 export function ContactPageClient() {
+  const settings = useSettings();
   const searchParams = useSearchParams();
   const prefill = searchParams.get('subject')?.trim() ?? '';
   const subjectOptions = React.useMemo(
@@ -88,13 +112,15 @@ export function ContactPageClient() {
 
   const copyAddress = async () => {
     try {
-      await navigator.clipboard.writeText(CONTACT.address);
+      await navigator.clipboard.writeText(settings.address);
       showToast.success('آدرس کپی شد');
     } catch {
       showToast.error('امکان کپی وجود ندارد');
     }
   };
 
+  const cards = React.useMemo(() => contactCards(settings), [settings]);
+  const closedLabel = closedDaysLabel(settings.closedWeekdays);
   const categories = useFaqCategories();
   const [faqCategory, setFaqCategory] = React.useState<string>('all');
   const faqItems = faqCategory === 'all' ? FAQ : FAQ.filter((item) => (item.category ?? 'عمومی') === faqCategory);
@@ -124,7 +150,7 @@ export function ContactPageClient() {
             viewport={viewportConfig.once}
             className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3"
           >
-            {CONTACT_CARDS.map(({ icon: Icon, label, value, href, external, ltr }) => (
+            {cards.map(({ icon: Icon, label, value, href, external, ltr }) => (
               <motion.li key={label} variants={fadeInUp}>
                 <a
                   href={href}
@@ -152,7 +178,7 @@ export function ContactPageClient() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <span className="block text-xs text-muted-foreground">آدرس</span>
-                  <p className="mt-0.5 text-sm font-bold leading-6 text-foreground">{CONTACT.address}</p>
+                  <p className="mt-0.5 text-sm font-bold leading-6 text-foreground">{settings.address}</p>
                   <Button type="button" variant="link" size="sm" onClick={copyAddress} className="mt-1 min-h-10 gap-1.5 px-0">
                     <Copy className="h-3.5 w-3.5" aria-hidden="true" />
                     کپی
@@ -171,13 +197,15 @@ export function ContactPageClient() {
                   <table className="mt-1 w-full text-sm">
                     <tbody>
                       <tr>
-                        <th scope="row" className="py-1 text-start font-semibold text-foreground">{CONTACT.workingDays}</th>
-                        <td className="py-1 text-end text-muted-foreground tabular-nums">{workingTime}</td>
+                        <th scope="row" className="py-1 text-start font-semibold text-foreground">ساعات پذیرش</th>
+                        <td className="py-1 text-end text-muted-foreground tabular-nums">{settings.workingHours}</td>
                       </tr>
-                      <tr className="border-t border-border/60">
-                        <th scope="row" className="py-1 text-start font-semibold text-foreground">جمعه</th>
-                        <td className="py-1 text-end text-muted-foreground">{CONTACT.closedDays}</td>
-                      </tr>
+                      {closedLabel && (
+                        <tr className="border-t border-border/60">
+                          <th scope="row" className="py-1 text-start font-semibold text-foreground">تعطیلی</th>
+                          <td className="py-1 text-end text-muted-foreground">{closedLabel}</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -298,7 +326,7 @@ export function ContactPageClient() {
           </div>
 
           <div>
-            <SectionHeading eyebrow="موقعیت" title="ما را پیدا کنید" subtitle={CONTACT.address} align="start" className="mb-6" />
+            <SectionHeading eyebrow="موقعیت" title="ما را پیدا کنید" subtitle={settings.address} align="start" className="mb-6" />
             <ContactMap />
           </div>
         </div>

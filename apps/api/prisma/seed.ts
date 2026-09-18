@@ -8,7 +8,16 @@
 import dotenv from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from '@prisma/client';
-import { PRODUCTS, SERVICES, DEMO_ADMIN_PHONE } from '@autolounge/shared';
+import {
+  BOOKING_TIME_SLOTS,
+  CLOSED_WEEKDAYS,
+  CONTACT,
+  COUPONS,
+  DEMO_ADMIN_PHONE,
+  PRODUCTS,
+  SERVICES,
+  SOCIAL_MEDIA,
+} from '@autolounge/shared';
 import type { Product, Review, Service } from '@autolounge/shared';
 
 dotenv.config({ quiet: true });
@@ -180,6 +189,44 @@ async function main() {
     reviewCount += await seedReviews({ serviceId: s.id }, s.reviews);
   }
 
+  // Coupons and settings used to be constants. Seeding them from those same
+  // constants means a fresh database behaves exactly as the hard-coded values
+  // did, and an admin can take it from there.
+  for (const c of COUPONS) {
+    const data = {
+      type: c.type,
+      value: c.value,
+      description: c.description,
+      minTotal: c.minTotal ?? null,
+      maxDiscount: c.maxDiscount ?? null,
+      expiresAt: c.expiresAt ? new Date(c.expiresAt) : null,
+    };
+    await prisma.coupon.upsert({
+      where: { code: c.code },
+      create: { code: c.code, ...data },
+      // `isActive`, `usageLimit` and `usedCount` are the admin's to manage; re-seeding must not undo that.
+      update: data,
+    });
+  }
+
+  await prisma.siteSettings.upsert({
+    where: { id: 'default' },
+    create: {
+      id: 'default',
+      closedWeekdays: [...CLOSED_WEEKDAYS],
+      timeSlots: [...BOOKING_TIME_SLOTS],
+      phone: CONTACT.phoneEn,
+      mobile: CONTACT.mobileEn,
+      email: CONTACT.email,
+      address: CONTACT.address,
+      workingHours: CONTACT.workingHours,
+      instagram: SOCIAL_MEDIA.instagram,
+      telegram: SOCIAL_MEDIA.telegram,
+      whatsapp: SOCIAL_MEDIA.whatsapp,
+    },
+    update: {},
+  });
+
   const admin = await prisma.user.upsert({
     where: { phoneNumber: ADMIN_PHONE },
     create: { phoneNumber: ADMIN_PHONE, role: 'admin', name: 'مدیر اتولانژ', isActive: true },
@@ -193,6 +240,7 @@ async function main() {
       `services: ${serviceCount}`,
       `reviews: ${reviewCount}`,
       `reviewer users: ${reviewerCache.size}`,
+      `coupons: ${COUPONS.length}`,
       `admin: ${admin.phoneNumber} (${admin.id})`,
     ].join('\n')
   );

@@ -151,6 +151,68 @@ export const trackSchema = z.object({
   phoneNumber: phoneSchema,
 });
 
+// ---------------------------------------------------------------------------
+// Admin: coupons and site settings
+// ---------------------------------------------------------------------------
+
+const HHMM_RANGE = /^([01]\d|2[0-3]):[0-5]\d - ([01]\d|2[0-3]):[0-5]\d$/;
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+
+/** The coupon's bare fields, unrefined — admin forms extend this. */
+export const couponFields = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(3, 'کد باید حداقل ۳ کاراکتر باشد')
+    .max(32)
+    .regex(/^[A-Za-z0-9_-]+$/, 'فقط حروف انگلیسی، عدد، خط تیره و زیرخط مجاز است')
+    .transform((v) => v.toUpperCase()),
+  type: z.enum(['percent', 'fixed'], { error: () => ({ message: 'نوع تخفیف را انتخاب کنید' }) }),
+  value: z.number({ error: 'مقدار تخفیف را وارد کنید' }).positive('مقدار تخفیف باید بیشتر از صفر باشد'),
+  description: z.string().trim().min(3, 'توضیح کوتاهی بنویسید').max(160),
+  minTotal: z.number().min(0).optional(),
+  maxDiscount: z.number().min(0).optional(),
+  expiresAt: z.string().trim().min(1).optional(),
+  isActive: z.boolean().default(true),
+  usageLimit: z.number().int().positive().optional(),
+});
+
+/**
+ * A percentage over 100 would hand money back. Written to tolerate missing
+ * fields so the same rule can guard a partial update; when an edit changes only
+ * one of the pair the route re-checks the merged coupon.
+ */
+const withinPercentCap = (c: { type?: 'percent' | 'fixed'; value?: number }) =>
+  c.type !== 'percent' || c.value == null || c.value <= 100;
+
+const PERCENT_CAP_ERROR = {
+  message: 'درصد تخفیف نمی‌تواند بیشتر از ۱۰۰ باشد',
+  path: ['value'],
+};
+
+export const couponSchema = couponFields.refine(withinPercentCap, PERCENT_CAP_ERROR);
+
+// zod 4 refuses `.partial()` on a refined object, so the update schema starts
+// from the bare fields and re-applies the rule.
+export const couponUpdateSchema = couponFields.partial().refine(withinPercentCap, PERCENT_CAP_ERROR);
+
+export const siteSettingsSchema = z.object({
+  closedWeekdays: z.array(z.number().int().min(0).max(6)).max(7).default([]),
+  closedDates: z.array(z.string().regex(YMD, 'تاریخ باید به شکل YYYY-MM-DD باشد')).max(120).default([]),
+  timeSlots: z
+    .array(z.string().trim().regex(HHMM_RANGE, 'بازه باید به شکل «۰۸:۰۰ - ۱۰:۰۰» باشد'))
+    .max(24)
+    .default([]),
+  phone: z.string().trim().max(40).default(''),
+  mobile: z.string().trim().max(40).default(''),
+  email: z.string().trim().max(120).default(''),
+  address: z.string().trim().max(240).default(''),
+  workingHours: z.string().trim().max(120).default(''),
+  instagram: z.string().trim().max(200).default(''),
+  telegram: z.string().trim().max(200).default(''),
+  whatsapp: z.string().trim().max(200).default(''),
+});
+
 export const reviewSchema = z.object({
   rating: z.number().int().min(1).max(5),
   comment: z.string().trim().min(5, 'نظر شما باید حداقل ۵ حرف باشد').max(1000),
@@ -231,5 +293,7 @@ export type CreateOrderSchemaInput = z.infer<typeof createOrderSchema>;
 export type CreateBookingSchemaInput = z.infer<typeof createBookingSchema>;
 export type ContactSchemaInput = z.infer<typeof contactSchema>;
 export type TrackInput = z.infer<typeof trackSchema>;
+export type CouponInput = z.infer<typeof couponSchema>;
+export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
 export type AdminProductInput = z.infer<typeof adminProductSchema>;
 export type AdminServiceInput = z.infer<typeof adminServiceSchema>;

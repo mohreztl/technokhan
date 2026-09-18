@@ -18,6 +18,7 @@ export const qk = {
   slots: (serviceId: string, date: string) => ['slots', serviceId, date] as const,
   addresses: () => ['addresses'] as const,
   paymentStatus: (orderId: string) => ['payment', orderId] as const,
+  settings: () => ['settings'] as const,
   admin: {
     dashboard: () => ['admin', 'dashboard'] as const,
     products: (q?: Record<string, unknown>) => ['admin', 'products', q ?? {}] as const,
@@ -30,5 +31,7 @@ export const qk = {
     user: (id: string) => ['admin', 'user', id] as const,
     messages: (q?: Record<string, unknown>) => ['admin', 'messages', q ?? {}] as const,
     reviews: (q?: Record<string, unknown>) => ['admin', 'reviews', q ?? {}] as const,
+    coupons: () => ['admin', 'coupons'] as const,
+    settings: () => ['admin', 'settings'] as const,
   },
 };

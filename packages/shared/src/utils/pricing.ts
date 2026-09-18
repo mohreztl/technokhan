@@ -60,9 +60,16 @@ export function applyCoupon(
   if (!code) return { valid: false, discount: 0, message: '' };
   const normalized = code.trim().toUpperCase();
   const coupon = coupons.find((c) => c.code.toUpperCase() === normalized);
-  if (!coupon) return { valid: false, discount: 0, message: 'کد تخفیف معتبر نیست' };
+  // A suspended code and an unknown one answer the same: a customer holding a
+  // code an admin turned off should not be told it exists.
+  if (!coupon || coupon.isActive === false) {
+    return { valid: false, discount: 0, message: 'کد تخفیف معتبر نیست' };
+  }
   if (coupon.expiresAt && new Date(coupon.expiresAt) < now) {
     return { valid: false, discount: 0, message: 'مهلت استفاده از این کد به پایان رسیده است' };
+  }
+  if (coupon.usageLimit != null && (coupon.usedCount ?? 0) >= coupon.usageLimit) {
+    return { valid: false, discount: 0, message: 'ظرفیت استفاده از این کد تکمیل شده است' };
   }
   if (coupon.minTotal && subtotal < coupon.minTotal) {
     return {
@@ -75,7 +82,22 @@ export function applyCoupon(
     coupon.type === 'percent' ? Math.round((subtotal * coupon.value) / 100) : coupon.value;
   if (coupon.maxDiscount) discount = Math.min(discount, coupon.maxDiscount);
   discount = Math.min(discount, subtotal);
-  return { valid: true, code: coupon.code, discount, message: coupon.description };
+  return {
+    valid: true,
+    code: coupon.code,
+    discount,
+    message: coupon.description,
+    // Projected, not passed through: this answer is public.
+    coupon: {
+      code: coupon.code,
+      type: coupon.type,
+      value: coupon.value,
+      description: coupon.description,
+      minTotal: coupon.minTotal,
+      maxDiscount: coupon.maxDiscount,
+      expiresAt: coupon.expiresAt,
+    },
+  };
 }
 
 export interface CartLine {

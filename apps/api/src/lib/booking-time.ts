@@ -1,4 +1,5 @@
-import { BOOKING_MAX_DAYS_AHEAD, CLOSED_WEEKDAYS } from '@autolounge/shared';
+import { BOOKING_MAX_DAYS_AHEAD } from '@autolounge/shared';
+import type { SiteSettings } from '@autolounge/shared';
 import { config } from '../config';
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/;
@@ -78,15 +79,25 @@ export function isSlotPast(ymd: string, slot: string): boolean {
 
 export type DateCheck = { ok: true } | { ok: false; message: string };
 
-/** Business rules for a booking date: valid, not in the past, within the window, not a closed day */
-export function validateBookingDate(ymd: string): DateCheck {
+/**
+ * Business rules for a booking date: valid, not in the past, within the
+ * booking window, and not a day the workshop is closed. Which days those are
+ * comes from the site settings an admin controls, not from a constant.
+ */
+export function validateBookingDate(
+  ymd: string,
+  settings: Pick<SiteSettings, 'closedWeekdays' | 'closedDates'>
+): DateCheck {
   if (!isValidYmd(ymd)) return { ok: false, message: 'تاریخ نامعتبر است' };
   const diff = daysFromToday(ymd);
   if (diff < 0) return { ok: false, message: 'تاریخ انتخاب‌شده گذشته است' };
   if (diff > BOOKING_MAX_DAYS_AHEAD) {
     return { ok: false, message: `رزرو حداکثر تا ${BOOKING_MAX_DAYS_AHEAD} روز آینده امکان‌پذیر است` };
   }
-  if (CLOSED_WEEKDAYS.includes(weekdayOf(ymd))) {
+  if (settings.closedDates.includes(ymd)) {
+    return { ok: false, message: 'مرکز در این تاریخ تعطیل است' };
+  }
+  if (settings.closedWeekdays.includes(weekdayOf(ymd))) {
     return { ok: false, message: 'مرکز در این روز تعطیل است' };
   }
   return { ok: true };
