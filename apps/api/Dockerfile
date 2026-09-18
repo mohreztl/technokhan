@@ -41,8 +41,10 @@ RUN pnpm install --frozen-lockfile --prod --filter api... --filter @autolounge/s
 
 # Built shared package (consumed from dist by the API and the seed script)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
-# Prisma schema, migrations and seed
+# Prisma schema, migrations and seed, plus the config file that now carries the
+# connection string — `prisma migrate deploy` refuses to run without it
 COPY apps/api/prisma ./apps/api/prisma
+COPY apps/api/prisma.config.ts ./apps/api/prisma.config.ts
 # Compiled API
 COPY --from=builder /app/apps/api/dist ./apps/api/dist
 

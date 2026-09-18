@@ -6,8 +6,8 @@ A mobile-first, Persian (fa-IR, RTL) web platform for AutoLounge: paint restorat
 
 | Layer | Stack |
 |---|---|
-| Web (`apps/web`) | Next.js 15 App Router, React 19, TypeScript strict, Tailwind CSS (HSL tokens, dark mode default), framer-motion, embla-carousel, TanStack Query, zustand (persisted stores), react-hook-form + zod, date-fns-jalali, sonner, next-pwa |
-| API (`apps/api`) | Fastify 4, Prisma 5, PostgreSQL, JWT auth, Zarinpal v4 (Toman / `IRT`), MeliPayamak SMS, Pino |
+| Web (`apps/web`) | Next.js 16 App Router (Turbopack), React 19, TypeScript strict, Tailwind CSS 4 (CSS-first theme, dark mode default), framer-motion, embla-carousel, TanStack Query, zustand (persisted stores), react-hook-form + zod 4, date-fns-jalali, sonner, Serwist (PWA) |
+| API (`apps/api`) | Fastify 5, Prisma 7 (`@prisma/adapter-pg`), PostgreSQL, JWT auth, Zarinpal v4 (Toman / `IRT`), MeliPayamak SMS, Pino |
 | Shared (`packages/shared`) | Types, constants, zod schemas, pricing rules, and the bundled catalog content (products, services, gallery, team, FAQ, legal docs, wrap colors, vehicles) — built to `dist` and consumed by both apps |
 
 ## Project structure
@@ -21,7 +21,7 @@ autolounge/
 │   │   ├── src/lib/        # api client + demo transport, React Query hooks, stores, data repository, jalali helpers
 │   │   ├── scripts/        # generate-assets.ts (placeholder images, PWA icons, OG image)
 │   │   └── public/         # fonts, hero images, generated images/icons, manifest
-│   └── api/                # Fastify API (routes, plugins, services, prisma schema + migrations + seed)
+│   └── api/                # Fastify API (routes, plugins, services, prisma.config.ts + schema + migrations + seed)
 ├── packages/shared/        # @autolounge/shared
 ├── docs/
 │   ├── API.md              # API contract (/api/v1)
@@ -31,7 +31,7 @@ autolounge/
 
 ## Getting started
 
-Prerequisites: Node 20+, pnpm 9+, and PostgreSQL (or Docker) for the API.
+Prerequisites: Node 20.9+ (CI and the images use 22 LTS — see `.nvmrc`), pnpm 10+, and PostgreSQL (or Docker) for the API.
 
 ```bash
 pnpm install

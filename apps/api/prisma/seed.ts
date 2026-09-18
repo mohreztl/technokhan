@@ -5,12 +5,17 @@
  *
  * Run with `pnpm --filter api db:seed` (prisma db seed → tsx prisma/seed.ts).
  */
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { Prisma, PrismaClient } from '@prisma/client';
 import { PRODUCTS, SERVICES, DEMO_ADMIN_PHONE } from '@autolounge/shared';
 import type { Product, Review, Service } from '@autolounge/shared';
 
-const prisma = new PrismaClient();
+dotenv.config({ quiet: true });
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+});
 
 const ADMIN_PHONE = process.env.ADMIN_PHONE || DEMO_ADMIN_PHONE || '09120000000';
 
