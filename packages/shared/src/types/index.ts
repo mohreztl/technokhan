@@ -253,7 +253,10 @@ export interface Order {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   couponCode?: string;
+  /** The shop's own code (OR-XXXXXX), shown to the customer and used by /track */
   trackingCode?: string;
+  /** The courier's consignment number, set by an admin when the order ships */
+  shipmentCode?: string;
   notes?: string;
   transactions?: PaymentTransaction[];
   createdAt: DateLike;
@@ -299,6 +302,29 @@ export interface PaymentVerifyResult {
   orderId?: string;
   bookingId?: string;
   message?: string;
+}
+
+/**
+ * What a guest gets back from /track. Deliberately thin: a tracking code is a
+ * weak secret, so this carries no address, no full name and no phone number.
+ */
+export interface TrackResult {
+  kind: 'order' | 'booking';
+  code: string;
+  status: string;
+  createdAt: DateLike;
+  updatedAt: DateLike;
+  totalPrice: number;
+  /** Orders only */
+  paymentStatus?: string;
+  itemCount?: number;
+  shipmentCode?: string;
+  /** Province and city of the delivery address — never the street */
+  destination?: string;
+  /** Bookings only */
+  serviceName?: string;
+  date?: DateLike;
+  timeSlot?: string;
 }
 
 export interface Coupon {

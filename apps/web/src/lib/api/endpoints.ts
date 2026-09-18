@@ -20,6 +20,8 @@ import type {
   Review,
   Service,
   ServiceListQuery,
+  TrackInput,
+  TrackResult,
   User,
 } from '@autolounge/shared';
 import { apiDelete, apiGet, apiPost, apiPut, buildQuery, isDemoMode } from './client';
@@ -34,6 +36,7 @@ import {
   demoPayment,
   demoProducts,
   demoServices,
+  demoTrack,
 } from './demo';
 import { useUIStore } from '@/lib/store/ui-store';
 
@@ -185,6 +188,18 @@ export const servicesApi = {
     withDemoFallback<Review>(
       () => apiPost(`/services/${encodeURIComponent(id)}/reviews`, input),
       () => demoServices.addReview(id, input)
+    ),
+};
+
+// ---------------------------------------------------------------------------
+// public tracking
+// ---------------------------------------------------------------------------
+
+export const trackApi = {
+  lookup: (input: TrackInput) =>
+    withDemoFallback<TrackResult>(
+      () => apiPost('/track', input, pub),
+      () => demoTrack.lookup(input)
     ),
 };
 
@@ -439,7 +454,7 @@ export const adminApi = {
         () => apiGet(`/admin/orders/${encodeURIComponent(id)}`),
         () => demoAdmin.orders.get(id)
       ),
-    updateStatus: (id: string, input: { status: OrderStatus; trackingCode?: string }) =>
+    updateStatus: (id: string, input: { status: OrderStatus; shipmentCode?: string }) =>
       withDemoFallback<Order>(
         () => apiPut(`/admin/orders/${encodeURIComponent(id)}/status`, input),
         () => demoAdmin.orders.updateStatus(id, input)

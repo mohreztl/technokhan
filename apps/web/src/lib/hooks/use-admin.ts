@@ -159,8 +159,8 @@ export function useAdminMutations() {
       onSuccess: () => bust(['admin', 'services'], ['services']),
     }),
     updateOrderStatus: useMutation({
-      mutationFn: ({ id, status, trackingCode }: { id: string; status: OrderStatus; trackingCode?: string }) =>
-        unwrap(adminApi.orders.updateStatus(id, { status, trackingCode })),
+      mutationFn: ({ id, status, shipmentCode }: { id: string; status: OrderStatus; shipmentCode?: string }) =>
+        unwrap(adminApi.orders.updateStatus(id, { status, shipmentCode })),
       onSuccess: (order: Order) => {
         qc.setQueryData(qk.admin.order(order.id), order);
         bust(['admin', 'orders'], qk.orders());

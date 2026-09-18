@@ -222,7 +222,10 @@ model Order {
   paymentStatus   PaymentStatus @default(pending)
   paymentMethod   PaymentMethod @default(zarinpal)
   couponCode      String?
-  trackingCode    String?
+  /// The shop's own code (OR-XXXXXX), given to the customer and never changed
+  trackingCode    String?       @unique
+  /// The courier's consignment number, set by an admin when the order ships
+  shipmentCode    String?
   notes           String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt

@@ -18,6 +18,8 @@ import type {
   Review,
   Service,
   ServiceListQuery,
+  TrackInput,
+  TrackResult,
   User,
   VehicleSize,
 } from '@autolounge/shared';
@@ -37,8 +39,10 @@ import {
   computeOrderTotals,
   computeQuote,
   normalizePhoneNumber,
+  normalizeTrackingCode,
   toEnglishDigits,
   trackingCodeFromId,
+  trackingCodeKind,
 } from '@autolounge/shared';
 import type { ApiResult } from './client';
 import {
@@ -766,6 +770,54 @@ export const demoContact = {
 };
 
 // ---------------------------------------------------------------------------
+// public tracking
+// ---------------------------------------------------------------------------
+
+export const demoTrack = {
+  lookup: (input: TrackInput) => {
+    const code = normalizeTrackingCode(input.code);
+    const phone = normalizePhoneNumber(input.phoneNumber);
+    const db = load();
+    // Same wording for a bad code and a mismatched phone, as the API does, so
+    // neither can be used to probe for the other.
+    const missing = () => fail<TrackResult>('سفارش یا رزروی با این کد و شمارهٔ موبایل پیدا نشد', 404, 'NOT_FOUND');
+    const owner = (userId: string) => db.users.find((u) => u.id === userId)?.phoneNumber ?? '';
+
+    if (trackingCodeKind(code) === 'booking') {
+      const booking = db.bookings.find((b) => (b.trackingCode ?? trackingCodeFromId('BK', b.id)) === code);
+      if (!booking || normalizePhoneNumber(owner(booking.userId)) !== phone) return missing();
+      return ok<TrackResult>({
+        kind: 'booking',
+        code,
+        status: booking.status,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        totalPrice: booking.totalPrice,
+        serviceName: booking.service?.name ?? findLocalService(booking.serviceId, catalogServices())?.name,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+      });
+    }
+
+    const order = db.orders.find((o) => (o.trackingCode ?? trackingCodeFromId('OR', o.id)) === code);
+    const shipTo = order?.shippingAddress?.phoneNumber ?? '';
+    if (!order || ![owner(order.userId), shipTo].map((p) => normalizePhoneNumber(p)).includes(phone)) return missing();
+    return ok<TrackResult>({
+      kind: 'order',
+      code,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      totalPrice: order.totalPrice,
+      itemCount: order.items.length,
+      shipmentCode: order.shipmentCode,
+      destination: [order.shippingAddress?.province, order.shippingAddress?.city].filter(Boolean).join('، ') || undefined,
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
 // admin
 // ---------------------------------------------------------------------------
 
@@ -911,7 +963,13 @@ export const demoAdmin = {
       let items = [...db.orders].sort(byDateDesc);
       if (q.status) items = items.filter((o) => o.status === q.status);
       const search = str(q.search);
-      if (search) items = items.filter((o) => includesFa(`${o.id} ${o.trackingCode ?? ''} ${o.shippingAddress?.fullName ?? ''} ${o.shippingAddress?.phoneNumber ?? ''}`, search));
+      if (search)
+        items = items.filter((o) =>
+          includesFa(
+            `${o.id} ${o.trackingCode ?? ''} ${o.shipmentCode ?? ''} ${o.shippingAddress?.fullName ?? ''} ${o.shippingAddress?.phoneNumber ?? ''}`,
+            search
+          )
+        );
       const { items: page, pagination } = paginate(items, num(q.page, 1), num(q.limit, 20));
       return ok(page, pagination);
     },
@@ -922,14 +980,14 @@ export const demoAdmin = {
       const o = db.orders.find((x) => x.id === id);
       return o ? ok({ ...o, transactions: db.transactions.filter((t) => t.orderId === id) }) : fail<Order>('سفارش یافت نشد', 404, 'NOT_FOUND');
     },
-    updateStatus: (id: string, input: { status: OrderStatus; trackingCode?: string }) => {
+    updateStatus: (id: string, input: { status: OrderStatus; shipmentCode?: string }) => {
       const auth = requireAdmin();
       if ('error' in auth) return Promise.resolve(auth.error);
       const o = mutate((db) => {
         const found = db.orders.find((x) => x.id === id);
         if (found) {
           found.status = input.status;
-          if (input.trackingCode) found.trackingCode = input.trackingCode;
+          if (input.shipmentCode !== undefined) found.shipmentCode = input.shipmentCode || undefined;
           if (input.status === OrderStatus.DELIVERED && found.paymentMethod === 'cod') found.paymentStatus = PaymentStatus.PAID;
           found.updatedAt = nowIso();
         }

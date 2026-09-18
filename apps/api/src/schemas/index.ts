@@ -29,6 +29,7 @@ export {
   updateBookingStatusSchema,
   availableSlotsQuerySchema,
   contactSchema,
+  trackSchema,
   reviewSchema,
   adminProductSchema,
   adminServiceSchema,

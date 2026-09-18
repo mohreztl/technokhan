@@ -265,6 +265,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
       where.OR = [
         { id: { contains: q.search } },
         { trackingCode: { contains: q.search, mode: 'insensitive' } },
+        { shipmentCode: { contains: q.search, mode: 'insensitive' } },
         { user: { phoneNumber: { contains: q.search } } },
         { user: { name: { contains: q.search, mode: 'insensitive' } } },
       ];
@@ -318,7 +319,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         where: { id },
         data: {
           status: input.status,
-          ...(input.trackingCode ? { trackingCode: input.trackingCode } : {}),
+          ...(input.shipmentCode !== undefined ? { shipmentCode: input.shipmentCode || null } : {}),
           ...(codDelivered ? { paymentStatus: 'paid' } : {}),
         },
         include: { ...orderInclude, user: { select: userSummarySelect } },

@@ -1,6 +1,7 @@
 // Shared utility functions
 export * from './digits';
 export * from './pricing';
+export * from './tracking';
 
 import { toEnglishDigits, formatToman } from './digits';
 

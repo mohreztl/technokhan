@@ -1,6 +1,7 @@
 // Zod schemas shared by the web forms and the API validation
 import { z } from 'zod';
 import { toEnglishDigits } from '../utils/digits';
+import { normalizeTrackingCode } from '../utils/tracking';
 
 export { faErrorMap } from './error-map';
 
@@ -84,7 +85,8 @@ export const createOrderSchema = z.object({
 
 export const updateOrderStatusSchema = z.object({
   status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
-  trackingCode: z.string().trim().max(60).optional(),
+  /** The courier's consignment number. The order's own code is never editable. */
+  shipmentCode: z.string().trim().max(60).optional(),
 });
 
 // ---------------------------------------------------------------------------
@@ -132,6 +134,21 @@ export const contactSchema = z.object({
     .or(z.literal('').transform(() => undefined)),
   subject: z.string().trim().min(2, 'موضوع را وارد کنید').max(120),
   message: z.string().trim().min(10, 'پیام باید حداقل ۱۰ حرف باشد').max(2000),
+});
+
+/**
+ * Public tracking lookup. The phone number is required as a second factor: a
+ * tracking code is short and guessable, and the record behind it is somebody's.
+ */
+export const trackSchema = z.object({
+  code: z
+    .string()
+    .trim()
+    .min(1, 'کد پیگیری را وارد کنید')
+    .max(32)
+    .transform((v) => normalizeTrackingCode(v))
+    .refine((v) => v !== '', 'کد پیگیری معتبر نیست (مثل OR-9726DQ یا BK-3F9A2C)'),
+  phoneNumber: phoneSchema,
 });
 
 export const reviewSchema = z.object({
@@ -213,5 +230,6 @@ export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>;
 export type CreateOrderSchemaInput = z.infer<typeof createOrderSchema>;
 export type CreateBookingSchemaInput = z.infer<typeof createBookingSchema>;
 export type ContactSchemaInput = z.infer<typeof contactSchema>;
+export type TrackInput = z.infer<typeof trackSchema>;
 export type AdminProductInput = z.infer<typeof adminProductSchema>;
 export type AdminServiceInput = z.infer<typeof adminServiceSchema>;

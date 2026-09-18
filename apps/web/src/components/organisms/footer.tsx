@@ -40,7 +40,7 @@ const QUICK_LINKS = [
   { title: 'فروشگاه', href: ROUTES.PRODUCTS },
   { title: 'نمونه کارها', href: ROUTES.GALLERY },
   { title: 'رزرو نوبت', href: ROUTES.BOOKING },
-  { title: 'پیگیری سفارش', href: ROUTES.ORDERS },
+  { title: 'پیگیری سفارش', href: ROUTES.TRACK },
   { title: 'درباره ما', href: ROUTES.ABOUT },
   { title: 'تماس با ما', href: ROUTES.CONTACT },
 ];
@@ -263,6 +263,9 @@ export const Footer: React.FC = () => {
             </Link>
             <Link href={ROUTES.TERMS} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
               شرایط استفاده
+            </Link>
+            <Link href={ROUTES.TRACK} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
+              پیگیری سفارش
             </Link>
             <Link href={ROUTES.ORDERS} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
               سفارش‌های من

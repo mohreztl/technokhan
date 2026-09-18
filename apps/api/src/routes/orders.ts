@@ -89,11 +89,21 @@ export const orderRoutes: FastifyPluginAsync = async (fastify) => {
         select: { id: true },
       });
 
-      return tx.order.update({
-        where: { id: created.id },
-        data: { trackingCode: trackingCodeFromId('OR', created.id) },
-        include: orderInclude,
-      });
+      // `trackingCode` is unique; salt and retry on the (very unlikely) collision.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const salt = attempt === 0 ? '' : Math.random().toString(36).slice(2, 8);
+        try {
+          return await tx.order.update({
+            where: { id: created.id },
+            data: { trackingCode: trackingCodeFromId('OR', created.id + salt) },
+            include: orderInclude,
+          });
+        } catch (error) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') continue;
+          throw error;
+        }
+      }
+      return tx.order.findUniqueOrThrow({ where: { id: created.id }, include: orderInclude });
     });
 
     void sendOrderConfirmation(request.user.phoneNumber, order.trackingCode ?? order.id, order.totalPrice);
