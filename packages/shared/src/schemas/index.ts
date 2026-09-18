@@ -2,6 +2,8 @@
 import { z } from 'zod';
 import { toEnglishDigits } from '../utils/digits';
 
+export { faErrorMap } from './error-map';
+
 const IRAN_MOBILE = /^09\d{9}$/;
 
 /** Accepts Persian/Arabic digits, spaces and dashes; normalizes to 09XXXXXXXXX */

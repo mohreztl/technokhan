@@ -4,7 +4,13 @@
  * (`@autolounge/shared`); only API-specific query/param schemas live here.
  */
 import { z } from 'zod';
-import { toEnglishDigits } from '@autolounge/shared';
+import { faErrorMap, toEnglishDigits } from '@autolounge/shared';
+
+// The error envelope hands `details[0].message` to the client as the message a
+// user sees, so zod's English defaults would surface untranslated. Schemas
+// carry Persian text for the issues they define; this covers the rest, most
+// visibly "expected string, received undefined" on a missing field.
+z.config({ customError: faErrorMap });
 
 export {
   phoneSchema,
