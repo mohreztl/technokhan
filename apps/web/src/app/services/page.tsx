@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Image from 'next/image';
-import { Award, ShieldCheck, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Award, GitCompareArrows, ShieldCheck, Sparkles } from 'lucide-react';
 import { FAQ, ROUTES, SERVICES, SERVICE_TYPE_LABELS } from '@autolounge/shared';
 import { getServices } from '@/lib/data/repository';
 import { JsonLd, breadcrumbJsonLd } from '@/lib/seo';
@@ -80,6 +81,14 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
               </li>
             ))}
           </ul>
+          <Link
+            href={ROUTES.COMPARE}
+            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-5 text-sm font-bold text-secondary-foreground transition-colors hover:bg-secondary/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <GitCompareArrows className="h-4 w-4" aria-hidden="true" />
+            مقایسهٔ خدمات کنار هم
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </section>
 

@@ -32,12 +32,14 @@ Persian (fa-IR), RTL, mobile-first. Brand: navy `#001F3F` (`bg-primary`), gold `
 - `useAuth()` → `{ user, token, status: 'idle'|'anonymous'|'authenticated', isAuthenticated, isLoading, isAdmin, login, logout, updateUser }`. While `status === 'idle'` (before hydration) render a skeleton, never redirect.
 - `useWishlist()` → `{ ids, has(id), toggle(id) (returns new state), count }`.
 - `useGarageStore` → saved vehicles for booking prefill (see `garage-store.ts`).
-- `useUIStore` → `searchOpen/setSearchOpen`, `moreOpen/setMoreOpen`, `loginSheetOpen/openLoginSheet(redirect?)/closeLoginSheet`, `demoActive`, `fly({ src, from })`, `flyDone`.
+- `useCompare()` → `{ ids, count, isFull, has(id), toggle(id) (returns whether it ended up selected), add, remove, clear }`, capped at `COMPARE_LIMIT` (4) and rendered by `/compare`.
+- `useNotifications()` → `{ items, unread, markRead, markAllRead, remove, clear }`. The feed is derived, not pushed: `NotificationSync` (in `AppShell`) turns the signed-in customer's own orders and bookings into one entry per status reached — ids carry the status, so re-syncing is a no-op until something changes, and the first sync backfills as already-read.
+- `useUIStore` → `searchOpen/setSearchOpen`, `moreOpen/setMoreOpen`, `notificationsOpen/setNotificationsOpen`, `loginSheetOpen/openLoginSheet(redirect?)/closeLoginSheet`, `demoActive`, `fly({ src, from })`, `flyDone`.
 - `useHydrated()` for pages that depend on persisted state.
 
 ## App shell (already mounted in `Providers` → `AppShell`)
 
-`MobileTabBar` (hidden on `/login`, `/checkout*`, `/admin*`, detail routes — see `isTabBarHidden` in `@/lib/routes`; `Navbar` and `Footer` return null where `isChromeHidden(pathname)` is true, i.e. `/admin*`), `MobileCartPill`, `CartDrawer` (sheet on mobile / drawer on desktop), `SearchModal` (Ctrl/⌘K), `MoreSheet`, `LoginSheet`, `FlyToCartLayer`, `DemoBanner`, `Toaster`. Layout offsets `<main>` by the 80px navbar + safe-area and by the tab bar on mobile.
+`MobileTabBar` (hidden on `/login`, `/checkout*`, `/admin*`, detail routes — see `isTabBarHidden` in `@/lib/routes`; `Navbar` and `Footer` return null where `isChromeHidden(pathname)` is true, i.e. `/admin*`), `MobileCartPill`, `CartDrawer` (sheet on mobile / drawer on desktop), `SearchModal` (Ctrl/⌘K), `MoreSheet`, `LoginSheet`, `NotificationSync` + `NotificationSheet`, `CompareBar` (floats over `/services*` while a comparison is half-built), `FlyToCartLayer`, `DemoBanner`, `Toaster`. Layout offsets `<main>` by the 80px navbar + safe-area and by the tab bar on mobile.
 
 ## UI primitives
 

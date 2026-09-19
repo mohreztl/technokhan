@@ -46,6 +46,20 @@ export function formatJalaliDateTime(d: Date | string | number): string {
   return `${formatJalali(date)} · ${toPersianDigits(format(date, 'HH:mm'))}`;
 }
 
+/** "۳ ساعت پیش" for feeds; anything older than a week falls back to the date. */
+export function timeAgoFa(d: Date | string | number, now = new Date()): string {
+  const date = asDate(d);
+  const seconds = Math.round((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return 'چند لحظه پیش';
+  const minutes = Math.round(seconds / 60);
+  if (minutes < 60) return `${toPersianDigits(minutes)} دقیقه پیش`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${toPersianDigits(hours)} ساعت پیش`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${toPersianDigits(days)} روز پیش`;
+  return formatJalaliDateTime(date);
+}
+
 /** Relative label for lists: امروز / فردا / weekday */
 export function relativeJalaliLabel(d: Date | string | number, now = new Date()): string {
   const date = asDate(d);

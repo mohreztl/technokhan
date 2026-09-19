@@ -78,14 +78,16 @@
   --font-sans: var(--font-Shabnam-FD), system-ui, sans-serif;
   --font-display: var(--font-Shabnam-FD), system-ui, sans-serif;
 
+  /* Persian sits on a taller x-height than Latin and reads badly at the
+     Tailwind defaults; every step below `xl` gets one notch more leading. */
   --text-xs: 0.75rem;
-  --text-xs--line-height: 1rem;
+  --text-xs--line-height: 1.125rem;
   --text-sm: 0.875rem;
-  --text-sm--line-height: 1.25rem;
+  --text-sm--line-height: 1.5rem;
   --text-base: 1rem;
-  --text-base--line-height: 1.5rem;
+  --text-base--line-height: 1.75rem;
   --text-lg: 1.125rem;
-  --text-lg--line-height: 1.75rem;
+  --text-lg--line-height: 1.875rem;
   --text-xl: 1.25rem;
   --text-xl--line-height: 1.75rem;
   --text-2xl: 1.5rem;
@@ -501,12 +503,13 @@
     /* Utility Colors */
     --muted: 37 33% 94%;
     --muted-foreground: 202 18% 40%;
-    --popover: 37 33% 96%;
+    /* White surfaces lift off the cream page; the page itself stays warm. */
+    --popover: 0 0% 100%;
     --popover-foreground: 210 100% 12%;
-    --card: 37 33% 96%;
+    --card: 0 0% 100%;
     --card-foreground: 210 100% 12%;
-    --border: 202 18% 56%; /* #708090 */
-    --input: 37 33% 96%;
+    --border: 202 18% 78%; /* #708090 at a weight that outlines without boxing in */
+    --input: 0 0% 100%;
     --ring: 42 30% 63%; /* #C2B280 */
     
     /* Status Colors */
@@ -531,8 +534,9 @@
     --foreground-secondary: 0 0% 88%;
     --foreground-muted: 0 0% 63%;
     
-    /* Brand Colors - Navy Primary (lighter in dark mode) */
-    --primary: 210 100% 35%; /* Lighter navy for dark mode */
+    /* Brand Colors - Navy Primary (lifted just enough to read on near-black,
+       keeping the #001F3F hue instead of drifting to a generic blue) */
+    --primary: 210 100% 20%; /* #003366 */
     --primary-foreground: 0 0% 100%;
     
     /* Brand Colors - Gold Secondary */
@@ -552,7 +556,7 @@
     --card-foreground: 0 0% 100%;
     --border: 0 0% 15%;
     --input: 0 0% 15%;
-    --ring: 210 100% 35%;
+    --ring: 42 30% 63%; /* gold — navy would disappear against the dark surfaces */
     
     /* Status Colors */
     --destructive: 0 84% 60%;
@@ -961,4 +965,19 @@ input[type='search'][data-native-clear='off']::-webkit-search-cancel-button,
 input[type='search'][data-native-clear='off']::-webkit-search-decoration {
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Without JavaScript, scroll-reveal animations never run, and the inline
+   `opacity:0` that framer-motion renders on the server would leave the page
+   blank. The inline script at the top of <body> drops `.no-js` before the
+   first paint, so this only ever applies when scripting is off or broken.
+   `opacity:0;` (with the semicolon) and the bare value are matched on purpose:
+   `opacity:0.5` is a deliberate style and must survive.
+--------------------------------------------------------------------------- */
+.no-js [style='opacity:0'],
+.no-js [style*='opacity:0;'] {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
 }

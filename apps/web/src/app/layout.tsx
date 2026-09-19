@@ -93,8 +93,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" className={shabnam.variable} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={`${shabnam.variable} no-js`} suppressHydrationWarning>
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
+        {/* Runs while the HTML is still parsing, so scroll-reveal styles stay
+            authoritative for anyone who has JavaScript. See `.no-js` in globals.css. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.remove('no-js')" }} />
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>

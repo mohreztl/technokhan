@@ -9,6 +9,7 @@ import { APP_NAME, CONTACT, ROUTES } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
+import { NotificationBell } from '@/components/organisms/notification-center';
 import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import { useCartCount, useCartStore } from '@/lib/store/cart-store';
 import { useUIStore } from '@/lib/store/ui-store';
@@ -192,6 +193,8 @@ export const Navbar: React.FC = () => {
               onClick={toggleCart}
               data-cart-target="desktop"
             />
+
+            {status === 'authenticated' && <NotificationBell className={iconClass} />}
 
             <IconButton
               asChild

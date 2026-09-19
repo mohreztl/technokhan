@@ -35,6 +35,7 @@ import { QuoteCalculator } from '@/components/catalog/quote-calculator';
 import { RatingStars } from '@/components/catalog/rating-stars';
 import { ReviewSection } from '@/components/catalog/review-section';
 import { ShareButton } from '@/components/catalog/share-button';
+import { CompareToggle } from '@/components/catalog/compare-toggle';
 import { SnapRow } from '@/components/catalog/snap-row';
 
 const Lightbox = dynamic(() => import('@/components/creative/lightbox').then((m) => m.Lightbox), {
@@ -217,6 +218,11 @@ export function ServiceDetailClient({ service: initial, related: initialRelated,
                   مشاورهٔ رایگان
                 </a>
               </Button>
+              <CompareToggle
+                service={service}
+                variant="button"
+                className="min-h-12 border-white/25 bg-white/10 text-primary-foreground hover:bg-white/20 aria-pressed:border-transparent aria-pressed:bg-secondary aria-pressed:text-secondary-foreground"
+              />
               <ShareButton
                 payload={{ title: service.name, text: service.description }}
                 variant="ghost"

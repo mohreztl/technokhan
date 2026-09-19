@@ -40,6 +40,7 @@ const QUICK_LINKS = [
   { title: 'فروشگاه', href: ROUTES.PRODUCTS },
   { title: 'نمونه کارها', href: ROUTES.GALLERY },
   { title: 'رزرو نوبت', href: ROUTES.BOOKING },
+  { title: 'مقایسهٔ خدمات', href: ROUTES.COMPARE },
   { title: 'پیگیری سفارش', href: ROUTES.TRACK },
   { title: 'مجله', href: ROUTES.BLOG },
   { title: 'سؤالات متداول', href: ROUTES.FAQ },
