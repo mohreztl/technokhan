@@ -34,7 +34,7 @@ export interface GalleryGridProps {
 const TYPE_ORDER = Object.values(ServiceType) as ServiceType[];
 
 // Gallery items carry no dimensions, so vary the crop deterministically for a masonry rhythm.
-const ASPECTS = ['aspect-[4/3]', 'aspect-square', 'aspect-[5/4]', 'aspect-[3/4]'];
+const ASPECTS = ['aspect-4/3', 'aspect-square', 'aspect-5/4', 'aspect-3/4'];
 function aspectFor(id: string): string {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
@@ -47,7 +47,7 @@ function GalleryCard({ item, onOpen }: { item: GalleryItem; onOpen: () => void }
       type="button"
       onClick={onOpen}
       aria-label={`${item.title} — مشاهده قبل و بعد`}
-      className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="group relative block w-full overflow-hidden rounded-2xl bg-muted text-start focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
     >
       <div className={cn('relative w-full', aspectFor(item.id))}>
         <Image
@@ -59,12 +59,12 @@ function GalleryCard({ item, onOpen }: { item: GalleryItem; onOpen: () => void }
         />
       </div>
 
-      <span className="glass-effect absolute start-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-foreground">
+      <span className="glass-effect absolute inset-s-3 top-3 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold text-foreground">
         <ChevronsLeftRight className="h-3.5 w-3.5 text-secondary" aria-hidden="true" />
         قبل/بعد
       </span>
 
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent p-3 pt-12 text-white opacity-100 transition-opacity duration-300 group-focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 via-black/45 to-transparent p-3 pt-12 text-white opacity-100 transition-opacity duration-300 group-focus-visible:opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100">
         <h3 className="line-clamp-1 text-sm font-bold">{item.title}</h3>
         {item.vehicle && <p className="mt-0.5 line-clamp-1 text-xs text-white/80">{item.vehicle}</p>}
         {item.tags.length > 0 && (
@@ -149,7 +149,7 @@ export function GalleryGrid({
                 aria-checked={on}
                 onClick={() => setFilter(value)}
                 className={cn(
-                  'relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                  'relative inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
                   on
                     ? 'border-transparent text-secondary-foreground'
                     : 'border-border/60 text-muted-foreground hover:text-foreground'

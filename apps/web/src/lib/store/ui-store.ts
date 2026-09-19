@@ -10,6 +10,7 @@ export interface UIState {
   searchOpen: boolean;
   moreOpen: boolean;
   loginSheetOpen: boolean;
+  notificationsOpen: boolean;
   loginRedirect: string | null;
   /** true once a live API call failed and the demo transport took over */
   demoActive: boolean;
@@ -17,6 +18,7 @@ export interface UIState {
   flyItems: FlyItem[];
   setSearchOpen: (open: boolean) => void;
   setMoreOpen: (open: boolean) => void;
+  setNotificationsOpen: (open: boolean) => void;
   openLoginSheet: (redirect?: string) => void;
   closeLoginSheet: () => void;
   setDemoActive: (active: boolean) => void;
@@ -29,12 +31,14 @@ export const useUIStore = create<UIState>()((set) => ({
   searchOpen: false,
   moreOpen: false,
   loginSheetOpen: false,
+  notificationsOpen: false,
   loginRedirect: null,
   demoActive: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
   demoDismissed: false,
   flyItems: [],
   setSearchOpen: (searchOpen) => set({ searchOpen }),
   setMoreOpen: (moreOpen) => set({ moreOpen }),
+  setNotificationsOpen: (notificationsOpen) => set({ notificationsOpen }),
   openLoginSheet: (redirect) => set({ loginSheetOpen: true, loginRedirect: redirect ?? null }),
   closeLoginSheet: () => set({ loginSheetOpen: false, loginRedirect: null }),
   setDemoActive: (demoActive) => set({ demoActive }),

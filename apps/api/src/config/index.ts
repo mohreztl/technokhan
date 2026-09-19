@@ -1,7 +1,9 @@
 import dotenv from 'dotenv';
 
-// Load .env before anything reads process.env (this module is imported first by server.ts)
-dotenv.config();
+// Load .env before anything reads process.env (this module is imported first by server.ts).
+// `quiet` suppresses the "injected env (n) from .env" banner dotenv 17 started
+// printing, which lands on stdout ahead of the logger and breaks JSON log parsing.
+dotenv.config({ quiet: true });
 
 const env = process.env;
 const nodeEnv = env.NODE_ENV || 'development';
@@ -24,6 +26,7 @@ export const config = {
   isProduction,
   port: int(env.PORT, 5000),
   host: env.HOST || '0.0.0.0',
+  databaseUrl: env.DATABASE_URL || '',
   jwtSecret: env.JWT_SECRET || '',
   jwtExpiresIn: env.JWT_EXPIRES_IN || '7d',
   allowedOrigins: (env.ALLOWED_ORIGINS || 'http://localhost:3000')

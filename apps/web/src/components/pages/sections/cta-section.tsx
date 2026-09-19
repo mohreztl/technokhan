@@ -17,7 +17,7 @@ const TRUST = [
 export const CTASection: React.FC = () => {
   return (
     <section className="relative overflow-hidden bg-background py-16 sm:py-24" aria-labelledby="cta-title">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+      <div className="absolute inset-0 bg-linear-to-br from-primary/5 via-background to-secondary/5" />
       <AmbientOrbs variant="section" />
 
       <div className="container-custom relative z-10">

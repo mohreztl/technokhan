@@ -50,6 +50,9 @@ const COUPONS: Coupon[] = [
   },
   { code: 'FIXED50', type: 'fixed', value: 50_000, description: 'پنجاه هزار تومان', minTotal: 500_000 },
   { code: 'FIXEDBIG', type: 'fixed', value: 100_000, description: 'صد هزار تومان' },
+  { code: 'SUSPENDED', type: 'fixed', value: 50_000, description: 'غیرفعال', isActive: false },
+  { code: 'USEDUP', type: 'fixed', value: 50_000, description: 'تکمیل', usageLimit: 3, usedCount: 3 },
+  { code: 'HASROOM', type: 'fixed', value: 50_000, description: 'ظرفیت دارد', usageLimit: 3, usedCount: 2 },
   {
     code: 'EXPIRED',
     type: 'percent',
@@ -252,6 +255,31 @@ describe('applyCoupon', () => {
     const exact = applyCoupon('FIXED50', 500_000, COUPONS);
     assert.equal(exact.valid, true);
     assert.equal(exact.discount, 50_000);
+  });
+
+  it('treats a suspended code as unknown, so its existence does not leak', () => {
+    const r = applyCoupon('SUSPENDED', 1_000_000, COUPONS);
+    assert.equal(r.valid, false);
+    assert.equal(r.discount, 0);
+    assert.equal(r.message, 'کد تخفیف معتبر نیست');
+    assert.equal(r.code, undefined);
+  });
+
+  it('rejects a code that has reached its usage limit, and accepts one below it', () => {
+    const spent = applyCoupon('USEDUP', 1_000_000, COUPONS);
+    assert.equal(spent.valid, false);
+    assert.equal(spent.discount, 0);
+    assert.equal(spent.message, 'ظرفیت استفاده از این کد تکمیل شده است');
+
+    const room = applyCoupon('HASROOM', 1_000_000, COUPONS);
+    assert.equal(room.valid, true);
+    assert.equal(room.discount, 50_000);
+  });
+
+  it('treats an absent usage limit as unlimited', () => {
+    const r = applyCoupon('FIXEDBIG', 1_000_000, [{ ...COUPONS[2], usedCount: 999 }]);
+    assert.equal(r.valid, true);
+    assert.equal(r.discount, 100_000);
   });
 
   it('rejects expired coupons and honours the injected clock', () => {

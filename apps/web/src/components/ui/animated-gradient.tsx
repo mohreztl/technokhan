@@ -31,7 +31,7 @@ export function AnimatedGradientBorder({
   return (
     <div ref={ref} className={cn('group relative', containerClassName)}>
       <motion.div
-        className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-primary via-secondary to-primary opacity-60 blur transition-all duration-500 group-hover:opacity-100"
+        className="absolute -inset-0.5 rounded-2xl bg-linear-to-r from-primary via-secondary to-primary opacity-60 blur-sm transition-all duration-500 group-hover:opacity-100"
         animate={active ? GRADIENT_KEYFRAMES : { backgroundPosition: '0% 50%' }}
         transition={active ? { duration: 5, repeat: Infinity, ease: 'linear' } : { duration: 0 }}
         style={{ backgroundSize: '200% 200%' }}
@@ -60,7 +60,7 @@ export function AnimatedGradientText({
     <motion.span
       ref={ref}
       className={cn(
-        'bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent',
+        'bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent',
         className
       )}
       animate={active ? GRADIENT_KEYFRAMES : { backgroundPosition: '0% 50%' }}

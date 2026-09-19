@@ -16,6 +16,7 @@ import {
   Package,
   PackageOpen,
   Receipt,
+  Truck,
 } from 'lucide-react';
 import { PAYMENT_METHOD_LABELS, ROUTES, formatToman, toPersianDigits } from '@autolounge/shared';
 import { ConfettiBurst } from '@/components/creative';
@@ -177,8 +178,17 @@ export function OrderDetail({ id }: OrderDetailProps) {
         </div>
       </header>
 
-      <section className="glass-effect-strong rounded-2xl p-4 sm:p-5">
+      <section className="glass-effect-strong space-y-4 rounded-2xl p-4 sm:p-5">
         <OrderStatusStepper status={data.status} />
+        {data.shipmentCode && (
+          <p className="flex flex-wrap items-center gap-2 border-t border-border/50 pt-4 text-sm">
+            <Truck className="h-4 w-4 shrink-0 text-secondary" aria-hidden="true" />
+            <span className="text-muted-foreground">کد رهگیری مرسولهٔ پستی:</span>
+            <span dir="ltr" className="font-mono font-bold">
+              {data.shipmentCode}
+            </span>
+          </p>
+        )}
       </section>
 
       <Section icon={Package} title={`اقلام سفارش (${toPersianDigits(String(data.items.length))})`}>

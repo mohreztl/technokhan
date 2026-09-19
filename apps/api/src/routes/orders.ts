@@ -1,7 +1,8 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Prisma, OrderStatus } from '@prisma/client';
-import { COUPONS, applyCoupon, computeOrderTotals, effectivePrice, trackingCodeFromId } from '@autolounge/shared';
+import { applyCoupon, computeOrderTotals, effectivePrice, trackingCodeFromId } from '@autolounge/shared';
 import { prisma } from '../lib/prisma';
+import { activeCoupons } from '../lib/coupons';
 import {
   createOrderSchema,
   idParamSchema,
@@ -20,7 +21,7 @@ export const orderRoutes: FastifyPluginAsync = async (fastify) => {
   // POST /orders/validate-coupon (public)
   fastify.post('/validate-coupon', async (request, reply) => {
     const { code, subtotal } = parse(validateCouponSchema, request.body);
-    return apiResponse.success(reply, applyCoupon(code, subtotal, COUPONS));
+    return apiResponse.success(reply, applyCoupon(code, subtotal, await activeCoupons()));
   });
 
   // POST /orders
@@ -49,7 +50,7 @@ export const orderRoutes: FastifyPluginAsync = async (fastify) => {
       product: { price: p.price, discountPrice: p.discountPrice ?? undefined },
       quantity: quantities.get(p.id) ?? 0,
     }));
-    const totals = computeOrderTotals(lines, input.couponCode, COUPONS);
+    const totals = computeOrderTotals(lines, input.couponCode, await activeCoupons());
     if (input.couponCode && !totals.coupon.valid) {
       throw badRequest(totals.coupon.message || 'کد تخفیف نامعتبر است');
     }
@@ -63,6 +64,21 @@ export const orderRoutes: FastifyPluginAsync = async (fastify) => {
     const { isDefault: _ignored, ...shippingAddress } = input.shippingAddress;
 
     const order = await prisma.$transaction(async (tx) => {
+      if (totals.coupon.valid && totals.coupon.code) {
+        // Claim the redemption under the same conditions the coupon was
+        // validated against. Between that check and here another order may
+        // have taken the last one, and only the database can settle it.
+        const claimed = await tx.coupon.updateMany({
+          where: {
+            code: totals.coupon.code,
+            isActive: true,
+            OR: [{ usageLimit: null }, { usedCount: { lt: prisma.coupon.fields.usageLimit } }],
+          },
+          data: { usedCount: { increment: 1 } },
+        });
+        if (claimed.count !== 1) throw conflict('ظرفیت استفاده از این کد تخفیف تکمیل شده است');
+      }
+
       for (const item of orderItems) {
         const res = await tx.product.updateMany({
           where: { id: item.productId, stock: { gte: item.quantity } },
@@ -89,11 +105,21 @@ export const orderRoutes: FastifyPluginAsync = async (fastify) => {
         select: { id: true },
       });
 
-      return tx.order.update({
-        where: { id: created.id },
-        data: { trackingCode: trackingCodeFromId('OR', created.id) },
-        include: orderInclude,
-      });
+      // `trackingCode` is unique; salt and retry on the (very unlikely) collision.
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const salt = attempt === 0 ? '' : Math.random().toString(36).slice(2, 8);
+        try {
+          return await tx.order.update({
+            where: { id: created.id },
+            data: { trackingCode: trackingCodeFromId('OR', created.id + salt) },
+            include: orderInclude,
+          });
+        } catch (error) {
+          if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') continue;
+          throw error;
+        }
+      }
+      return tx.order.findUniqueOrThrow({ where: { id: created.id }, include: orderInclude });
     });
 
     void sendOrderConfirmation(request.user.phoneNumber, order.trackingCode ?? order.id, order.totalPrice);

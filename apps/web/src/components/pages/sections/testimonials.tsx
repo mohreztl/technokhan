@@ -84,7 +84,7 @@ function TestimonialCard({ item }: { item: Testimonial }) {
           alt={item.name}
           fallback={item.name.trim().charAt(0)}
           size="lg"
-          className="ring-2 ring-secondary/40 [&>div]:bg-gradient-to-br [&>div]:from-primary [&>div]:to-secondary [&>div]:text-primary-foreground"
+          className="ring-2 ring-secondary/40 [&>div]:bg-linear-to-br [&>div]:from-primary [&>div]:to-secondary [&>div]:text-primary-foreground"
         />
         <div className="min-w-0">
           <h3 className="truncate text-sm font-bold text-foreground">{item.name}</h3>
@@ -174,7 +174,7 @@ export const Testimonials: React.FC = () => {
           <h2 id="testimonials-title" className="section-title text-gradient-luxury">
             نظرات مشتریان
           </h2>
-          <p className="section-subtitle !mb-0">تجربه مشتریان ما از خدمات اتولانژ</p>
+          <p className="section-subtitle mb-0!">تجربه مشتریان ما از خدمات اتولانژ</p>
         </motion.div>
 
         <div

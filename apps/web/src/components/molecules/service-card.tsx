@@ -7,6 +7,7 @@ import { ArrowLeft, Calendar, Clock, ShieldCheck, Sparkles, Star } from 'lucide-
 import { ROUTES, formatToman, toPersianDigits, type Service } from '@autolounge/shared';
 import { cn, formatDuration } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { CompareToggle } from '@/components/catalog/compare-toggle';
 
 interface ServiceCardProps {
   service: Service;
@@ -71,10 +72,12 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
     return (
       <article
         className={cn(
-          'group overflow-hidden rounded-2xl border border-border/50 glass-effect shadow-lg transition-all duration-500 hover:border-secondary/40 hover:shadow-luxury',
+          'group relative overflow-hidden rounded-2xl border border-border/50 glass-effect shadow-lg transition-all duration-500 hover:border-secondary/40 hover:shadow-luxury',
           className
         )}
       >
+        {/* Outside the image link: a button may not nest inside an anchor. */}
+        <CompareToggle service={service} className="absolute inset-e-3 top-3 z-10" />
         <div className="flex flex-col md:flex-row">
           <Link
             href={detailHref(service)}
@@ -91,9 +94,9 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
               />
             )}
-            <span className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent md:bg-gradient-to-l" />
+            <span className="absolute inset-0 bg-linear-to-t from-black/60 to-transparent md:bg-linear-to-l" />
             {service.featured && (
-              <span className="absolute start-4 top-4">
+              <span className="absolute inset-s-4 top-4">
                 <FeaturedBadge />
               </span>
             )}
@@ -136,13 +139,15 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
   return (
     <article
       className={cn(
-        'group flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 glass-effect shadow-lg transition-all duration-500 hover:border-secondary/40 hover:shadow-luxury',
+        'group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 glass-effect shadow-lg transition-all duration-500 hover:border-secondary/40 hover:shadow-luxury',
         className
       )}
     >
+      {/* Outside the image link: a button may not nest inside an anchor. */}
+      <CompareToggle service={service} className="absolute inset-e-3 top-3 z-10" />
       <Link
         href={detailHref(service)}
-        className="relative block aspect-[4/3] overflow-hidden sm:aspect-[16/10]"
+        className="relative block aspect-4/3 overflow-hidden sm:aspect-16/10"
         aria-label={service.name}
         tabIndex={-1}
       >
@@ -155,10 +160,10 @@ export const ServiceCard: React.FC<ServiceCardProps> = ({
             className="object-cover transition-transform duration-700 group-hover:scale-105"
           />
         )}
-        <span className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
+        <span className="absolute inset-0 bg-linear-to-t from-black/85 via-black/30 to-transparent" />
 
         {service.featured && (
-          <span className="absolute start-4 top-4">
+          <span className="absolute inset-s-4 top-4">
             <FeaturedBadge />
           </span>
         )}

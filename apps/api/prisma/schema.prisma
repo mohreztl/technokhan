@@ -2,9 +2,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// The connection string lives in prisma.config.ts — Prisma 7 rejects `url` here.
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum UserRole {
@@ -222,7 +222,10 @@ model Order {
   paymentStatus   PaymentStatus @default(pending)
   paymentMethod   PaymentMethod @default(zarinpal)
   couponCode      String?
-  trackingCode    String?
+  /// The shop's own code (OR-XXXXXX), given to the customer and never changed
+  trackingCode    String?       @unique
+  /// The courier's consignment number, set by an admin when the order ships
+  shipmentCode    String?
   notes           String?       @db.Text
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -286,4 +289,51 @@ model ContactMessage {
 
   @@index([isRead])
   @@index([createdAt])
+}
+
+enum CouponType {
+  percent
+  fixed
+}
+
+/// Discount codes. These used to be a hard-coded list in @autolounge/shared;
+/// the bundled list is now only the demo catalogue.
+model Coupon {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  type        CouponType
+  value       Float
+  description String
+  minTotal    Float?
+  maxDiscount Float?
+  expiresAt   DateTime?
+  isActive    Boolean    @default(true)
+  /// Total redemptions allowed; null means unlimited
+  usageLimit  Int?
+  usedCount   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([isActive])
+}
+
+/// A single row (id = "default") holding what the shop can change without a
+/// deploy: when it is open, when it is not, and how to reach it.
+model SiteSettings {
+  id             String   @id @default("default")
+  /// JS getDay() values the workshop is closed on (0 = Sunday, 5 = Friday)
+  closedWeekdays Int[]    @default([5])
+  /// One-off closures as yyyy-MM-dd — holidays, Nowruz, maintenance
+  closedDates    String[] @default([])
+  /// Bookable windows, e.g. "08:00 - 10:00"
+  timeSlots      String[] @default([])
+  phone          String   @default("")
+  mobile         String   @default("")
+  email          String   @default("")
+  address        String   @default("")
+  workingHours   String   @default("")
+  instagram      String   @default("")
+  telegram       String   @default("")
+  whatsapp       String   @default("")
+  updatedAt      DateTime @updatedAt
 }

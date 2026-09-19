@@ -198,7 +198,7 @@ export const SearchModal: React.FC = () => {
             aria-modal="true"
             aria-label="جستجو در محصولات و خدمات"
             tabIndex={-1}
-            className={cn(panelClass, 'outline-none')}
+            className={cn(panelClass, 'outline-hidden')}
             initial={isMobile ? { y: '100%' } : { opacity: 0, y: -16, scale: 0.98 }}
             animate={isMobile ? { y: 0 } : { opacity: 1, y: 0, scale: 1 }}
             exit={isMobile ? { y: '100%' } : { opacity: 0, y: -16, scale: 0.98 }}
@@ -208,7 +208,7 @@ export const SearchModal: React.FC = () => {
             <div className="flex shrink-0 items-center gap-2 border-b border-border/40 px-3 py-3 sm:px-4">
               <IconButton label="بستن جستجو" icon={<X />} onClick={close} />
               <div className="relative flex-1">
-                <span className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                <span className="pointer-events-none absolute inset-s-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                   {isSearching ? (
                     <Loader2 className="h-5 w-5 animate-spin text-primary" aria-hidden="true" />
                   ) : (
@@ -232,7 +232,7 @@ export const SearchModal: React.FC = () => {
                   aria-controls={listboxId}
                   aria-activedescendant={activeId}
                   aria-autocomplete="list"
-                  className="h-12 w-full rounded-xl border-0 bg-muted ps-11 pe-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="h-12 w-full rounded-xl border-0 bg-muted ps-11 pe-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-hidden focus:ring-2 focus:ring-primary"
                 />
                 {hasQuery && (
                   <button
@@ -241,7 +241,7 @@ export const SearchModal: React.FC = () => {
                       setQuery('');
                       inputRef.current?.focus();
                     }}
-                    className="absolute end-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+                    className="absolute inset-e-1 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
                     aria-label="پاک کردن جستجو"
                   >
                     <X className="h-4 w-4" aria-hidden="true" />
@@ -293,7 +293,7 @@ export const SearchModal: React.FC = () => {
                                 onMouseEnter={() => setActiveIndex(index)}
                                 tabIndex={-1}
                                 className={cn(
-                                  'group flex min-h-[4rem] items-center gap-3 rounded-xl p-2 transition-colors',
+                                  'group flex min-h-16 items-center gap-3 rounded-xl p-2 transition-colors',
                                   active ? 'bg-primary/10' : 'bg-muted/40 hover:bg-muted'
                                 )}
                               >
@@ -395,7 +395,7 @@ export const SearchModal: React.FC = () => {
                             <button
                               type="button"
                               onClick={() => setQuery(term)}
-                              className="max-w-[10rem] truncate text-sm text-foreground"
+                              className="max-w-40 truncate text-sm text-foreground"
                             >
                               {term}
                             </button>
@@ -452,7 +452,7 @@ export const SearchModal: React.FC = () => {
                             <Link
                               href={link.href}
                               onClick={close}
-                              className="group flex min-h-[3.25rem] items-center gap-3 rounded-xl bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
+                              className="group flex min-h-13 items-center gap-3 rounded-xl bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
                             >
                               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary dark:text-secondary">
                                 <Icon className="h-4 w-4" aria-hidden="true" />

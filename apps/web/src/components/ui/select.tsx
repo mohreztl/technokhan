@@ -35,7 +35,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
         <div className="relative">
           {startIcon && (
             <span
-              className="pointer-events-none absolute start-3.5 top-1/2 -translate-y-1/2 text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
+              className="pointer-events-none absolute inset-s-3.5 top-1/2 -translate-y-1/2 text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
               aria-hidden="true"
             >
               {startIcon}
@@ -68,7 +68,7 @@ const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             ))}
           </select>
           <ChevronDown
-            className="pointer-events-none absolute end-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute inset-e-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
         </div>

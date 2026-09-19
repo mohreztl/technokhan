@@ -110,7 +110,7 @@ export function FlyToCartLayer() {
   if (!mounted || reduced || items.length === 0) return null;
 
   return createPortal(
-    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[90]">
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-90">
       {items.map((item) => (
         <FlyingItem key={item.id} item={item} onDone={flyDone} />
       ))}

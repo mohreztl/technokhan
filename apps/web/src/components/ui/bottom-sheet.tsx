@@ -223,7 +223,7 @@ export function BottomSheet({
             aria-describedby={description ? descId : undefined}
             tabIndex={-1}
             className={cn(
-              'absolute inset-x-0 bottom-0 flex max-h-[calc(100dvh-3rem)] flex-col outline-none',
+              'absolute inset-x-0 bottom-0 flex max-h-[calc(100dvh-3rem)] flex-col outline-hidden',
               'rounded-t-3xl border-t border-border/40 glass-effect-strong bg-background/95 dark:bg-background/90 shadow-luxury',
               'will-change-transform',
               className
@@ -297,7 +297,7 @@ export function BottomSheet({
                       icon={<X />}
                       size="sm"
                       variant="glass"
-                      className="absolute end-3 top-2 z-10"
+                      className="absolute inset-e-3 top-2 z-10"
                       onClick={close}
                       onPointerDown={(e) => e.stopPropagation()}
                     />

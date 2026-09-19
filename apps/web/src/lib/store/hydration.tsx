@@ -5,8 +5,17 @@ import { useAuthStore } from './auth-store';
 import { useCartStore } from './cart-store';
 import { useWishlistStore } from './wishlist-store';
 import { useGarageStore } from './garage-store';
+import { useCompareStore } from './compare-store';
+import { useNotificationStore } from './notification-store';
 
-const persistedStores = [useAuthStore, useCartStore, useWishlistStore, useGarageStore] as const;
+const persistedStores = [
+  useAuthStore,
+  useCartStore,
+  useWishlistStore,
+  useGarageStore,
+  useCompareStore,
+  useNotificationStore,
+] as const;
 
 /**
  * Rehydrates every persisted store after mount. Stores are created with

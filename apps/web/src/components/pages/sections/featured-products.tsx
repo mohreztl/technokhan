@@ -21,7 +21,7 @@ export function FeaturedProducts({ products }: FeaturedProductsProps) {
 
   return (
     <section
-      className="bg-gradient-to-b from-background via-muted/30 to-background py-16 lg:py-24"
+      className="bg-linear-to-b from-background via-muted/30 to-background py-16 lg:py-24"
       aria-labelledby="featured-products-title"
     >
       <div className="container-custom">

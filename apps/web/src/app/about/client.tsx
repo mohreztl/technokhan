@@ -70,7 +70,7 @@ export function AboutPageClient() {
       <section className="py-10 lg:py-16" aria-labelledby="story-title">
         <div className="container-custom grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
           <ParallaxSection speed={0.15} className="order-2 lg:order-1">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-3xl border border-border/60 shadow-luxury">
+            <div className="relative aspect-4/5 overflow-hidden rounded-3xl border border-border/60 shadow-luxury">
               <Image
                 src="/images/about-story.webp"
                 alt="سالن اتولانژ"
@@ -78,8 +78,8 @@ export function AboutPageClient() {
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover"
               />
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary/60 via-transparent to-transparent" />
-              <p className="absolute bottom-5 start-5 end-5 text-sm font-semibold text-white">
+              <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-primary/60 via-transparent to-transparent" />
+              <p className="absolute bottom-5 inset-s-5 inset-e-5 text-sm font-semibold text-white">
                 سالن اتولانژ، تهران
               </p>
             </div>

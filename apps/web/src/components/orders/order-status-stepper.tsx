@@ -36,7 +36,7 @@ export function OrderStatusStepper({ status, className }: OrderStatusStepperProp
         >
           <motion.div
             layout
-            className={cn('absolute inset-y-0 start-0', cancelled ? 'bg-destructive/60' : 'bg-secondary')}
+            className={cn('absolute inset-y-0 inset-s-0', cancelled ? 'bg-destructive/60' : 'bg-secondary')}
             initial={false}
             animate={{ width: `${progress}%` }}
             transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 160, damping: 26 }}

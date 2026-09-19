@@ -5,7 +5,19 @@
  * across the entire application. Follows AutoLounge's luxury brand aesthetic.
  */
 
-import { Variants, Transition } from 'framer-motion';
+import { Variants, Transition, TargetAndTransition } from 'framer-motion';
+
+/**
+ * A cubic-bezier control quad. framer-motion types an easing curve as exactly
+ * four numbers, and a bare array literal widens to `number[]`, so the curves
+ * below are named rather than repeated inline.
+ */
+type Bezier = readonly [number, number, number, number];
+
+/** The house curve: gentle in, gentle out. Most things use this. */
+export const EASE_STANDARD: Bezier = [0.25, 0.1, 0.25, 1];
+/** Slower settle, for larger elements that need to feel weighty. */
+export const EASE_EMPHASIZED: Bezier = [0.43, 0.13, 0.23, 0.96];
 
 // =============================================================================
 // TRANSITION PRESETS
@@ -30,11 +42,11 @@ export const transitions = {
   },
   ease: {
     duration: 0.6,
-    ease: [0.25, 0.1, 0.25, 1.0], // Cubic bezier
+    ease: EASE_STANDARD,
   },
   easeInOut: {
     duration: 0.8,
-    ease: [0.43, 0.13, 0.23, 0.96],
+    ease: EASE_EMPHASIZED,
   },
   smooth: {
     duration: 0.4,
@@ -88,7 +100,7 @@ export const heroContent: Variants = {
     opacity: 1,
     x: 0,
     y: 0,
-    transition: { duration: 0.6, ease: [0.25, 0.1, 0.25, 1], staggerChildren: 0.08 },
+    transition: { duration: 0.6, ease: EASE_STANDARD, staggerChildren: 0.08 },
   },
   exit: (direction: number) => ({
     opacity: 0,
@@ -99,7 +111,7 @@ export const heroContent: Variants = {
 
 export const heroItem: Variants = {
   enter: { opacity: 0, y: 16 },
-  center: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.25, 0.1, 0.25, 1] } },
+  center: { opacity: 1, y: 0, transition: { duration: 0.5, ease: EASE_STANDARD } },
   exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
 };
 
@@ -222,7 +234,7 @@ export const heroBadge: Variants = {
     y: 0,
     transition: {
       duration: 0.6,
-      ease: [0.25, 0.1, 0.25, 1.0],
+      ease: EASE_STANDARD,
     },
   },
 };
@@ -235,7 +247,7 @@ export const heroHeading: Variants = {
     transition: {
       duration: 0.8,
       delay: 0.1,
-      ease: [0.25, 0.1, 0.25, 1.0],
+      ease: EASE_STANDARD,
     },
   },
 };
@@ -248,7 +260,7 @@ export const heroDescription: Variants = {
     transition: {
       duration: 0.8,
       delay: 0.3,
-      ease: [0.25, 0.1, 0.25, 1.0],
+      ease: EASE_STANDARD,
     },
   },
 };
@@ -261,7 +273,7 @@ export const heroFeatures: Variants = {
     transition: {
       duration: 0.6,
       delay: 0.4,
-      ease: [0.25, 0.1, 0.25, 1.0],
+      ease: EASE_STANDARD,
     },
   },
 };
@@ -274,7 +286,7 @@ export const heroCTA: Variants = {
     transition: {
       duration: 0.8,
       delay: 0.5,
-      ease: [0.25, 0.1, 0.25, 1.0],
+      ease: EASE_STANDARD,
     },
   },
 };
@@ -287,7 +299,7 @@ export const heroStats: Variants = {
     transition: {
       duration: 0.8,
       delay: 0.6,
-      ease: [0.25, 0.1, 0.25, 1.0],
+      ease: EASE_STANDARD,
     },
   },
 };
@@ -307,7 +319,7 @@ export const heroScrollIndicator: Variants = {
 // DECORATIVE ELEMENTS (Orbs, Particles)
 // =============================================================================
 
-export const floatingOrb = (duration = 8): Transition => ({
+export const floatingOrb = (duration = 8): TargetAndTransition => ({
   scale: [1, 1.2, 1],
   opacity: [0.2, 0.4, 0.2],
   transition: {
@@ -317,7 +329,7 @@ export const floatingOrb = (duration = 8): Transition => ({
   },
 });
 
-export const floatingOrbReverse = (duration = 10): Transition => ({
+export const floatingOrbReverse = (duration = 10): TargetAndTransition => ({
   scale: [1.2, 1, 1.2],
   opacity: [0.3, 0.2, 0.3],
   transition: {

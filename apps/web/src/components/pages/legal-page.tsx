@@ -11,8 +11,8 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
   const Icon = doc.slug === 'privacy' ? ShieldCheck : FileText;
   return (
     <div className="container-custom py-8 lg:py-14">
-      <header className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-primary via-primary to-[#0B3560] p-6 text-white shadow-luxury sm:p-10">
-        <div className="pointer-events-none absolute -end-16 -top-16 h-56 w-56 rounded-full bg-secondary/25 blur-3xl" aria-hidden />
+      <header className="relative overflow-hidden rounded-3xl border border-border bg-linear-to-br from-primary via-primary to-[#0B3560] p-6 text-white shadow-luxury sm:p-10">
+        <div className="pointer-events-none absolute -inset-e-16 -top-16 h-56 w-56 rounded-full bg-secondary/25 blur-3xl" aria-hidden />
         <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center">
           <span className="inline-flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white/10 text-secondary ring-1 ring-white/15">
             <Icon className="h-7 w-7" />

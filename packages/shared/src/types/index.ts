@@ -253,7 +253,10 @@ export interface Order {
   paymentStatus: PaymentStatus;
   paymentMethod: PaymentMethod;
   couponCode?: string;
+  /** The shop's own code (OR-XXXXXX), shown to the customer and used by /track */
   trackingCode?: string;
+  /** The courier's consignment number, set by an admin when the order ships */
+  shipmentCode?: string;
   notes?: string;
   transactions?: PaymentTransaction[];
   createdAt: DateLike;
@@ -301,21 +304,91 @@ export interface PaymentVerifyResult {
   message?: string;
 }
 
+/**
+ * What a guest gets back from /track. Deliberately thin: a tracking code is a
+ * weak secret, so this carries no address, no full name and no phone number.
+ */
+export interface TrackResult {
+  kind: 'order' | 'booking';
+  code: string;
+  status: string;
+  createdAt: DateLike;
+  updatedAt: DateLike;
+  totalPrice: number;
+  /** Orders only */
+  paymentStatus?: string;
+  itemCount?: number;
+  shipmentCode?: string;
+  /** Province and city of the delivery address — never the street */
+  destination?: string;
+  /** Bookings only */
+  serviceName?: string;
+  date?: DateLike;
+  timeSlot?: string;
+}
+
 export interface Coupon {
+  id?: string;
   code: string;
   type: 'percent' | 'fixed';
   value: number;
   description: string;
   minTotal?: number;
   maxDiscount?: number;
-  expiresAt?: string;
+  expiresAt?: DateLike;
+  /** Admins can suspend a code without deleting it; absent means active. */
+  isActive?: boolean;
+  /** Total redemptions allowed across all customers; absent means unlimited. */
+  usageLimit?: number;
+  usedCount?: number;
+  createdAt?: DateLike;
+  updatedAt?: DateLike;
 }
+
+/**
+ * What the shop can change without a deploy. Mirrors the SiteSettings row;
+ * the bundled CONTACT / CLOSED_WEEKDAYS / BOOKING_TIME_SLOTS constants are the
+ * defaults it starts from.
+ */
+export interface SiteSettings {
+  /** JS getDay() values the workshop is closed on (0 = Sunday, 5 = Friday) */
+  closedWeekdays: number[];
+  /** One-off closures as yyyy-MM-dd */
+  closedDates: string[];
+  /** Bookable windows, e.g. "08:00 - 10:00" */
+  timeSlots: string[];
+  phone: string;
+  mobile: string;
+  email: string;
+  address: string;
+  workingHours: string;
+  instagram: string;
+  telegram: string;
+  whatsapp: string;
+  updatedAt?: DateLike;
+}
+
+/**
+ * Just enough of a coupon to re-price a cart: the terms a customer holding the
+ * code already knows. Deliberately excludes `usageLimit` / `usedCount`, which
+ * `validate-coupon` answers publicly and nobody outside the admin panel needs.
+ */
+export type CouponTerms = Pick<
+  Coupon,
+  'code' | 'type' | 'value' | 'description' | 'minTotal' | 'maxDiscount' | 'expiresAt'
+>;
 
 export interface CouponResult {
   valid: boolean;
   code?: string;
   discount: number;
   message: string;
+  /**
+   * The terms that matched, present only when `valid`. The cart keeps them so
+   * it can re-price itself as items change without asking the server again —
+   * and so a code an admin created after this build shipped still discounts.
+   */
+  coupon?: CouponTerms;
 }
 
 // ---------------------------------------------------------------------------
@@ -378,6 +451,49 @@ export interface FaqItem {
   question: string;
   answer: string;
   category?: string;
+}
+
+// ---------------------------------------------------------------------------
+// Magazine
+// ---------------------------------------------------------------------------
+
+/**
+ * An article body is structured rather than markdown: the renderer stays typed,
+ * nothing needs a parser at runtime, and headings can be collected into a table
+ * of contents without re-parsing the text.
+ */
+export type ArticleBlock =
+  | { kind: 'heading'; id: string; text: string }
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'list'; ordered?: boolean; items: string[] }
+  | { kind: 'quote'; text: string; attribution?: string }
+  | { kind: 'callout'; tone: 'tip' | 'warning'; title: string; text: string }
+  | { kind: 'image'; src: string; alt: string; caption?: string }
+  | { kind: 'steps'; items: { title: string; text: string }[] };
+
+export type ArticleCategory = 'نگهداری' | 'راهنمای خرید' | 'دانش فنی' | 'پشت صحنه';
+
+export interface Article {
+  /** URL slug; also the id. */
+  slug: string;
+  title: string;
+  /** One or two sentences; used on cards, meta description and OG. */
+  excerpt: string;
+  category: ArticleCategory;
+  cover: string;
+  /** ISO date the piece was published. */
+  publishedAt: string;
+  updatedAt?: string;
+  author: { name: string; role: string; avatar?: string };
+  /** Minutes to read, rounded. */
+  readingMinutes: number;
+  tags: string[];
+  /** Shown on the homepage magazine rail. */
+  featured?: boolean;
+  /** Services and products the piece is about, linked at the end. */
+  relatedServiceIds?: string[];
+  relatedProductIds?: string[];
+  body: ArticleBlock[];
 }
 
 export interface LegalSection {

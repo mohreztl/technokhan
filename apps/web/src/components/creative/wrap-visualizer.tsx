@@ -187,7 +187,7 @@ export function WrapVisualizer({
                     data-swatch-id={c.id}
                     tabIndex={active ? 0 : -1}
                     onClick={() => selectColor(c)}
-                    className="group flex w-16 shrink-0 snap-center flex-col items-center gap-1.5 rounded-xl py-1 outline-none"
+                    className="group flex w-16 shrink-0 snap-center flex-col items-center gap-1.5 rounded-xl py-1 outline-hidden"
                   >
                     <span
                       className={cn(
@@ -204,7 +204,7 @@ export function WrapVisualizer({
                       {c.popular && !active && (
                         <span
                           aria-hidden="true"
-                          className="absolute -end-0.5 -top-0.5 h-3 w-3 rounded-full bg-secondary ring-2 ring-background"
+                          className="absolute -inset-e-0.5 -top-0.5 h-3 w-3 rounded-full bg-secondary ring-2 ring-background"
                         />
                       )}
                     </span>
@@ -243,7 +243,7 @@ export function WrapVisualizer({
                   role="radio"
                   aria-checked={active}
                   onClick={() => selectFinish(f)}
-                  className="relative h-11 min-w-[68px] rounded-full px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                  className="relative h-11 min-w-[68px] rounded-full px-4 text-sm outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
                 >
                   {active && (
                     <motion.span

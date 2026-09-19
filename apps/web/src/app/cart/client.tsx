@@ -69,7 +69,7 @@ function QuantityStepper({
       >
         <Minus className="h-4 w-4" aria-hidden="true" />
       </button>
-      <span className="min-w-[2.5rem] text-center text-sm font-bold tabular-nums" aria-live="polite">
+      <span className="min-w-10 text-center text-sm font-bold tabular-nums" aria-live="polite">
         {toPersianDigits(String(value))}
       </span>
       <button
@@ -117,7 +117,7 @@ function CartLine({
           <Image src={product.images[0]} alt="" fill sizes="96px" className="object-cover" />
         )}
         {percent > 0 && (
-          <span className="absolute start-1 top-1 rounded-md bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
+          <span className="absolute inset-s-1 top-1 rounded-md bg-destructive px-1.5 py-0.5 text-[10px] font-bold text-destructive-foreground">
             ٪{toPersianDigits(String(percent))}
           </span>
         )}
@@ -177,7 +177,7 @@ function CouponBox({ subtotal }: { subtotal: number }) {
     try {
       const r = await validate.mutateAsync({ code: normalized, subtotal });
       if (r.valid) {
-        setCoupon(r.code ?? normalized);
+        setCoupon(r.code ?? normalized, r.coupon);
         setCode(r.code ?? normalized);
         setMessage({ ok: true, text: r.message ?? `تخفیف ${formatToman(r.discount)} اعمال شد` });
         showToast.success('کد تخفیف اعمال شد', formatToman(r.discount));
@@ -278,7 +278,7 @@ function TotalsCard({ totals }: { totals: ReturnType<typeof useCart>['totals'] }
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="پیشرفت تا ارسال رایگان">
           <motion.div
-            className="h-full rounded-full bg-gradient-to-l from-secondary to-secondary/70"
+            className="h-full rounded-full bg-linear-to-l from-secondary to-secondary/70"
             initial={false}
             animate={{ width: `${progress}%` }}
             transition={reduced ? { duration: 0 } : { type: 'spring', stiffness: 120, damping: 20 }}

@@ -93,8 +93,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" className={shabnam.variable} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={`${shabnam.variable} no-js`} suppressHydrationWarning>
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
+        {/* Runs while the HTML is still parsing, so scroll-reveal styles stay
+            authoritative for anyone who has JavaScript. See `.no-js` in globals.css. */}
+        <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.remove('no-js')" }} />
         <Suspense fallback={null}>
           <GoogleAnalytics />
         </Suspense>
@@ -102,7 +105,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ScrollProgress />
           <div className="flex min-h-dvh flex-col">
             <Navbar />
-            <main className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+            <main className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-tabbar lg:pb-0">
               {children}
             </main>
             <Footer />

@@ -94,7 +94,7 @@ export function DataTable<T>({
       {/* ---- md+: table ---- */}
       <div
         className={cn(
-          'hidden overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm md:block',
+          'hidden overflow-hidden rounded-2xl border border-border/60 bg-background shadow-xs md:block',
           fetching && 'opacity-70 transition-opacity'
         )}
         aria-busy={loading || fetching || undefined}
@@ -102,7 +102,7 @@ export function DataTable<T>({
         <div className="max-h-[70dvh] overflow-auto">
           <table className="w-full min-w-[640px] border-collapse text-sm">
             {caption && <caption className="sr-only">{caption}</caption>}
-            <thead className="sticky top-0 z-10 bg-background-secondary/95 text-xs text-muted-foreground backdrop-blur">
+            <thead className="sticky top-0 z-10 bg-background-secondary/95 text-xs text-muted-foreground backdrop-blur-sm">
               <tr>
                 {columns.map((c) => (
                   <th
@@ -121,7 +121,7 @@ export function DataTable<T>({
                   <tr key={`sk-${i}`}>
                     {columns.map((c) => (
                       <td key={c.key} className={cn('px-4 py-3', c.className)}>
-                        <Skeleton className="h-4 w-full max-w-[9rem]" />
+                        <Skeleton className="h-4 w-full max-w-36" />
                       </td>
                     ))}
                   </tr>
@@ -136,7 +136,7 @@ export function DataTable<T>({
                     className={cn(
                       'transition-colors',
                       interactive &&
-                        'cursor-pointer hover:bg-secondary/10 focus-visible:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
+                        'cursor-pointer hover:bg-secondary/10 focus-visible:bg-secondary/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
                     )}
                   >
                     {columns.map((c) => (
@@ -180,7 +180,7 @@ export function DataTable<T>({
               const body = mobile ? (
                 mobile(row)
               ) : (
-                <dl className="grid grid-cols-[auto,1fr] gap-x-3 gap-y-2 text-sm">
+                <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-2 text-sm">
                   {mobileColumns.map((c) => (
                     <React.Fragment key={c.key}>
                       <dt className="text-xs font-semibold text-muted-foreground">{c.header}</dt>
@@ -190,8 +190,8 @@ export function DataTable<T>({
                 </dl>
               );
               const cardClass = cn(
-                'block w-full rounded-2xl border border-border/60 bg-background p-4 text-start shadow-sm transition-all',
-                interactive && 'active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                'block w-full rounded-2xl border border-border/60 bg-background p-4 text-start shadow-xs transition-all',
+                interactive && 'active:scale-[0.99] focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring'
               );
               return (
                 <li key={rowKey(row)}>
@@ -315,7 +315,7 @@ export function AdminPagination({ pagination, onPageChange, className }: AdminPa
                   aria-current={p === page ? 'page' : undefined}
                   className={cn(
                     'h-11 min-w-[44px] rounded-xl px-2 text-sm font-semibold tabular-nums transition-colors lg:h-10 lg:min-w-[40px]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
                     p === page ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-secondary/15'
                   )}
                 >

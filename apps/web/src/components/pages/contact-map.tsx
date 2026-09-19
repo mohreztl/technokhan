@@ -20,7 +20,7 @@ export function ContactMap({ className }: ContactMapProps) {
 
   return (
     <div className={cn('overflow-hidden rounded-2xl border border-border bg-card', className)}>
-      <div className="relative aspect-[4/3] bg-muted sm:aspect-[16/9]">
+      <div className="relative aspect-4/3 bg-muted sm:aspect-video">
         {show ? (
           <iframe
             src={embedSrc}

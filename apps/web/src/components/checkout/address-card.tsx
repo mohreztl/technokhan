@@ -74,7 +74,7 @@ export function AddressCard({ address, selected, onSelect, actions, compact, cla
         onClick={onSelect}
         className={cn(
           base,
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50',
+          'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/50',
           selected ? 'border-secondary bg-secondary/10 shadow-glow-secondary' : 'border-border bg-card hover:border-secondary/60'
         )}
       >

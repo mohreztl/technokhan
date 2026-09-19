@@ -94,7 +94,7 @@ function ChoiceChip({
       className={cn(
         'inline-flex min-h-11 items-center rounded-xl border px-3.5 text-sm font-medium transition-colors',
         active
-          ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+          ? 'border-primary bg-primary text-primary-foreground shadow-xs'
           : 'border-border bg-card text-foreground hover:border-primary/40 hover:bg-muted'
       )}
     >

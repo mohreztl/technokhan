@@ -1,13 +1,4 @@
-/** @type {import('next').NextConfig} */
-const withPWA = require('next-pwa')({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-  fallbacks: {
-    document: '/~offline',
-  },
-});
+const path = require('path');
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 let apiHost = null;
@@ -23,12 +14,13 @@ const standalone =
   process.env.NEXT_STANDALONE === 'true' ||
   (process.env.NEXT_STANDALONE !== 'false' && process.platform !== 'win32');
 
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@autolounge/shared'],
   ...(standalone ? { output: 'standalone' } : {}),
   devIndicators: false,
-  outputFileTracingRoot: require('path').join(__dirname, '../../'),
+  outputFileTracingRoot: path.join(__dirname, '../../'),
   images: {
     formats: ['image/avif', 'image/webp'],
     qualities: [60, 70, 75, 82, 90],
@@ -46,4 +38,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+module.exports = nextConfig;

@@ -4,22 +4,25 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
+  BookOpen,
   Camera,
   FileText,
+  GitCompareArrows,
   Heart,
+  HelpCircle,
   Info,
-  Instagram,
   LogIn,
   LogOut,
-  MessageCircle,
   Package,
+  PackageSearch,
   Phone,
   Send,
   ShieldCheck,
   User,
   type LucideIcon,
 } from 'lucide-react';
-import { APP_NAME, CONTACT, ROUTES, SOCIAL_MEDIA, toPersianDigits } from '@autolounge/shared';
+import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
+import { APP_NAME, ROUTES, toPersianDigits } from '@autolounge/shared';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';
@@ -28,6 +31,7 @@ import { ThemeSwitcher } from '@/components/ui/theme-switcher';
 import { showToast } from '@/components/ui/toaster';
 import { useUIStore } from '@/lib/store/ui-store';
 import { useAuth } from '@/lib/store/auth-store';
+import { useSettings } from '@/lib/hooks/use-settings';
 import { useWishlist } from '@/lib/store/wishlist-store';
 
 interface MoreLink {
@@ -43,6 +47,7 @@ export function MoreSheet() {
   const moreOpen = useUIStore((s) => s.moreOpen);
   const setMoreOpen = useUIStore((s) => s.setMoreOpen);
   const { user, status, isAuthenticated, logout } = useAuth();
+  const settings = useSettings();
   const { count: wishlistCount } = useWishlist();
 
   const close = React.useCallback(() => setMoreOpen(false), [setMoreOpen]);
@@ -56,6 +61,10 @@ export function MoreSheet() {
     { label: 'درباره ما', href: ROUTES.ABOUT, icon: Info },
     { label: 'تماس با ما', href: ROUTES.CONTACT, icon: Phone },
     { label: 'نمونه کارها', href: ROUTES.GALLERY, icon: Camera },
+    { label: 'مقایسهٔ خدمات', href: ROUTES.COMPARE, icon: GitCompareArrows },
+    { label: 'مجله', href: ROUTES.BLOG, icon: BookOpen },
+    { label: 'سؤالات متداول', href: ROUTES.FAQ, icon: HelpCircle },
+    { label: 'پیگیری سفارش', href: ROUTES.TRACK, icon: PackageSearch },
     { label: 'علاقه‌مندی‌ها', href: ROUTES.WISHLIST, icon: Heart, badge: wishlistCount },
     { label: 'سفارش‌های من', href: ROUTES.ORDERS, icon: Package },
     { label: 'قوانین', href: ROUTES.TERMS, icon: FileText },
@@ -78,7 +87,7 @@ export function MoreSheet() {
     >
       {/* Account row */}
       <div className="mb-4 flex items-center gap-3 rounded-2xl bg-muted/60 p-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-secondary text-primary-foreground">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-primary to-secondary text-primary-foreground">
           <User className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="min-w-0 flex-1">
@@ -124,9 +133,9 @@ export function MoreSheet() {
                   href={link.href}
                   onClick={close}
                   className={cn(
-                    'flex min-h-[3.25rem] items-center gap-3 rounded-2xl border border-border/40 bg-background/60 px-3 py-2.5',
+                    'flex min-h-13 items-center gap-3 rounded-2xl border border-border/40 bg-background/60 px-3 py-2.5',
                     'text-sm font-medium text-foreground transition-colors hover:bg-primary/10 active:scale-[0.98]',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring'
                   )}
                 >
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary dark:text-secondary">
@@ -149,7 +158,7 @@ export function MoreSheet() {
       <div className="mt-4 flex items-center gap-2">
         <ThemeSwitcher variant="pill" className="flex-1 justify-center" />
         <Button asChild variant="secondary" className="flex-1 gap-2 shadow-glow-secondary">
-          <a href={`tel:${CONTACT.phoneEn}`}>
+          <a href={`tel:${settings.phone}`}>
             <Phone className="h-4 w-4" aria-hidden="true" />
             تماس فوری
           </a>
@@ -158,17 +167,23 @@ export function MoreSheet() {
 
       {/* Social */}
       <div className="mt-4 flex items-center justify-between rounded-2xl bg-muted/40 px-4 py-2">
-        <span className="text-xs text-muted-foreground">{CONTACT.workingHours}</span>
+        <span className="text-xs text-muted-foreground">{settings.workingHours}</span>
         <div className="flex items-center gap-1">
-          <IconButton asChild label="واتس‌اپ" icon={<MessageCircle />} variant="ghost">
-            <a href={SOCIAL_MEDIA.whatsapp} target="_blank" rel="noopener noreferrer" />
-          </IconButton>
-          <IconButton asChild label="اینستاگرام" icon={<Instagram />} variant="ghost">
-            <a href={SOCIAL_MEDIA.instagram} target="_blank" rel="noopener noreferrer" />
-          </IconButton>
-          <IconButton asChild label="تلگرام" icon={<Send />} variant="ghost">
-            <a href={SOCIAL_MEDIA.telegram} target="_blank" rel="noopener noreferrer" />
-          </IconButton>
+          {settings.whatsapp && (
+            <IconButton asChild label="واتس‌اپ" icon={<WhatsappIcon />} variant="ghost">
+              <a href={settings.whatsapp} target="_blank" rel="noopener noreferrer" />
+            </IconButton>
+          )}
+          {settings.instagram && (
+            <IconButton asChild label="اینستاگرام" icon={<InstagramIcon />} variant="ghost">
+              <a href={settings.instagram} target="_blank" rel="noopener noreferrer" />
+            </IconButton>
+          )}
+          {settings.telegram && (
+            <IconButton asChild label="تلگرام" icon={<Send />} variant="ghost">
+              <a href={settings.telegram} target="_blank" rel="noopener noreferrer" />
+            </IconButton>
+          )}
         </div>
       </div>
     </BottomSheet>

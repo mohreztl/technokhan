@@ -36,7 +36,7 @@ export function AdminPageHeader({
         {backHref ? (
           <Link
             href={backHref}
-            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
           >
             <ArrowRight className="h-4 w-4 rtl:rotate-0" aria-hidden="true" />
             {backLabel}
@@ -47,7 +47,7 @@ export function AdminPageHeader({
         {!hideSiteLink && (
           <Link
             href={ROUTES.HOME}
-            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
           >
             بازگشت به سایت
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />

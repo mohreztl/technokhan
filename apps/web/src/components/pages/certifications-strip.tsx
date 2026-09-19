@@ -40,8 +40,8 @@ export function CertificationsStrip({ items }: CertificationsStripProps) {
       </div>
 
       <div className="relative" dir="ltr">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-background to-transparent sm:w-24" />
-        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-background to-transparent sm:w-24" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-linear-to-r from-background to-transparent sm:w-24" />
+        <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-linear-to-l from-background to-transparent sm:w-24" />
         <ul
           className={cn(
             'flex w-max items-stretch gap-4 px-4 [animation-play-state:running] hover:[animation-play-state:paused] focus-within:[animation-play-state:paused]',
@@ -57,7 +57,7 @@ export function CertificationsStrip({ items }: CertificationsStripProps) {
                 onClick={() => setActive(cert)}
                 aria-haspopup="dialog"
                 tabIndex={animate && index >= items.length ? -1 : 0}
-                className="flex h-full w-56 flex-col items-center gap-3 rounded-2xl border border-border bg-card p-4 text-center transition-colors hover:border-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+                className="flex h-full w-56 flex-col items-center gap-3 rounded-2xl border border-border bg-card p-4 text-center transition-colors hover:border-secondary/50 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
                 dir="rtl"
               >
                 <span className="relative h-16 w-full">

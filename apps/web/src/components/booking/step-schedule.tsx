@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarCheck2, CalendarX2, Clock3, RefreshCw } from 'lucide-react';
-import { BOOKING_TIME_SLOTS, CLOSED_WEEKDAYS, CONTACT } from '@autolounge/shared';
+import { useSettings } from '@/lib/hooks/use-settings';
+import { closedDaysLabel } from '@/lib/settings-format';
 import { JalaliCalendar } from '@/components/ui/jalali-calendar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,12 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
   const minDate = useMemo(bookingMinDate, []);
   const maxDate = useMemo(bookingMaxDate, []);
   const slots = useAvailableSlots(draft.serviceId, draft.date ?? undefined);
+  const settings = useSettings();
+  // One-off closures (holidays, Nowruz) are stored as yyyy-MM-dd.
+  const isClosedDate = useMemo(
+    () => (d: Date) => settings.closedDates.includes(toIsoDate(d)),
+    [settings.closedDates]
+  );
 
   const available = slots.data?.availableSlots ?? [];
   const booked = slots.data?.bookedSlots ?? [];
@@ -29,14 +36,15 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
       <section className="glass-effect rounded-2xl p-4 sm:p-5">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="font-bold">روز مراجعه</h3>
-          <span className="text-xs text-muted-foreground">{CONTACT.closedDays}</span>
+          <span className="text-xs text-muted-foreground">{closedDaysLabel(settings.closedWeekdays)}</span>
         </div>
         <JalaliCalendar
           value={selected ?? undefined}
           onChange={(d) => dispatch({ type: 'date', date: toIsoDate(d) })}
           minDate={minDate}
           maxDate={maxDate}
-          disabledWeekdays={CLOSED_WEEKDAYS}
+          disabledWeekdays={settings.closedWeekdays}
+          isDateDisabled={isClosedDate}
         />
         {errors.date && (
           <p role="alert" className={cn(fieldErrorClass, 'mt-3')}>
@@ -51,7 +59,7 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
             <Clock3 className="h-4 w-4 text-secondary" aria-hidden="true" />
             بازهٔ زمانی
           </h3>
-          <span className="text-xs text-muted-foreground">{CONTACT.workingHours}</span>
+          <span className="text-xs text-muted-foreground">{settings.workingHours}</span>
         </div>
 
         {!draft.date ? (
@@ -60,7 +68,7 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
           </p>
         ) : slots.isLoading ? (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-busy="true" aria-label="در حال بارگذاری بازه‌ها">
-            {BOOKING_TIME_SLOTS.map((slot) => (
+            {settings.timeSlots.map((slot) => (
               <Skeleton key={slot} className="h-[56px] rounded-xl" />
             ))}
           </div>
@@ -80,7 +88,7 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
           </div>
         ) : (
           <div role="radiogroup" aria-label="بازهٔ زمانی" className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {BOOKING_TIME_SLOTS.map((slot) => {
+            {settings.timeSlots.map((slot) => {
               const isAvailable = available.includes(slot);
               const isBooked = booked.includes(slot);
               const isSelected = draft.timeSlot === slot;
@@ -95,7 +103,7 @@ export function StepSchedule({ draft, dispatch, errors }: StepProps) {
                   onClick={() => dispatch({ type: 'slot', timeSlot: slot })}
                   className={cn(
                     'flex min-h-[56px] flex-col items-center justify-center rounded-xl border px-3 py-2 text-sm font-semibold transition-colors',
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50',
+                    'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/50',
                     isSelected && 'border-secondary bg-secondary/15 text-foreground shadow-glow-secondary',
                     !isSelected && isAvailable && 'border-border bg-card hover:border-secondary/60',
                     !isAvailable && 'cursor-not-allowed border-border/40 bg-muted/40 text-muted-foreground'

@@ -164,7 +164,7 @@ export function QuoteConfigurator({
                     aria-checked={active}
                     onClick={() => setServiceId(s.id)}
                     className={cn(
-                      'flex min-w-[150px] max-w-[190px] shrink-0 snap-start flex-col items-start gap-2 rounded-2xl border p-3 text-start transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                      'flex min-w-[150px] max-w-[190px] shrink-0 snap-start flex-col items-start gap-2 rounded-2xl border p-3 text-start transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
                       active
                         ? 'border-secondary bg-secondary/10 shadow-glow-secondary'
                         : 'border-border/50 bg-muted/30 hover:border-border'
@@ -202,7 +202,7 @@ export function QuoteConfigurator({
                   aria-checked={active}
                   onClick={() => setSize(v.id)}
                   className={cn(
-                    'flex min-h-[88px] flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-center transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary sm:p-3',
+                    'flex min-h-[88px] flex-col items-center justify-center gap-1.5 rounded-2xl border p-2 text-center transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary sm:p-3',
                     active
                       ? 'border-secondary bg-secondary/10 shadow-glow-secondary'
                       : 'border-border/50 bg-muted/30 hover:border-border'
@@ -250,7 +250,7 @@ export function QuoteConfigurator({
                     title={a.description}
                     onClick={() => toggleAddon(a.id)}
                     className={cn(
-                      'inline-flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                      'inline-flex h-11 items-center gap-1.5 rounded-full border px-4 text-sm transition-all duration-200 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
                       on
                         ? 'border-secondary bg-secondary text-secondary-foreground shadow-glow-secondary'
                         : 'border-border/60 bg-muted/30 text-foreground hover:border-secondary/60'

@@ -5,6 +5,7 @@ import type {
   Booking,
   ContactInput,
   ContactMessage,
+  Coupon,
   CouponResult,
   CreateBookingInput,
   CreateOrderInput,
@@ -18,15 +19,17 @@ import type {
   Review,
   Service,
   ServiceListQuery,
+  SiteSettings,
+  TrackInput,
+  TrackResult,
   User,
   VehicleSize,
 } from '@autolounge/shared';
 import {
   BOOKING_MAX_DAYS_AHEAD,
-  BOOKING_TIME_SLOTS,
   BookingStatus,
-  CLOSED_WEEKDAYS,
   COUPONS,
+  DEFAULT_SITE_SETTINGS,
   DEMO_ADMIN_PHONE,
   DEMO_OTP_CODE,
   OrderStatus,
@@ -37,8 +40,10 @@ import {
   computeOrderTotals,
   computeQuote,
   normalizePhoneNumber,
+  normalizeTrackingCode,
   toEnglishDigits,
   trackingCodeFromId,
+  trackingCodeKind,
 } from '@autolounge/shared';
 import type { ApiResult } from './client';
 import {
@@ -72,6 +77,9 @@ interface DemoDb {
   addresses: (Address & { id: string; userId: string })[];
   messages: ContactMessage[];
   reviews: (Review & { targetType: 'product' | 'service'; targetId: string; approved: boolean })[];
+  /** Seeded from the bundled COUPONS the first time the demo admin opens the page. */
+  coupons: (Coupon & { id: string })[];
+  settings: SiteSettings | null;
   catalog: {
     products: Record<string, Product>;
     services: Record<string, Service>;
@@ -89,6 +97,8 @@ const emptyDb = (): DemoDb => ({
   addresses: [],
   messages: [],
   reviews: [],
+  coupons: [],
+  settings: null,
   catalog: { products: {}, services: {}, deletedProducts: [], deletedServices: [] },
 });
 
@@ -371,6 +381,29 @@ function slotHour(slot: string): number {
   return m ? Number(m[1]) + Number(m[2]) / 60 : 0;
 }
 
+// ---------------------------------------------------------------------------
+// settings and coupons
+// ---------------------------------------------------------------------------
+
+/** The demo's settings row, created from the bundled defaults on first read. */
+function settingsRow(): SiteSettings {
+  return mutate((db) => (db.settings ??= structuredClone(DEFAULT_SITE_SETTINGS)));
+}
+
+/** Same for coupons — the bundled list is the demo's starting catalogue. */
+function couponRows(): (Coupon & { id: string })[] {
+  return mutate((db) => {
+    if (db.coupons.length === 0) {
+      db.coupons = COUPONS.map((c, i) => ({ ...c, id: `cpn_${i + 1}`, isActive: true, usedCount: 0 }));
+    }
+    return db.coupons;
+  });
+}
+
+export const demoSettings = {
+  get: () => ok(settingsRow()),
+};
+
 export const demoBookings = {
   availableSlots: (serviceId: string, date: string) => {
     const day = new Date(`${date}T00:00:00`);
@@ -378,7 +411,12 @@ export const demoBookings = {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const diffDays = Math.round((day.getTime() - today.getTime()) / 86_400_000);
-    const closed = CLOSED_WEEKDAYS.includes(day.getDay()) || diffDays < 0 || diffDays > BOOKING_MAX_DAYS_AHEAD;
+    const settings = settingsRow();
+    const closed =
+      settings.closedWeekdays.includes(day.getDay()) ||
+      settings.closedDates.includes(date) ||
+      diffDays < 0 ||
+      diffDays > BOOKING_MAX_DAYS_AHEAD;
     const booked = load()
       .bookings.filter(
         (b) => b.serviceId === serviceId && String(b.date).slice(0, 10) === date && b.status !== BookingStatus.CANCELLED
@@ -387,7 +425,7 @@ export const demoBookings = {
     const nowHour = new Date().getHours() + new Date().getMinutes() / 60;
     const availableSlots = closed
       ? []
-      : BOOKING_TIME_SLOTS.filter((s) => !booked.includes(s) && (diffDays > 0 || slotHour(s) > nowHour + 1));
+      : settings.timeSlots.filter((s) => !booked.includes(s) && (diffDays > 0 || slotHour(s) > nowHour + 1));
     return ok({ date, serviceId, availableSlots, bookedSlots: booked });
   },
 
@@ -475,7 +513,7 @@ export const demoBookings = {
 
 export const demoOrders = {
   validateCoupon: (code: string, subtotal: number) =>
-    ok<CouponResult>(applyCoupon(code, subtotal, COUPONS)),
+    ok<CouponResult>(applyCoupon(code, subtotal, couponRows())),
 
   create: (input: CreateOrderInput) => {
     const auth = requireUser();
@@ -489,9 +527,14 @@ export const demoOrders = {
     const totals = computeOrderTotals(
       lines.map((l) => ({ product: l.product!, quantity: l.quantity })),
       input.couponCode,
-      COUPONS
+      couponRows()
     );
     const order = mutate((db) => {
+      // Mirrors the API: placing the order spends one redemption.
+      if (totals.coupon.valid && totals.coupon.code) {
+        const spent = db.coupons.find((c) => c.code === totals.coupon.code);
+        if (spent) spent.usedCount = (spent.usedCount ?? 0) + 1;
+      }
       const id = uid('ord');
       const o: Order = {
         id,
@@ -766,6 +809,54 @@ export const demoContact = {
 };
 
 // ---------------------------------------------------------------------------
+// public tracking
+// ---------------------------------------------------------------------------
+
+export const demoTrack = {
+  lookup: (input: TrackInput) => {
+    const code = normalizeTrackingCode(input.code);
+    const phone = normalizePhoneNumber(input.phoneNumber);
+    const db = load();
+    // Same wording for a bad code and a mismatched phone, as the API does, so
+    // neither can be used to probe for the other.
+    const missing = () => fail<TrackResult>('سفارش یا رزروی با این کد و شمارهٔ موبایل پیدا نشد', 404, 'NOT_FOUND');
+    const owner = (userId: string) => db.users.find((u) => u.id === userId)?.phoneNumber ?? '';
+
+    if (trackingCodeKind(code) === 'booking') {
+      const booking = db.bookings.find((b) => (b.trackingCode ?? trackingCodeFromId('BK', b.id)) === code);
+      if (!booking || normalizePhoneNumber(owner(booking.userId)) !== phone) return missing();
+      return ok<TrackResult>({
+        kind: 'booking',
+        code,
+        status: booking.status,
+        createdAt: booking.createdAt,
+        updatedAt: booking.updatedAt,
+        totalPrice: booking.totalPrice,
+        serviceName: booking.service?.name ?? findLocalService(booking.serviceId, catalogServices())?.name,
+        date: booking.date,
+        timeSlot: booking.timeSlot,
+      });
+    }
+
+    const order = db.orders.find((o) => (o.trackingCode ?? trackingCodeFromId('OR', o.id)) === code);
+    const shipTo = order?.shippingAddress?.phoneNumber ?? '';
+    if (!order || ![owner(order.userId), shipTo].map((p) => normalizePhoneNumber(p)).includes(phone)) return missing();
+    return ok<TrackResult>({
+      kind: 'order',
+      code,
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+      totalPrice: order.totalPrice,
+      itemCount: order.items.length,
+      shipmentCode: order.shipmentCode,
+      destination: [order.shippingAddress?.province, order.shippingAddress?.city].filter(Boolean).join('، ') || undefined,
+    });
+  },
+};
+
+// ---------------------------------------------------------------------------
 // admin
 // ---------------------------------------------------------------------------
 
@@ -911,7 +1002,13 @@ export const demoAdmin = {
       let items = [...db.orders].sort(byDateDesc);
       if (q.status) items = items.filter((o) => o.status === q.status);
       const search = str(q.search);
-      if (search) items = items.filter((o) => includesFa(`${o.id} ${o.trackingCode ?? ''} ${o.shippingAddress?.fullName ?? ''} ${o.shippingAddress?.phoneNumber ?? ''}`, search));
+      if (search)
+        items = items.filter((o) =>
+          includesFa(
+            `${o.id} ${o.trackingCode ?? ''} ${o.shipmentCode ?? ''} ${o.shippingAddress?.fullName ?? ''} ${o.shippingAddress?.phoneNumber ?? ''}`,
+            search
+          )
+        );
       const { items: page, pagination } = paginate(items, num(q.page, 1), num(q.limit, 20));
       return ok(page, pagination);
     },
@@ -922,14 +1019,14 @@ export const demoAdmin = {
       const o = db.orders.find((x) => x.id === id);
       return o ? ok({ ...o, transactions: db.transactions.filter((t) => t.orderId === id) }) : fail<Order>('سفارش یافت نشد', 404, 'NOT_FOUND');
     },
-    updateStatus: (id: string, input: { status: OrderStatus; trackingCode?: string }) => {
+    updateStatus: (id: string, input: { status: OrderStatus; shipmentCode?: string }) => {
       const auth = requireAdmin();
       if ('error' in auth) return Promise.resolve(auth.error);
       const o = mutate((db) => {
         const found = db.orders.find((x) => x.id === id);
         if (found) {
           found.status = input.status;
-          if (input.trackingCode) found.trackingCode = input.trackingCode;
+          if (input.shipmentCode !== undefined) found.shipmentCode = input.shipmentCode || undefined;
           if (input.status === OrderStatus.DELIVERED && found.paymentMethod === 'cod') found.paymentStatus = PaymentStatus.PAID;
           found.updatedAt = nowIso();
         }
@@ -1020,6 +1117,79 @@ export const demoAdmin = {
         return found;
       });
       return m ? ok(m) : fail<ContactMessage>('پیام یافت نشد', 404, 'NOT_FOUND');
+    },
+  },
+
+  coupons: {
+    list: () => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      return ok([...couponRows()].reverse());
+    },
+    create: (input: Partial<Coupon>) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const code = String(input.code ?? '').trim().toUpperCase();
+      if (couponRows().some((c) => c.code === code)) {
+        return fail<Coupon>('کد تخفیف با این عنوان از قبل وجود دارد', 409, 'CONFLICT');
+      }
+      const coupon = mutate((db) => {
+        const c = {
+          type: 'percent',
+          value: 0,
+          description: '',
+          ...input,
+          code,
+          id: uid('cpn'),
+          isActive: input.isActive ?? true,
+          usedCount: 0,
+          createdAt: nowIso(),
+          updatedAt: nowIso(),
+        } as Coupon & { id: string };
+        db.coupons.push(c);
+        return c;
+      });
+      return ok(coupon);
+    },
+    update: (id: string, patch: Partial<Coupon>) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const rows = couponRows();
+      const current = rows.find((c) => c.id === id);
+      if (!current) return fail<Coupon>('کد تخفیف پیدا نشد', 404, 'NOT_FOUND');
+      const code = patch.code ? patch.code.trim().toUpperCase() : current.code;
+      if (rows.some((c) => c.code === code && c.id !== id)) {
+        return fail<Coupon>('کد تخفیف با این عنوان از قبل وجود دارد', 409, 'CONFLICT');
+      }
+      const coupon = mutate((db) => {
+        const row = db.coupons.find((c) => c.id === id)!;
+        Object.assign(row, patch, { code, id, updatedAt: nowIso() });
+        return row;
+      });
+      return ok(coupon);
+    },
+    remove: (id: string) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      couponRows();
+      mutate((db) => {
+        db.coupons = db.coupons.filter((c) => c.id !== id);
+      });
+      return ok({ id });
+    },
+  },
+
+  settings: {
+    get: () => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      return ok(settingsRow());
+    },
+    update: (input: SiteSettings) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const next = mutate((db) => (db.settings = { ...input, updatedAt: nowIso() }));
+      return ok(next);
     },
   },
 

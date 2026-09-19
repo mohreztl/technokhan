@@ -202,7 +202,7 @@ export function LoadingOverlay({ isLoading }: { isLoading: boolean }) {
               style={{ width: 200 }}
             >
               <motion.div
-                className="h-full bg-gradient-to-r from-primary via-secondary to-primary"
+                className="h-full bg-linear-to-r from-primary via-secondary to-primary"
                 animate={{
                   x: ['-100%', '100%'],
                 }}

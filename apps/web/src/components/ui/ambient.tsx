@@ -28,14 +28,14 @@ interface Orb {
 const HERO_ORBS: Orb[] = [
   {
     className:
-      'top-[10%] -end-24 h-[26rem] w-[26rem] bg-gradient-to-br from-secondary/25 via-secondary/10 to-transparent',
+      'top-[10%] -inset-e-24 h-104 w-104 bg-linear-to-br from-secondary/25 via-secondary/10 to-transparent',
     keyframes: { scale: [1, 1.25, 1], opacity: [0.35, 0.6, 0.35], x: [0, -40, 0] },
     rest: 0.4,
     duration: 16,
   },
   {
     className:
-      '-bottom-24 -start-24 h-[30rem] w-[30rem] bg-gradient-to-tr from-primary/40 via-primary/15 to-transparent',
+      '-bottom-24 -inset-s-24 h-120 w-120 bg-linear-to-tr from-primary/40 via-primary/15 to-transparent',
     keyframes: { scale: [1.2, 1, 1.2], opacity: [0.45, 0.25, 0.45], y: [0, 40, 0] },
     rest: 0.35,
     duration: 20,
@@ -45,14 +45,14 @@ const HERO_ORBS: Orb[] = [
 const SECTION_ORBS: Orb[] = [
   {
     className:
-      'top-0 end-[10%] h-[24rem] w-[24rem] bg-gradient-to-br from-primary/20 to-transparent',
+      'top-0 inset-e-[10%] h-96 w-[24rem] bg-linear-to-br from-primary/20 to-transparent',
     keyframes: { y: [0, 40, 0], opacity: [0.3, 0.5, 0.3] },
     rest: 0.3,
     duration: 12,
   },
   {
     className:
-      'bottom-0 start-[10%] h-[22rem] w-[22rem] bg-gradient-to-tr from-secondary/20 to-transparent',
+      'bottom-0 inset-s-[10%] h-88 w-88 bg-linear-to-tr from-secondary/20 to-transparent',
     keyframes: { y: [0, -30, 0], scale: [1, 1.15, 1], opacity: [0.3, 0.45, 0.3] },
     rest: 0.3,
     duration: 14,
@@ -128,13 +128,13 @@ export function GoldLines({ className }: GoldLinesProps) {
         isStatic ? (
           <div
             key={i}
-            className="absolute h-px w-[40%] bg-gradient-to-r from-transparent via-secondary/40 to-transparent"
+            className="absolute h-px w-[40%] bg-linear-to-r from-transparent via-secondary/40 to-transparent"
             style={{ top: line.top, insetInlineStart: i === 0 ? '10%' : '50%' }}
           />
         ) : (
           <motion.div
             key={i}
-            className="absolute h-px w-[30%] bg-gradient-to-r from-transparent via-secondary/60 to-transparent"
+            className="absolute h-px w-[30%] bg-linear-to-r from-transparent via-secondary/60 to-transparent"
             style={{ top: line.top, left: 0 }}
             initial={{ x: line.from, opacity: 0 }}
             animate={animate ? { x: [line.from, line.to], opacity: [0, 1, 1, 0] } : { opacity: 0 }}
@@ -158,19 +158,19 @@ export function GoldLines({ className }: GoldLinesProps) {
 
 const BLOBS: Orb[] = [
   {
-    className: 'top-1/4 -start-20 h-96 w-96 bg-primary/10',
+    className: 'top-1/4 -inset-s-20 h-96 w-96 bg-primary/10',
     keyframes: { x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.2, 1] },
     rest: 1,
     duration: 20,
   },
   {
-    className: 'top-1/2 -end-20 h-80 w-80 bg-secondary/15',
+    className: 'top-1/2 -inset-e-20 h-80 w-80 bg-secondary/15',
     keyframes: { x: [0, -80, 0], y: [0, 80, 0], scale: [1, 1.3, 1] },
     rest: 1,
     duration: 25,
   },
   {
-    className: 'bottom-1/4 start-1/3 h-72 w-72 bg-accent/5',
+    className: 'bottom-1/4 inset-s-1/3 h-72 w-72 bg-accent/5',
     keyframes: { x: [0, 60, 0], y: [0, -60, 0], scale: [1, 1.1, 1] },
     rest: 1,
     duration: 15,

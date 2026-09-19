@@ -25,7 +25,7 @@ export function QuoteTeaser({ services = SERVICES }: QuoteTeaserProps) {
     <section className="relative overflow-hidden bg-muted/40 py-16 lg:py-24" aria-labelledby="quote-teaser-title">
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-secondary/50 to-transparent"
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-secondary/50 to-transparent"
       />
       <div className="container-custom grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
         <div>
@@ -64,7 +64,7 @@ export function QuoteTeaser({ services = SERVICES }: QuoteTeaserProps) {
         >
           <div
             aria-hidden="true"
-            className="absolute -inset-3 -z-10 rounded-[2rem] bg-gradient-to-br from-secondary/20 via-transparent to-primary/10 blur-xl"
+            className="absolute -inset-3 -z-10 rounded-4xl bg-linear-to-br from-secondary/20 via-transparent to-primary/10 blur-xl"
           />
           <div className="rounded-3xl border border-border/70 bg-card p-1 shadow-luxury">
             <div className="flex items-center gap-2 px-4 pb-1 pt-3 text-sm font-bold text-foreground">

@@ -52,6 +52,8 @@ export default function GlobalError({
                 تلاش مجدد
               </Button>
               <Button
+                // global-error renders outside the router, so useRouter() is unavailable here.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 onClick={() => (window.location.href = '/')}
                 variant="primary"
                 className="gap-2"
@@ -60,6 +62,7 @@ export default function GlobalError({
                 صفحه اصلی
               </Button>
               <Button
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
                 onClick={() => (window.location.href = '/contact')}
                 variant="secondary"
                 className="gap-2"

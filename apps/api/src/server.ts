@@ -25,6 +25,8 @@ import { adminRoutes } from './routes/admin';
 import { paymentRoutes } from './routes/payment';
 import { contactRoutes } from './routes/contact';
 import { addressRoutes } from './routes/addresses';
+import { trackRoutes } from './routes/track';
+import { settingsRoutes } from './routes/settings';
 
 
 if (!config.jwtSecret) {
@@ -192,6 +194,8 @@ async function registerRoutes() {
       await instance.register(paymentRoutes, { prefix: '/payment' });
       await instance.register(addressRoutes, { prefix: '/addresses' });
       await instance.register(contactRoutes, { prefix: '/contact' });
+      await instance.register(trackRoutes, { prefix: '/track' });
+      await instance.register(settingsRoutes, { prefix: '/settings' });
       await instance.register(adminRoutes, { prefix: '/admin' });
     },
     { prefix: '/api/v1' }

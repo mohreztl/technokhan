@@ -92,7 +92,7 @@ export function AdminDashboardClient() {
       {unread > 0 && (
         <Link
           href="/admin/messages?filter=unread"
-          className="mt-4 flex items-center gap-3 rounded-2xl border border-secondary/50 bg-secondary/10 p-4 transition-colors hover:bg-secondary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-secondary/50 bg-secondary/10 p-4 transition-colors hover:bg-secondary/20 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary text-primary" aria-hidden="true">
             <MailOpen className="h-5 w-5" />
@@ -154,7 +154,7 @@ export function AdminDashboardClient() {
                 <li key={o.id}>
                   <Link
                     href={`/admin/orders/${o.id}`}
-                    className="flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    className="flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +203,7 @@ export function AdminDashboardClient() {
                 <li key={b.id}>
                   <Link
                     href={`/admin/bookings/${b.id}`}
-                    className="flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    className="flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                   >
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">

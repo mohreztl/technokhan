@@ -51,7 +51,7 @@ export function SearchInput({
   return (
     <div className={cn('relative w-full', className)}>
       <Search
-        className="pointer-events-none absolute start-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+        className="pointer-events-none absolute inset-s-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
         aria-hidden="true"
       />
       <input
@@ -71,7 +71,7 @@ export function SearchInput({
         enterKeyHint="search"
         className={cn(
           'h-11 w-full rounded-xl border border-input bg-background pe-11 ps-10 text-sm text-foreground placeholder:text-muted-foreground',
-          'transition-all focus:border-transparent focus:outline-none focus:ring-2 focus:ring-ring',
+          'transition-all focus:border-transparent focus:outline-hidden focus:ring-2 focus:ring-ring',
           '[&::-webkit-search-cancel-button]:hidden'
         )}
       />
@@ -81,7 +81,7 @@ export function SearchInput({
           icon={<X />}
           size="sm"
           variant="ghost"
-          className="absolute end-0.5 top-1/2 -translate-y-1/2"
+          className="absolute inset-e-0.5 top-1/2 -translate-y-1/2"
           onClick={clear}
         />
       )}

@@ -73,7 +73,7 @@ export function FiltersBar({
                     onClick={() => onChange?.(chip.value)}
                     className={cn(
                       'relative flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors lg:h-10',
-                      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                      'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       active ? 'border-transparent text-primary-foreground' : 'border-border/70 bg-background text-foreground hover:bg-secondary/10'
                     )}
                   >

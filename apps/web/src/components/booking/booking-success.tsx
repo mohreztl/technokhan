@@ -112,6 +112,12 @@ export function BookingSuccess({ booking, service, durationMinutes, locationLabe
           <p className="mt-2 text-xs text-muted-foreground">
             ثبت‌شده در {formatJalaliDateTime(booking.createdAt)}
           </p>
+          <Link
+            href={`${ROUTES.TRACK}?code=${encodeURIComponent(code)}`}
+            className="link-hover mt-3 inline-flex min-h-10 items-center text-xs font-semibold text-secondary"
+          >
+            پیگیری با این کد
+          </Link>
         </div>
 
         <div className="glass-effect space-y-4 rounded-2xl p-5">

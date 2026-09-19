@@ -151,7 +151,7 @@ export function StepVehicle({ draft, dispatch, errors }: StepProps) {
                 onClick={() => patch({ color: c.name })}
                 className={cn(
                   'flex min-h-[44px] items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary/50',
+                  'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/50',
                   active
                     ? 'border-secondary bg-secondary/15 shadow-glow-secondary'
                     : 'border-border bg-card hover:border-secondary/60'

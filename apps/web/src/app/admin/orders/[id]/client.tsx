@@ -34,19 +34,18 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
   const { data: order, isLoading, isError, error, refetch } = useAdminOrder(id);
   const { updateOrderStatus } = useAdminMutations();
   const [status, setStatus] = React.useState('');
-  const [tracking, setTracking] = React.useState('');
+  const [shipment, setShipment] = React.useState('');
 
   React.useEffect(() => {
     if (order) {
       setStatus(order.status);
-      setTracking(order.trackingCode ?? '');
+      setShipment(order.shipmentCode ?? '');
     }
   }, [order]);
 
   const save = (nextStatus: string) => {
-    const trackingCode = tracking.trim();
     updateOrderStatus.mutate(
-      { id, status: nextStatus as OrderStatus, trackingCode: trackingCode || undefined },
+      { id, status: nextStatus as OrderStatus, shipmentCode: shipment.trim() },
       {
         onSuccess: () => toast.success('وضعیت سفارش به‌روزرسانی شد', { description: statusLabel('order', nextStatus) }),
         onError: (e) => toast.error('به‌روزرسانی ناموفق بود', { description: e.message }),
@@ -82,7 +81,7 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
   }
 
   const subtotal = order.subtotal ?? order.items.reduce((s, i) => s + i.price * i.quantity, 0);
-  const dirty = status !== order.status || tracking.trim() !== (order.trackingCode ?? '');
+  const dirty = status !== order.status || shipment.trim() !== (order.shipmentCode ?? '');
   const next = nextOrderStatus(order.status);
   const busy = updateOrderStatus.isPending;
 
@@ -112,7 +111,8 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
         <div className="space-y-4">
           <DetailCard title="خلاصهٔ سفارش" icon={<Receipt />}>
             <DetailList>
-              <DetailRow label="کد سفارش" value={orderCode(order)} dir="ltr" />
+              <DetailRow label="کد پیگیری سفارش" value={orderCode(order)} dir="ltr" />
+              {order.shipmentCode && <DetailRow label="کد رهگیری مرسوله" value={order.shipmentCode} dir="ltr" />}
               <DetailRow label="وضعیت پرداخت" value={<StatusBadge kind="payment" status={order.paymentStatus} size="sm" />} />
               <DetailRow label="روش پرداخت" value={PAYMENT_METHOD_LABELS[order.paymentMethod] ?? order.paymentMethod} />
               {order.couponCode && <DetailRow label="کد تخفیف" value={order.couponCode} dir="ltr" />}
@@ -134,9 +134,10 @@ export function AdminOrderDetailClient({ id }: { id: string }) {
             <div className="space-y-4">
               <StatusSelect kind="order" value={status} onChange={setStatus} disabled={busy} />
               <Input
-                label="کد رهگیری پستی (اختیاری)"
-                value={tracking}
-                onChange={(e) => setTracking(e.target.value)}
+                label="کد رهگیری مرسولهٔ پستی (اختیاری)"
+                hint="کد پیگیری سفارش را تغییر نمی‌دهد؛ مشتری با همان کد سفارش را دنبال می‌کند."
+                value={shipment}
+                onChange={(e) => setShipment(e.target.value)}
                 placeholder="مثلاً ۱۲۳۴۵۶۷۸۹۰"
                 dir="ltr"
                 className="text-start"

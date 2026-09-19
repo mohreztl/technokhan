@@ -84,7 +84,7 @@ export function TabGarage() {
                       className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-black/10 shadow-inner"
                       style={{ backgroundColor: hex ?? 'hsl(var(--muted))' }}
                     >
-                      <Car className="h-6 w-6 text-white drop-shadow" />
+                      <Car className="h-6 w-6 text-white drop-shadow-sm" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="truncate font-bold">{vehicleDisplayName(vehicle)}</p>

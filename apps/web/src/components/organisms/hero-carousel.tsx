@@ -140,7 +140,7 @@ export function HeroCarousel({
     <section
       ref={sectionRef}
       className={cn(
-        'relative -mt-[calc(5rem+env(safe-area-inset-top))] min-h-dvh overflow-hidden bg-[#000d1a] text-white',
+        'relative -mt-[calc(5rem+env(safe-area-inset-top))] min-h-dvh overflow-hidden bg-primary-800 text-white',
         className
       )}
       role="region"
@@ -188,12 +188,12 @@ export function HeroCarousel({
           );
         })}
         {/* Legibility overlays — fixed dark tones so white text works in both themes */}
-        <div className="absolute inset-0 z-[2] bg-gradient-to-t from-black/90 via-black/45 to-black/25" />
-        <div className="absolute inset-0 z-[2] bg-gradient-to-l from-primary-900/40 via-transparent to-primary-900/30" />
+        <div className="absolute inset-0 z-2 bg-linear-to-t from-black/90 via-black/45 to-black/25" />
+        <div className="absolute inset-0 z-2 bg-linear-to-l from-primary-900/40 via-transparent to-primary-900/30" />
       </div>
 
-      <AmbientOrbs variant="hero" className="z-[3] opacity-70 mix-blend-screen" />
-      <GoldLines className="z-[3]" />
+      <AmbientOrbs variant="hero" className="z-3 opacity-70 mix-blend-screen" />
+      <GoldLines className="z-3" />
 
       {/* Content layer (swipeable) */}
       <motion.div
@@ -221,7 +221,7 @@ export function HeroCarousel({
               {slide.badge && (
                 <motion.span
                   variants={heroItem}
-                  className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-secondary-200/50 bg-gradient-to-r from-secondary-400 via-secondary-300 to-secondary-400 px-3 py-1 text-xs font-bold text-primary-900 shadow-[0_2px_12px_hsl(var(--secondary)/0.45)] sm:px-4 sm:py-1.5 sm:text-sm"
+                  className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-secondary-200/50 bg-linear-to-r from-secondary-400 via-secondary-300 to-secondary-400 px-3 py-1 text-xs font-bold text-primary-900 shadow-[0_2px_12px_hsl(var(--secondary)/0.45)] sm:px-4 sm:py-1.5 sm:text-sm"
                 >
                   <Star className="h-3.5 w-3.5 fill-current" aria-hidden="true" />
                   {slide.badge}
@@ -286,7 +286,7 @@ export function HeroCarousel({
                       asChild
                       size="lg"
                       variant="secondary"
-                      className="min-w-[12rem] gap-2 rounded-xl shadow-glow-secondary"
+                      className="min-w-48 gap-2 rounded-xl shadow-glow-secondary"
                     >
                       <Link href={slide.ctaPrimary.href}>
                         {slide.ctaPrimary.icon && (
@@ -301,7 +301,7 @@ export function HeroCarousel({
                       asChild
                       size="lg"
                       variant="glass"
-                      className="min-w-[12rem] gap-2 rounded-xl border-white/25 bg-white/10 text-white hover:bg-white/20"
+                      className="min-w-48 gap-2 rounded-xl border-white/25 bg-white/10 text-white hover:bg-white/20"
                     >
                       <Link href={slide.ctaSecondary.href}>
                         {slide.ctaSecondary.icon && (
@@ -326,7 +326,7 @@ export function HeroCarousel({
             icon={<ChevronRight />}
             size="lg"
             variant="glass"
-            className="absolute start-4 top-1/2 z-20 hidden -translate-y-1/2 border-white/20 bg-white/10 text-white hover:bg-white/20 md:inline-flex lg:start-8"
+            className="absolute inset-s-4 top-1/2 z-20 hidden -translate-y-1/2 border-white/20 bg-white/10 text-white hover:bg-white/20 md:inline-flex lg:inset-s-8"
             onClick={prev}
           />
           <IconButton
@@ -334,7 +334,7 @@ export function HeroCarousel({
             icon={<ChevronLeft />}
             size="lg"
             variant="glass"
-            className="absolute end-4 top-1/2 z-20 hidden -translate-y-1/2 border-white/20 bg-white/10 text-white hover:bg-white/20 md:inline-flex lg:end-8"
+            className="absolute inset-e-4 top-1/2 z-20 hidden -translate-y-1/2 border-white/20 bg-white/10 text-white hover:bg-white/20 md:inline-flex lg:inset-e-8"
             onClick={next}
           />
         </>
@@ -358,7 +358,7 @@ export function HeroCarousel({
                 aria-current={active ? 'true' : undefined}
                 aria-label={`رفتن به اسلاید ${toPersianDigits(i + 1)}`}
                 onClick={() => goTo(i)}
-                className="group flex h-11 w-11 items-center justify-center outline-none"
+                className="group flex h-11 w-11 items-center justify-center outline-hidden"
               >
                 <span
                   className={cn(
@@ -391,7 +391,7 @@ export function HeroCarousel({
       {autoplay && (
         <div className="absolute inset-x-0 bottom-0 z-20 h-[3px] bg-white/10" aria-hidden="true">
           <motion.div
-            className="h-full bg-gradient-to-l from-secondary-300 via-secondary to-secondary-300"
+            className="h-full bg-linear-to-l from-secondary-300 via-secondary to-secondary-300"
             style={{ scaleX: progress, originX: 1 }}
           />
         </div>

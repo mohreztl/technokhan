@@ -71,9 +71,9 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
       >
         <Link
           href={ROUTES.ADMIN}
-          className="flex items-center gap-3 px-5 pb-4 pt-6 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+          className="flex items-center gap-3 px-5 pb-4 pt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-secondary to-secondary-700 text-primary shadow-glow-secondary">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-secondary to-secondary-700 text-primary shadow-glow-secondary">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
@@ -81,7 +81,7 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
             <span className="block text-[11px] text-white/60">پنل مدیریت</span>
           </span>
         </Link>
-        <span className="mx-5 h-px bg-gradient-to-l from-transparent via-secondary/50 to-transparent" aria-hidden="true" />
+        <span className="mx-5 h-px bg-linear-to-l from-transparent via-secondary/50 to-transparent" aria-hidden="true" />
 
         <nav aria-label="ناوبری پنل مدیریت" className="flex-1 space-y-1 px-3 py-4">
           {ADMIN_NAV.map((item) => {
@@ -95,7 +95,7 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors',
-                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary',
+                  'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
                   active ? 'text-secondary' : 'text-white/75 hover:bg-white/5 hover:text-white'
                 )}
               >
@@ -107,7 +107,7 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
                     aria-hidden="true"
                   />
                 )}
-                {active && <span className="absolute inset-y-2.5 start-0 w-1 rounded-full bg-secondary" aria-hidden="true" />}
+                {active && <span className="absolute inset-y-2.5 inset-s-0 w-1 rounded-full bg-secondary" aria-hidden="true" />}
                 <Icon className="relative z-10 h-5 w-5 shrink-0" aria-hidden="true" />
                 <span className="relative z-10 flex-1">{item.label}</span>
                 {badge > 0 && (
@@ -144,7 +144,7 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
           </div>
           <Link
             href={ROUTES.HOME}
-            className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-xs text-white/60 transition-colors hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+            className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-xs text-white/60 transition-colors hover:text-secondary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
           >
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             بازگشت به سایت
@@ -185,8 +185,8 @@ function MobileBar({
   return (
     <div className={cn('sticky z-30 border-b border-border/40 glass-effect-strong lg:hidden', TOP_OFFSET)}>
       <div className="flex h-14 items-center justify-between gap-2 px-4">
-        <Link href={ROUTES.ADMIN} className="flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-secondary to-secondary-700 text-primary">
+        <Link href={ROUTES.ADMIN} className="flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-secondary to-secondary-700 text-primary">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0">
@@ -211,7 +211,7 @@ function MobileBar({
               aria-current={active ? 'page' : undefined}
               className={cn(
                 'relative flex h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring',
                 active ? 'border-transparent text-primary-foreground' : 'border-border/70 bg-background/70 text-foreground'
               )}
             >

@@ -15,7 +15,7 @@ export interface DetailCardProps {
 /** Bordered section with a small gold-accented heading. */
 export function DetailCard({ title, icon, action, className, contentClassName, children }: DetailCardProps) {
   return (
-    <section className={cn('overflow-hidden rounded-2xl border border-border/60 bg-background shadow-sm', className)}>
+    <section className={cn('overflow-hidden rounded-2xl border border-border/60 bg-background shadow-xs', className)}>
       <header className="flex items-center justify-between gap-3 border-b border-border/60 bg-background-secondary/60 px-4 py-3">
         <h2 className="flex items-center gap-2 text-sm font-bold text-foreground">
           {icon && (

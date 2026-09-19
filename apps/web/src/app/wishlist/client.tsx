@@ -105,8 +105,8 @@ export function WishlistPageClient() {
         >
           <span className="relative flex h-28 w-28 items-center justify-center rounded-full bg-red-500/10">
             <Heart className="h-14 w-14 text-red-400" aria-hidden="true" />
-            <span aria-hidden="true" className="absolute -end-1 -top-1 h-5 w-5 rounded-full bg-secondary/60" />
-            <span aria-hidden="true" className="absolute -start-2 bottom-2 h-3 w-3 rounded-full bg-primary/30" />
+            <span aria-hidden="true" className="absolute -inset-e-1 -top-1 h-5 w-5 rounded-full bg-secondary/60" />
+            <span aria-hidden="true" className="absolute -inset-s-2 bottom-2 h-3 w-3 rounded-full bg-primary/30" />
           </span>
           <h2 className="mt-6 text-xl font-black text-foreground">هنوز چیزی ذخیره نکرده‌اید</h2>
           <p className="mt-2 max-w-sm text-sm leading-7 text-muted-foreground">

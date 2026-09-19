@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import Image from 'next/image';
-import { Award, ShieldCheck, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { ArrowLeft, Award, GitCompareArrows, ShieldCheck, Sparkles } from 'lucide-react';
 import { FAQ, ROUTES, SERVICES, SERVICE_TYPE_LABELS } from '@autolounge/shared';
 import { getServices } from '@/lib/data/repository';
 import { JsonLd, breadcrumbJsonLd } from '@/lib/seo';
@@ -60,7 +61,7 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
           sizes="100vw"
           className="object-cover opacity-30"
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary via-primary/85 to-primary/60" />
+        <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-primary via-primary/85 to-primary/60" />
         <div className="container-custom relative py-14 text-center lg:py-24">
           <p className="mb-3 text-xs font-bold tracking-[0.25em] text-secondary">خدمات اتولانژ</p>
           <h1 id="services-hero-title" className="mx-auto max-w-3xl text-balance text-3xl font-black leading-tight sm:text-4xl lg:text-5xl">
@@ -80,6 +81,14 @@ export default async function ServicesPage({ searchParams }: { searchParams: Sea
               </li>
             ))}
           </ul>
+          <Link
+            href={ROUTES.COMPARE}
+            className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-secondary px-5 text-sm font-bold text-secondary-foreground transition-colors hover:bg-secondary/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-white/60"
+          >
+            <GitCompareArrows className="h-4 w-4" aria-hidden="true" />
+            مقایسهٔ خدمات کنار هم
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          </Link>
         </div>
       </section>
 

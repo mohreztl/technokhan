@@ -41,7 +41,7 @@ function StatTile({
   return (
     <Link
       href={href}
-      className="glass-effect flex min-h-[44px] flex-col gap-1 rounded-2xl p-3 transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+      className="glass-effect flex min-h-[44px] flex-col gap-1 rounded-2xl p-3 transition-colors hover:bg-muted/40 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
       aria-label={`${label}: ${value}`}
     >
       <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-secondary/15 text-secondary" aria-hidden="true">

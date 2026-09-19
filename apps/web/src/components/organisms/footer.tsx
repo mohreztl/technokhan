@@ -7,28 +7,26 @@ import { motion } from 'framer-motion';
 import {
   Award,
   Clock,
-  Instagram,
   Mail,
   MapPin,
-  MessageCircle,
   Phone,
-  Send,
   ShieldCheck,
   Truck,
 } from 'lucide-react';
+import { InstagramIcon, TelegramIcon, WhatsappIcon } from '@/components/icons/brands';
 import {
   APP_DESCRIPTION,
   APP_NAME,
-  CONTACT,
   ROUTES,
   SERVICES,
-  SOCIAL_MEDIA,
   toPersianDigits,
 } from '@autolounge/shared';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
 import { Input } from '@/components/ui/input';
 import { showToast } from '@/components/ui/toaster';
+import { useSettings } from '@/lib/hooks/use-settings';
+import { closedDaysLabel } from '@/lib/settings-format';
 import { fadeInUp, viewportConfig } from '@/lib/animation-variants';
 import { isChromeHidden } from '@/lib/routes';
 
@@ -42,16 +40,19 @@ const QUICK_LINKS = [
   { title: 'فروشگاه', href: ROUTES.PRODUCTS },
   { title: 'نمونه کارها', href: ROUTES.GALLERY },
   { title: 'رزرو نوبت', href: ROUTES.BOOKING },
-  { title: 'پیگیری سفارش', href: ROUTES.ORDERS },
+  { title: 'مقایسهٔ خدمات', href: ROUTES.COMPARE },
+  { title: 'پیگیری سفارش', href: ROUTES.TRACK },
+  { title: 'مجله', href: ROUTES.BLOG },
+  { title: 'سؤالات متداول', href: ROUTES.FAQ },
   { title: 'درباره ما', href: ROUTES.ABOUT },
   { title: 'تماس با ما', href: ROUTES.CONTACT },
 ];
 
-const SOCIALS = [
-  { label: 'اینستاگرام', href: SOCIAL_MEDIA.instagram, icon: <Instagram /> },
-  { label: 'تلگرام', href: SOCIAL_MEDIA.telegram, icon: <Send /> },
-  { label: 'واتس‌اپ', href: SOCIAL_MEDIA.whatsapp, icon: <MessageCircle /> },
-];
+const SOCIAL_ICONS = {
+  instagram: { label: 'اینستاگرام', icon: <InstagramIcon /> },
+  telegram: { label: 'تلگرام', icon: <TelegramIcon /> },
+  whatsapp: { label: 'واتس‌اپ', icon: <WhatsappIcon /> },
+} as const;
 
 const TRUST = [
   { icon: ShieldCheck, label: 'گارانتی کتبی خدمات' },
@@ -113,6 +114,7 @@ function NewsletterForm() {
 
 export const Footer: React.FC = () => {
   const pathname = usePathname();
+  const settings = useSettings();
   // The admin dashboard has its own shell.
   if (isChromeHidden(pathname ?? '')) return null;
 
@@ -137,20 +139,23 @@ export const Footer: React.FC = () => {
           {/* Brand */}
           <motion.div {...columnMotion}>
             <Link href={ROUTES.HOME} className="mb-4 inline-flex items-center gap-3" aria-label={APP_NAME}>
-              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-primary via-secondary to-primary shadow-glow-primary">
+              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-primary via-secondary to-primary shadow-glow-primary">
                 <span className="text-2xl font-black text-primary-foreground">A</span>
                 <span
                   aria-hidden="true"
-                  className="absolute inset-0 animate-shine rounded-xl bg-gradient-shine bg-[length:200%_100%]"
+                  className="absolute inset-0 animate-shine rounded-xl bg-gradient-shine bg-size-[200%_100%]"
                 />
               </span>
               <span className="text-2xl font-black text-gradient-luxury">{APP_NAME}</span>
             </Link>
             <p className="leading-relaxed text-muted-foreground">{APP_DESCRIPTION}</p>
             <div className="mt-5 flex gap-2">
-              {SOCIALS.map((social) => (
-                <IconButton key={social.label} asChild label={social.label} icon={social.icon} variant="outline">
-                  <a href={social.href} target="_blank" rel="noopener noreferrer" />
+              {/* A shop that cleared a link in the admin panel has no icon for it. */}
+              {(Object.keys(SOCIAL_ICONS) as (keyof typeof SOCIAL_ICONS)[])
+                .filter((key) => settings[key])
+                .map((key) => (
+                <IconButton key={key} asChild label={SOCIAL_ICONS[key].label} icon={SOCIAL_ICONS[key].icon} variant="outline">
+                  <a href={settings[key]} target="_blank" rel="noopener noreferrer" />
                 </IconButton>
               ))}
             </div>
@@ -160,7 +165,7 @@ export const Footer: React.FC = () => {
           {/* Services */}
           <motion.nav {...columnMotion} transition={{ delay: 0.05 }} aria-labelledby="footer-services">
             <h3 id="footer-services" className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
               خدمات ما
             </h3>
             <ul className="space-y-1">
@@ -180,7 +185,7 @@ export const Footer: React.FC = () => {
           {/* Quick links */}
           <motion.nav {...columnMotion} transition={{ delay: 0.1 }} aria-labelledby="footer-quick">
             <h3 id="footer-quick" className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
               دسترسی سریع
             </h3>
             <ul className="space-y-1">
@@ -200,48 +205,48 @@ export const Footer: React.FC = () => {
           {/* Contact */}
           <motion.div {...columnMotion} transition={{ delay: 0.15 }}>
             <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-gradient-to-b from-primary to-secondary" />
+              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
               تماس با ما
             </h3>
             <ul className="space-y-3">
               <li>
                 <a
-                  href={`tel:${CONTACT.phoneEn}`}
+                  href={`tel:${settings.phone}`}
                   className="group flex min-h-11 items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
                     <Phone className="h-5 w-5" aria-hidden="true" />
                   </span>
                   <span className="tabular-nums" dir="ltr">
-                    {CONTACT.phone}
+                    {toPersianDigits(settings.phone)}
                   </span>
                 </a>
               </li>
               <li>
                 <a
-                  href={`mailto:${CONTACT.email}`}
+                  href={`mailto:${settings.email}`}
                   className="group flex min-h-11 items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
                 >
                   <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
                     <Mail className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <span dir="ltr">{CONTACT.email}</span>
+                  <span dir="ltr">{settings.email}</span>
                 </a>
               </li>
               <li className="flex items-start gap-3 text-muted-foreground">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <MapPin className="h-5 w-5" aria-hidden="true" />
                 </span>
-                <span className="pt-2 leading-relaxed">{CONTACT.address}</span>
+                <span className="pt-2 leading-relaxed">{settings.address}</span>
               </li>
               <li className="flex items-start gap-3 text-muted-foreground">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
                   <Clock className="h-5 w-5" aria-hidden="true" />
                 </span>
                 <span className="pt-2 leading-relaxed">
-                  {CONTACT.workingHours}
+                  {settings.workingHours}
                   <br />
-                  <span className="text-xs">{CONTACT.closedDays}</span>
+                  <span className="text-xs">{closedDaysLabel(settings.closedWeekdays)}</span>
                 </span>
               </li>
             </ul>
@@ -265,6 +270,9 @@ export const Footer: React.FC = () => {
             </Link>
             <Link href={ROUTES.TERMS} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
               شرایط استفاده
+            </Link>
+            <Link href={ROUTES.TRACK} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
+              پیگیری سفارش
             </Link>
             <Link href={ROUTES.ORDERS} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
               سفارش‌های من

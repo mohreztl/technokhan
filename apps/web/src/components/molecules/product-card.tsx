@@ -99,12 +99,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
           style={tiltEnabled ? { rotateX, rotateY, transformStyle: 'preserve-3d' } : undefined}
           className={cn(
             'group relative flex h-full flex-col overflow-hidden rounded-2xl',
-            'border border-border/50 bg-gradient-to-br from-card/80 via-card to-card/90',
+            'border border-border/50 bg-linear-to-br from-card/80 via-card to-card/90',
             'shadow-lg transition-[border-color,box-shadow] duration-500 hover:border-secondary/40 hover:shadow-2xl hover:shadow-primary/10'
           )}
         >
           {/* Media */}
-          <div ref={imgRef} className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-muted/50 to-muted">
+          <div ref={imgRef} className="relative aspect-4/3 overflow-hidden bg-linear-to-br from-muted/50 to-muted">
             <Link href={href} className="absolute inset-0 block" aria-label={product.name} tabIndex={-1}>
               {product.images[0] ? (
                 <Image
@@ -122,19 +122,19 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
                   <Package className="h-16 w-16 text-muted-foreground/30" aria-hidden="true" />
                 </span>
               )}
-              <span className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+              <span className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
             </Link>
 
             {/* Badges */}
-            <div className="pointer-events-none absolute start-3 top-3 flex flex-col gap-2">
+            <div className="pointer-events-none absolute inset-s-3 top-3 flex flex-col gap-2">
               {percent > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-red-600 to-red-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
+                <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-red-600 to-red-500 px-2.5 py-1 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
                   <Sparkles className="h-3 w-3" aria-hidden="true" />
                   {toPersianDigits(percent)}٪ تخفیف
                 </span>
               )}
               {product.featured && percent === 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-gradient-to-r from-primary to-primary/80 px-2.5 py-1 text-[11px] font-bold text-primary-foreground shadow-lg shadow-primary/30">
+                <span className="inline-flex items-center gap-1 rounded-full bg-linear-to-r from-primary to-primary/80 px-2.5 py-1 text-[11px] font-bold text-primary-foreground shadow-lg shadow-primary/30">
                   <Star className="h-3 w-3 fill-current" aria-hidden="true" />
                   پیشنهادی
                 </span>
@@ -144,7 +144,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
             {/* Quick actions: always visible on touch layouts, hover-revealed on desktop */}
             <div
               className={cn(
-                'absolute end-3 top-3 flex flex-col gap-2 transition-opacity duration-300',
+                'absolute inset-e-3 top-3 flex flex-col gap-2 transition-opacity duration-300',
                 'lg:opacity-0 lg:group-hover:opacity-100 lg:focus-within:opacity-100'
               )}
             >
@@ -169,7 +169,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
             </div>
 
             {!inStock && (
-              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-[2px]">
+              <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/55 backdrop-blur-xs">
                 <span className="rounded-xl border border-white/15 bg-black/60 px-5 py-2 text-base font-bold text-white">
                   ناموجود
                 </span>
@@ -181,7 +181,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
           <div className="relative flex flex-1 flex-col p-4 sm:p-5">
             <span
               aria-hidden="true"
-              className="absolute inset-x-5 top-0 h-px bg-gradient-to-r from-transparent via-secondary/30 to-transparent"
+              className="absolute inset-x-5 top-0 h-px bg-linear-to-r from-transparent via-secondary/30 to-transparent"
             />
 
             {product.rating ? (
@@ -196,7 +196,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
               </div>
             ) : null}
 
-            <Link href={href} className="group/title outline-none focus-visible:underline">
+            <Link href={href} className="group/title outline-hidden focus-visible:underline">
               <h3 className="line-clamp-1 text-base font-bold text-foreground transition-colors group-hover/title:text-primary">
                 {product.name}
               </h3>
@@ -231,7 +231,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, 
                 variant="primary"
                 disabled={!inStock}
                 onClick={handleAddToCart}
-                className="rounded-xl bg-gradient-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
+                className="rounded-xl bg-linear-to-br from-primary to-primary/80 shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30"
               />
             </div>
           </div>

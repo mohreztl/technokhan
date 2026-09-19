@@ -22,7 +22,7 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         <div className="relative">
           {startIcon && (
             <span
-              className="pointer-events-none absolute start-3.5 top-3.5 text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
+              className="pointer-events-none absolute inset-s-3.5 top-3.5 text-muted-foreground [&_svg]:h-5 [&_svg]:w-5"
               aria-hidden="true"
             >
               {startIcon}

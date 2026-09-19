@@ -6,6 +6,7 @@ import type {
   BookingStatus,
   ContactInput,
   ContactMessage,
+  Coupon,
   CouponResult,
   CreateBookingInput,
   CreateOrderInput,
@@ -20,6 +21,9 @@ import type {
   Review,
   Service,
   ServiceListQuery,
+  SiteSettings,
+  TrackInput,
+  TrackResult,
   User,
 } from '@autolounge/shared';
 import { apiDelete, apiGet, apiPost, apiPut, buildQuery, isDemoMode } from './client';
@@ -34,6 +38,8 @@ import {
   demoPayment,
   demoProducts,
   demoServices,
+  demoSettings,
+  demoTrack,
 } from './demo';
 import { useUIStore } from '@/lib/store/ui-store';
 
@@ -185,6 +191,30 @@ export const servicesApi = {
     withDemoFallback<Review>(
       () => apiPost(`/services/${encodeURIComponent(id)}/reviews`, input),
       () => demoServices.addReview(id, input)
+    ),
+};
+
+// ---------------------------------------------------------------------------
+// public tracking
+// ---------------------------------------------------------------------------
+
+export const trackApi = {
+  lookup: (input: TrackInput) =>
+    withDemoFallback<TrackResult>(
+      () => apiPost('/track', input, pub),
+      () => demoTrack.lookup(input)
+    ),
+};
+
+// ---------------------------------------------------------------------------
+// site settings (public)
+// ---------------------------------------------------------------------------
+
+export const settingsApi = {
+  get: () =>
+    withDemoFallback<SiteSettings>(
+      () => apiGet('/settings', pub),
+      () => demoSettings.get()
     ),
 };
 
@@ -439,7 +469,7 @@ export const adminApi = {
         () => apiGet(`/admin/orders/${encodeURIComponent(id)}`),
         () => demoAdmin.orders.get(id)
       ),
-    updateStatus: (id: string, input: { status: OrderStatus; trackingCode?: string }) =>
+    updateStatus: (id: string, input: { status: OrderStatus; shipmentCode?: string }) =>
       withDemoFallback<Order>(
         () => apiPut(`/admin/orders/${encodeURIComponent(id)}/status`, input),
         () => demoAdmin.orders.updateStatus(id, input)
@@ -484,6 +514,40 @@ export const adminApi = {
       withDemoFallback<ContactMessage>(
         () => apiPut(`/admin/messages/${encodeURIComponent(id)}/read`),
         () => demoAdmin.messages.markRead(id)
+      ),
+  },
+  coupons: {
+    list: () =>
+      withDemoFallback<Coupon[]>(
+        () => apiGet('/admin/coupons'),
+        () => demoAdmin.coupons.list()
+      ),
+    create: (input: Partial<Coupon>) =>
+      withDemoFallback<Coupon>(
+        () => apiPost('/admin/coupons', input),
+        () => demoAdmin.coupons.create(input)
+      ),
+    update: (id: string, patch: Partial<Coupon>) =>
+      withDemoFallback<Coupon>(
+        () => apiPut(`/admin/coupons/${encodeURIComponent(id)}`, patch),
+        () => demoAdmin.coupons.update(id, patch)
+      ),
+    remove: (id: string) =>
+      withDemoFallback<{ id: string }>(
+        () => apiDelete(`/admin/coupons/${encodeURIComponent(id)}`),
+        () => demoAdmin.coupons.remove(id)
+      ),
+  },
+  settings: {
+    get: () =>
+      withDemoFallback<SiteSettings>(
+        () => apiGet('/admin/settings'),
+        () => demoAdmin.settings.get()
+      ),
+    update: (input: SiteSettings) =>
+      withDemoFallback<SiteSettings>(
+        () => apiPut('/admin/settings', input),
+        () => demoAdmin.settings.update(input)
       ),
   },
   reviews: {

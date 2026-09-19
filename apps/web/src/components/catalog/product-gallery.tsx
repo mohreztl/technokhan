@@ -74,7 +74,7 @@ export function ProductGallery({ images, alt, mainImageRef, priority, className 
                 <button
                   type="button"
                   onClick={() => openViewer(i)}
-                  className="absolute inset-0 block h-full w-full cursor-zoom-in focus-visible:outline-none"
+                  className="absolute inset-0 block h-full w-full cursor-zoom-in focus-visible:outline-hidden"
                   aria-label={`بزرگ‌نمایی تصویر ${toPersianDigits(i + 1)}`}
                 >
                   <Image
@@ -96,7 +96,7 @@ export function ProductGallery({ images, alt, mainImageRef, priority, className 
           icon={<Maximize2 />}
           variant="glass"
           onClick={() => openViewer(index)}
-          className="absolute end-3 top-3 bg-background/70 text-foreground shadow-md"
+          className="absolute inset-e-3 top-3 bg-background/70 text-foreground shadow-md"
         />
 
         {multiple && (
@@ -106,21 +106,21 @@ export function ProductGallery({ images, alt, mainImageRef, priority, className 
               icon={<ChevronRight />}
               variant="glass"
               onClick={() => embla?.scrollPrev()}
-              className="absolute start-3 top-1/2 hidden -translate-y-1/2 bg-background/70 text-foreground shadow-md lg:inline-flex"
+              className="absolute inset-s-3 top-1/2 hidden -translate-y-1/2 bg-background/70 text-foreground shadow-md lg:inline-flex"
             />
             <IconButton
               label="تصویر بعدی"
               icon={<ChevronLeft />}
               variant="glass"
               onClick={() => embla?.scrollNext()}
-              className="absolute end-3 top-1/2 hidden -translate-y-1/2 bg-background/70 text-foreground shadow-md lg:inline-flex"
+              className="absolute inset-e-3 top-1/2 hidden -translate-y-1/2 bg-background/70 text-foreground shadow-md lg:inline-flex"
             />
             <div className="pointer-events-none absolute bottom-3 inset-x-0 flex justify-center gap-1.5" aria-hidden="true">
               {list.map((_, i) => (
                 <span
                   key={i}
                   className={cn(
-                    'h-1.5 rounded-full bg-white/80 shadow transition-all duration-300',
+                    'h-1.5 rounded-full bg-white/80 shadow-sm transition-all duration-300',
                     i === index ? 'w-5' : 'w-1.5 opacity-60'
                   )}
                 />
@@ -204,7 +204,7 @@ function ViewerCarousel({
   const index = useEmblaIndex(embla);
 
   return (
-    <div className="relative flex h-[100dvh] flex-col bg-black lg:h-[80vh]">
+    <div className="relative flex h-dvh flex-col bg-black lg:h-[80vh]">
       <div className="flex items-center justify-between px-3 pt-safe">
         <span className="rounded-full bg-white/10 px-3 py-1 text-sm tabular-nums" aria-live="polite">
           {toPersianDigits(index + 1)} / {toPersianDigits(images.length)}

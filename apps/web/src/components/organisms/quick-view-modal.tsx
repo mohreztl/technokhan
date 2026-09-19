@@ -118,7 +118,7 @@ export function QuickViewModal({ product, isOpen, onClose }: QuickViewModalProps
         {/* Gallery */}
         <div className="relative md:bg-muted md:p-6">
           {percent > 0 && (
-            <span className="absolute start-3 top-3 z-10 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white md:start-8 md:top-8">
+            <span className="absolute inset-s-3 top-3 z-10 rounded-full bg-red-500 px-2.5 py-1 text-xs font-bold text-white md:inset-s-8 md:top-8">
               {toPersianDigits(percent)}٪ تخفیف
             </span>
           )}

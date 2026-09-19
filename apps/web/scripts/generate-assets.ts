@@ -1,4 +1,4 @@
-/* eslint-disable no-console */
+ 
 /**
  * Generates every static asset the app references but that is not a real
  * photograph yet: branded placeholder images for the catalog (products,

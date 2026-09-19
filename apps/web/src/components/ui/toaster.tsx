@@ -1,12 +1,35 @@
 'use client';
 
+import * as React from 'react';
 import { Toaster as SonnerToaster, toast } from 'sonner';
 import { useTheme } from 'next-themes';
+import { useRouter } from 'next/navigation';
 import { CheckCircle2, XCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
 import { useCartStore } from '@/lib/store/cart-store';
 
+/**
+ * `showToast` is a plain module object, so its action buttons have no hook to
+ * reach the router with. The mounted <Toaster /> parks the router here, which
+ * turns those actions into client-side navigations instead of full reloads
+ * that throw away the cart, the scroll position and every warm cache entry.
+ */
+let navigate: ((href: string) => void) | null = null;
+
+function go(href: string) {
+  if (navigate) navigate(href);
+  else window.location.href = href;
+}
+
 export function Toaster() {
   const { theme } = useTheme();
+  const router = useRouter();
+
+  React.useEffect(() => {
+    navigate = (href) => router.push(href);
+    return () => {
+      navigate = null;
+    };
+  }, [router]);
 
   return (
     <SonnerToaster
@@ -91,9 +114,7 @@ export const showToast = {
       description: productName,
       action: {
         label: 'مشاهده',
-        onClick: () => {
-          window.location.href = '/wishlist';
-        },
+        onClick: () => go('/wishlist'),
       },
     });
   },
@@ -102,9 +123,7 @@ export const showToast = {
     toast.warning('ابتدا وارد حساب کاربری شوید', {
       action: {
         label: 'ورود',
-        onClick: () => {
-          window.location.href = '/login';
-        },
+        onClick: () => go('/login'),
       },
     });
   },
@@ -121,9 +140,7 @@ export const showToast = {
       description: `کد سفارش: ${orderId}`,
       action: {
         label: 'پیگیری',
-        onClick: () => {
-          window.location.href = `/orders/${orderId}`;
-        },
+        onClick: () => go(`/orders/${orderId}`),
       },
       duration: 8000,
     });
@@ -140,9 +157,7 @@ export const showToast = {
       description: reason || 'لطفاً دوباره تلاش کنید',
       action: {
         label: 'تلاش مجدد',
-        onClick: () => {
-          window.location.href = '/orders';
-        },
+        onClick: () => go('/orders'),
       },
     });
   },

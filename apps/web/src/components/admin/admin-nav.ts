@@ -4,8 +4,10 @@ import {
   LayoutDashboard,
   MessageSquare,
   Package,
+  Settings,
   ShoppingBag,
   Star,
+  Tag,
   Users,
   Wrench,
 } from 'lucide-react';
@@ -30,6 +32,8 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin/users', label: 'کاربران', icon: Users },
   { href: '/admin/messages', label: 'پیام‌ها', icon: MessageSquare, badgeKey: 'unreadMessages' },
   { href: '/admin/reviews', label: 'نظرات', icon: Star },
+  { href: '/admin/coupons', label: 'کدهای تخفیف', icon: Tag },
+  { href: '/admin/settings', label: 'تنظیمات', icon: Settings },
 ];
 
 export function isAdminNavActive(pathname: string, item: AdminNavItem): boolean {
