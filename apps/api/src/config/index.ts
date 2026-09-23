@@ -39,10 +39,9 @@ export const config = {
     merchantId: env.ZARINPAL_MERCHANT_ID || '',
     sandbox: bool(env.ZARINPAL_SANDBOX, true),
   },
-  melipayamak: {
-    username: env.MELIPAYAMAK_USERNAME || '',
-    password: env.MELIPAYAMAK_PASSWORD || '',
-    from: env.MELIPAYAMAK_FROM || '',
+  kavenegar: {
+    apiKey: env.KAVENEGAR_API_KEY || '',
+    sender: env.KAVENEGAR_SENDER || '',
   },
   /** Demo OTP accepted outside production (empty = disabled) */
   otpDevBypassCode: !isProduction ? env.OTP_DEV_BYPASS_CODE || '' : '',
@@ -63,4 +62,4 @@ export const config = {
 export const isDemoGateway = (): boolean => !config.isProduction && !config.zarinpal.merchantId;
 
 export const hasSmsCredentials = (): boolean =>
-  Boolean(config.melipayamak.username && config.melipayamak.password && config.melipayamak.from);
+  Boolean(config.kavenegar.apiKey && config.kavenegar.sender);

@@ -4,7 +4,7 @@ import { prisma } from '../lib/prisma';
 import { config, hasSmsCredentials } from '../config';
 import { logger } from '../lib/logger';
 
-const MELIPAYAMAK_API = 'https://rest.payamak-panel.com/api/SendSMS/SendSMS';
+const KAVENEGAR_API = 'https://api.kavenegar.com/v1';
 
 // OTP configuration
 const OTP_EXPIRY_MINUTES = 2;
@@ -103,37 +103,34 @@ export async function verifyOTP(
 }
 
 /**
- * Low-level MeliPayamak send. Returns false (and logs) when credentials are
- * missing; throws in production when the gateway rejects the message.
+ * Send an SMS through Kavenegar's REST API. The API key is never logged.
+ * In development, missing credentials keep the existing console fallback.
  */
 export async function sendSms(to: string, text: string): Promise<boolean> {
   if (!hasSmsCredentials()) {
-    logger.info({ to, text }, 'SMS not sent (MELIPAYAMAK_* credentials are empty) — logged instead');
+    logger.info({ to, text }, 'SMS not sent (KAVENEGAR_* credentials are empty) — logged instead');
     return false;
   }
 
   try {
     const response = await axios.post(
-      MELIPAYAMAK_API,
+      `${KAVENEGAR_API}/${encodeURIComponent(config.kavenegar.apiKey)}/sms/send.json`,
+      null,
       {
-        username: config.melipayamak.username,
-        password: config.melipayamak.password,
-        to,
-        from: config.melipayamak.from,
-        text,
-        isFlash: false,
-      },
-      { timeout: 10_000 }
+        params: { receptor: to, sender: config.kavenegar.sender, message: text },
+        timeout: 10_000,
+      }
     );
 
-    if (response.data?.RetStatus !== 1) {
-      throw new Error(`MeliPayamak error: ${response.data?.StrRetStatus ?? 'unknown'}`);
+    const result = response.data?.entries?.[0];
+    if (!result || ![200, 4].includes(Number(result.status))) {
+      throw new Error(`Kavenegar error: ${result?.message ?? 'unknown'}`);
     }
 
-    logger.info({ to }, 'SMS sent');
+    logger.info({ to }, 'SMS sent through Kavenegar');
     return true;
   } catch (error) {
-    logger.error({ err: error, to }, 'Failed to send SMS');
+    logger.error({ err: error, to }, 'Failed to send SMS through Kavenegar');
     if (config.isProduction) throw error;
     logger.warn({ to, text }, 'DEV MODE — SMS content');
     return false;
@@ -143,7 +140,7 @@ export async function sendSms(to: string, text: string): Promise<boolean> {
 /** Send the OTP code (logged instead of sent when no credentials are configured) */
 export async function sendOTP(phoneNumber: string, code: string): Promise<void> {
   if (!hasSmsCredentials()) {
-    logger.info(`OTP for ${phoneNumber}: ${code} (MeliPayamak not configured)`);
+    logger.info(`OTP for ${phoneNumber}: ${code} (Kavenegar not configured)`);
     return;
   }
   const message = `کد تایید شما در اتولانژ: ${code}\nاین کد به مدت ۲ دقیقه معتبر است.`;

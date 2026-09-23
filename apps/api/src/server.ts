@@ -218,7 +218,7 @@ async function start() {
         env: config.env,
         demoGateway: !config.zarinpal.merchantId && !config.isProduction,
         otpBypass: Boolean(config.otpDevBypassCode),
-        sms: Boolean(config.melipayamak.username),
+        sms: Boolean(config.kavenegar.apiKey),
       },
       'runtime flags'
     );
