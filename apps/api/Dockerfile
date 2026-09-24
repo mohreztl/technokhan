@@ -2,6 +2,8 @@
 # AutoLounge API — build context is the repository root (pnpm workspace)
 
 FROM node:22-alpine AS base
+# Node 22 resolves AAAA first; on hosts with no IPv6 route every request stalls.
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
 RUN apk add --no-cache libc6-compat openssl \
   && corepack enable && corepack prepare pnpm@10.11.0 --activate
 WORKDIR /app

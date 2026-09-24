@@ -2,6 +2,8 @@
 # AutoLounge web (Next.js standalone) — build context is the repository root (pnpm workspace)
 
 FROM node:22-alpine AS base
+# Node 22 resolves AAAA first; on hosts with no IPv6 route every request stalls.
+ENV NODE_OPTIONS=--dns-result-order=ipv4first
 RUN apk add --no-cache libc6-compat \
   && corepack enable && corepack prepare pnpm@10.11.0 --activate
 WORKDIR /app
@@ -45,6 +47,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production \
+    NODE_OPTIONS=--dns-result-order=ipv4first \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
     HOSTNAME=0.0.0.0
