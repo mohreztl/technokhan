@@ -233,7 +233,7 @@ function DesktopLightbox({ items, index, open, onOpenChange, onIndexChange }: Li
 
   const item = items[clampIndex(current, items.length)];
 
-  return (
+  return createPortal(
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-5xl overflow-hidden p-0">
         {item && (
@@ -300,6 +300,7 @@ function DesktopLightbox({ items, index, open, onOpenChange, onIndexChange }: Li
           </div>
         )}
       </DialogContent>
-    </Dialog>
+    </Dialog>,
+    document.body
   );
 }
