@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { APP_DESCRIPTION, APP_NAME, APP_TAGLINE } from '@autolounge/shared';
-import { getFeatured } from '@/lib/data/repository';
+import { getFeatured, getGallery } from '@/lib/data/repository';
 import { JsonLd, localBusinessJsonLd, organizationJsonLd } from '@/lib/seo';
 import { LandingPage } from '@/components/pages/landing-page';
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const featured = await getFeatured();
+  const [featured, gallery] = await Promise.all([getFeatured(), getGallery()]);
 
   return (
     <>
@@ -21,6 +21,7 @@ export default async function HomePage() {
       <LandingPage
         products={featured.data.products}
         services={featured.data.services}
+        gallery={gallery}
       />
     </>
   );
