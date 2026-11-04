@@ -336,7 +336,7 @@ export const demoAuth = {
           phoneNumber: phone,
           phone,
           role: phone === DEMO_ADMIN_PHONE ? 'admin' : 'customer',
-          name: phone === DEMO_ADMIN_PHONE ? 'مدیر اتولانژ' : undefined,
+          name: phone === DEMO_ADMIN_PHONE ? 'مدیر تکنو خان' : undefined,
           isActive: true,
           createdAt: nowIso(),
           updatedAt: nowIso(),
@@ -519,7 +519,13 @@ export const demoOrders = {
     const auth = requireUser();
     if ('error' in auth) return Promise.resolve(auth.error);
     if (!input.items?.length) return fail<Order>('سبد خرید خالی است');
-    const lines = input.items.map((it) => ({ product: findLocalProduct(it.productId, catalogProducts()), quantity: it.quantity }));
+    const lines = input.items.map((it) => {
+      const base = findLocalProduct(it.productId, catalogProducts());
+      const warranty = base?.warranties?.find((option) => option.id === it.selection?.warrantyId);
+      const delta = warranty?.priceDelta ?? 0;
+      const product = base ? { ...base, price: it.unitPrice ?? base.price + delta, discountPrice: it.unitPrice === undefined && base.discountPrice ? base.discountPrice + delta : undefined } : base;
+      return { product, quantity: it.quantity, selection: it.selection };
+    });
     const missing = lines.find((l) => !l.product);
     if (missing) return fail<Order>('یکی از محصولات موجود نیست', 404, 'NOT_FOUND');
     const outOfStock = lines.find((l) => l.product!.stock < l.quantity);
@@ -544,6 +550,7 @@ export const demoOrders = {
           productId: l.product!.id,
           quantity: l.quantity,
           price: l.product!.discountPrice ?? l.product!.price,
+          selection: l.selection,
           product: productPick(l.product),
         })),
         subtotal: totals.subtotal,

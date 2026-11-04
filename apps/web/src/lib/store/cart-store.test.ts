@@ -29,4 +29,10 @@ describe('cart stock boundaries', () => {
     useCartStore.getState().addItem(product);
     assert.equal(useCartStore.getState().items.length, 0);
   });
+
+  it('retains color and warranty selection on the cart line', () => {
+    const product = { ...PRODUCTS[0]!, stock: 2 };
+    useCartStore.getState().addItem(product, 1, { colorName: 'نقره‌ای', warrantyTitle: 'گارانتی ۲۴ ماهه' });
+    assert.deepEqual(useCartStore.getState().items[0]?.selection, { colorName: 'نقره‌ای', warrantyTitle: 'گارانتی ۲۴ ماهه' });
+  });
 });

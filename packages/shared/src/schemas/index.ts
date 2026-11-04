@@ -74,6 +74,12 @@ export const createOrderSchema = z.object({
       z.object({
         productId: z.string().min(1),
         quantity: z.number().int().min(1).max(50),
+        unitPrice: z.number().int().min(0).optional(),
+        selection: z.object({
+          colorName: z.string().trim().max(60).optional(),
+          warrantyId: z.string().trim().max(80).optional(),
+          warrantyTitle: z.string().trim().max(120).optional(),
+        }).optional(),
       })
     )
     .min(1, 'سبد خرید خالی است'),

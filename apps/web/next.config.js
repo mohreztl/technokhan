@@ -21,6 +21,12 @@ const nextConfig = {
   ...(standalone ? { output: 'standalone' } : {}),
   devIndicators: false,
   outputFileTracingRoot: path.join(__dirname, '../../'),
+  async redirects() {
+    return [
+      { source: '/products', destination: '/shop', permanent: true },
+      { source: '/products/:slug', destination: '/product/:slug', permanent: true },
+    ];
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     qualities: [60, 70, 75, 82, 90],

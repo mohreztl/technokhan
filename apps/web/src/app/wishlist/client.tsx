@@ -11,7 +11,7 @@ import { useWishlist, useWishlistStore } from '@/lib/store/wishlist-store';
 import { useHydrated } from '@/lib/store/hydration';
 import { Button } from '@/components/ui/button';
 import { showToast } from '@/components/ui/toaster';
-import { ProductCard } from '@/components/molecules/product-card';
+import { ProductCard } from '@/components/storefront/product-card';
 import { ProductCardSkeleton, ProductGridSkeleton } from '@/components/molecules/loading-skeletons';
 import { Skeleton } from '@/components/ui/skeleton';
 

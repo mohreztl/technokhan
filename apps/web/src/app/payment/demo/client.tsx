@@ -73,7 +73,7 @@ export function DemoGatewayClient() {
               </div>
               <div className="text-end">
                 <p className="text-xs text-slate-500 dark:text-slate-400">پذیرنده</p>
-                <p className="mt-1 text-sm font-bold">اتولانژ</p>
+                <p className="mt-1 text-sm font-bold">تکنو خان</p>
               </div>
             </div>
 

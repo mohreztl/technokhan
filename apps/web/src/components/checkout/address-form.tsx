@@ -93,6 +93,7 @@ export function AddressForm({
         <Select
           label="استان"
           required
+          autoComplete="address-level1"
           options={PROVINCE_OPTIONS}
           placeholder="انتخاب استان"
           error={errors.province?.message}

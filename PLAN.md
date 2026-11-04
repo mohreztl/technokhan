@@ -134,7 +134,7 @@
 - [x] فیلتر/جستجو/مرتب‌سازی خالص و تست‌های ترکیبی، بازه قیمت، خالی و موجودی بنویس.
 - [x] Fastify را برای slug و queryهای جدید سازگار و fallback محلی را به‌روز کن.
 - [x] سبد با کنترل موجودی، wishlist، compare حداکثر ۴ و recent items را پایدار کن و تست store اجرا کن.
-- [ ] تست shared + Typecheck/Lint؛ commit/push `feat(phase-3): configure Fastify data services, Persian tech catalog, and client state stores`.
+- [x] تست shared + Typecheck/Lint؛ commit/push `feat(phase-3): configure Fastify data services, Persian tech catalog, and client state stores`.
 
 ### Task 4: تجربه کامل فروشگاه
 
@@ -142,12 +142,12 @@
 
 **Interfaces:** همه کارت‌ها از `Product` و `MediaAsset` استفاده می‌کنند؛ لینک canonical `/product/[slug]`؛ filter query از Task 3؛ checkout موجود را با اعتبارسنجی Zod حفظ کن.
 
-- [ ] Header چسبان، MegaMenu تصویری، جستجوی Cmd/Ctrl+K، theme، wishlist، CartDrawer و bottom nav بساز.
-- [ ] صفحه اصلی را با Hero، Bento، FlashDeals با تایمر، FeaturedTabs، برندها، GadgetFinder و مجله پیاده کن.
-- [ ] `/shop` و `/category/[slug]` با فیلتر دسکتاپ/drawer موبایل، chips، sort، grid/list، pagination و skeleton بساز.
-- [ ] `/product/[slug]` با gallery/zoom، رنگ و گارانتی، تب‌ها، نقد، نظرات، compare، recent، sticky CTA و مکمل‌ها بساز.
-- [ ] `/compare`, `/wishlist`, `/cart`, `/checkout` و خلاصه سفارش/کد تخفیف/هزینه ارسال را کامل کن.
-- [ ] جریان واقعی افزودن به سبد → reload → کوپن → فرم معتبر → سفارش دمو را در مرورگر دسکتاپ و موبایل آزمایش کن.
+- [x] Header چسبان، MegaMenu تصویری، جستجوی Cmd/Ctrl+K، theme، wishlist، CartDrawer و bottom nav بساز.
+- [x] صفحه اصلی را با Hero، Bento، FlashDeals با تایمر، FeaturedTabs، برندها، GadgetFinder و مجله پیاده کن.
+- [x] `/shop` و `/category/[slug]` با فیلتر دسکتاپ/drawer موبایل، chips، sort، grid/list، pagination و skeleton بساز.
+- [x] `/product/[slug]` با gallery/zoom، رنگ و گارانتی، تب‌ها، نقد، نظرات، compare، recent، sticky CTA و مکمل‌ها بساز.
+- [x] `/compare`, `/wishlist`, `/cart`, `/checkout` و خلاصه سفارش/کد تخفیف/هزینه ارسال را کامل کن.
+- [x] جریان واقعی افزودن به سبد → reload → کوپن → فرم معتبر → سفارش دمو را در مرورگر دسکتاپ و موبایل آزمایش کن.
 - [ ] Typecheck/Lint/build و commit/push `feat(phase-4): build complete TechnoKhan storefront pages, interactive gadget finder, and cart/checkout flows`.
 
 ### Task 5: مجله، صفحات اطلاعاتی، SEO و انتشار نهایی

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, type Variants } from 'framer-motion';
 import { ArrowLeft, ArrowRight, LogIn, ShoppingBag } from 'lucide-react';
 import type { Address, PaymentMethod } from '@autolounge/shared';
-import { ROUTES, createOrderSchema } from '@autolounge/shared';
+import { ROUTES, createOrderSchema, effectivePrice } from '@autolounge/shared';
 import { RollingNumber } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';
@@ -179,7 +179,7 @@ export function CheckoutFlow() {
     if (!ensureAuth()) return;
 
     const parsed = createOrderSchema.safeParse({
-      items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity })),
+      items: items.map((i) => ({ productId: i.product.id, quantity: i.quantity, unitPrice: effectivePrice(i.product), selection: i.selection })),
       shippingAddress: selectedAddress,
       paymentMethod: method,
       couponCode: couponCode ?? undefined,

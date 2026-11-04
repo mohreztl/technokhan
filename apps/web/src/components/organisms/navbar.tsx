@@ -1,231 +1,75 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import * as React from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, useMotionValueEvent, useScroll } from 'framer-motion';
-import { MoreHorizontal, Phone, Search, ShoppingCart, Sparkles, User } from 'lucide-react';
-import { APP_NAME, CONTACT, ROUTES } from '@autolounge/shared';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { IconButton } from '@/components/ui/icon-button';
-import { NotificationBell } from '@/components/organisms/notification-center';
-import { ThemeSwitcher } from '@/components/ui/theme-switcher';
-import { useCartCount, useCartStore } from '@/lib/store/cart-store';
+import { Heart, Menu, Search, ShoppingBag } from 'lucide-react';
+import { CATEGORIES, toPersianDigits } from '@autolounge/shared';
+import { CATEGORY_MEDIA } from '@/content/media-assets';
+import { useCart } from '@/lib/store/cart-store';
+import { useWishlist } from '@/lib/store/wishlist-store';
 import { useUIStore } from '@/lib/store/ui-store';
-import { useAuth } from '@/lib/store/auth-store';
-import { springSheet } from '@/lib/animation-variants';
-import { isChromeHidden } from '@/lib/routes';
+import { Button } from '@/components/ui/button';
+import { ThemeSwitcher } from '@/components/ui/theme-switcher';
+import { BottomSheet } from '@/components/ui/bottom-sheet';
 
-const menuItems = [
-  { title: 'خانه', href: ROUTES.HOME },
-  { title: 'خدمات', href: ROUTES.SERVICES },
-  { title: 'محصولات', href: ROUTES.PRODUCTS },
-  { title: 'رزرو نوبت', href: ROUTES.BOOKING },
-  { title: 'نمونه کارها', href: ROUTES.GALLERY },
-  { title: 'مجله', href: ROUTES.BLOG },
-  { title: 'درباره ما', href: ROUTES.ABOUT },
-  { title: 'تماس با ما', href: ROUTES.CONTACT },
-];
-
-const isActivePath = (pathname: string, href: string) =>
-  href === ROUTES.HOME ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
-
-/**
- * Fixed 80px navbar. Transparent over the hero, glass once scrolled.
- * Mobile action cluster: [search][cart][more]; desktop adds the pill nav,
- * theme switch, profile and the call CTA. Ctrl/Cmd+K opens search.
- */
-export const Navbar: React.FC = () => {
-  const pathname = usePathname() ?? '/';
-  const [isScrolled, setIsScrolled] = useState(false);
-  const cartCount = useCartCount();
-  const toggleCart = useCartStore((s) => s.toggleCart);
-  const setSearchOpen = useUIStore((s) => s.setSearchOpen);
-  const setMoreOpen = useUIStore((s) => s.setMoreOpen);
-  const { status } = useAuth();
-
-  const { scrollY } = useScroll();
-  useMotionValueEvent(scrollY, 'change', (v) => {
-    const next = v > 20;
-    setIsScrolled((prev) => (prev === next ? prev : next));
-  });
-
-  // Ctrl/Cmd+K → search
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [setSearchOpen]);
-
-  // Admin has its own shell
-  if (isChromeHidden(pathname)) return null;
-
-  // Over the cinematic hero the bar is transparent on a dark image → light foreground
-  const overHero = pathname === ROUTES.HOME && !isScrolled;
-  const profileHref = status === 'anonymous' ? ROUTES.LOGIN : ROUTES.PROFILE;
-  const iconClass = overHero ? 'text-white hover:bg-white/10' : 'hover:bg-primary/10';
+/** Sticky storefront navigation with an accessible mega menu and mobile category sheet. */
+export function Navbar() {
+  const pathname = usePathname();
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const { openCart, totalItems } = useCart();
+  const wishlist = useWishlist();
+  const setSearchOpen = useUIStore((state) => state.setSearchOpen);
+  if (pathname.startsWith('/admin')) return null;
 
   return (
-    <motion.header
-      className={cn(
-        'fixed inset-x-0 top-0 z-50 pt-safe transition-[background-color,box-shadow,border-color] duration-500',
-        isScrolled
-          ? 'glass-effect-strong border-b border-border/40 shadow-2xl shadow-primary/5'
-          : 'border-b border-transparent bg-transparent',
-        overHero && 'text-white'
-      )}
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
-    >
-      {/* Gold accent line, visible once scrolled */}
-      <div
-        aria-hidden="true"
-        className={cn(
-          'pointer-events-none absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent via-secondary/70 to-transparent transition-opacity duration-500',
-          isScrolled ? 'opacity-100' : 'opacity-0'
-        )}
-      />
+    <header className="fixed inset-x-0 top-0 z-40 border-b border-border/70 bg-background/85 pt-safe backdrop-blur-xl">
+      <div className="container-custom flex h-20 items-center gap-3">
+        <Link href="/" className="flex shrink-0 items-center gap-3" aria-label="تکنو خان، صفحه اصلی">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-foreground text-lg font-black text-background">T</span>
+          <span className="hidden sm:block"><span className="block text-lg font-black leading-5">تکنو خان</span><span className="text-[10px] tracking-wide text-muted-foreground" dir="ltr">PRECISION TECH</span></span>
+        </Link>
 
-      <nav aria-label="ناوبری سایت" className="container-custom">
-        <div className="flex h-20 items-center justify-between gap-3">
-          {/* Logo */}
-          <Link
-            href={ROUTES.HOME}
-            className="group flex shrink-0 items-center gap-3 rounded-xl outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
-            aria-label={`${APP_NAME} - صفحه اصلی`}
-          >
-            <motion.span
-              className="relative block"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
-              <span className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-primary via-primary-700 to-secondary shadow-lg shadow-primary/20 transition-shadow duration-500 group-hover:shadow-xl group-hover:shadow-secondary/30">
-                <span className="text-2xl font-black text-white">A</span>
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/30 to-transparent transition-transform duration-700 group-hover:translate-x-full"
-                />
-              </span>
-            </motion.span>
-            <span className="hidden flex-col sm:flex">
-              <span
-                className={cn(
-                  'text-2xl font-black leading-tight',
-                  overHero
-                    ? 'text-white'
-                    : 'bg-linear-to-r from-primary via-secondary to-primary bg-clip-text text-transparent'
-                )}
-              >
-                {APP_NAME}
-              </span>
-              <span
-                className={cn(
-                  '-mt-0.5 text-[10px] tracking-wider',
-                  overHero ? 'text-white/70' : 'text-muted-foreground'
-                )}
-              >
-                مراقبت تخصصی خودرو
-              </span>
-            </span>
-          </Link>
-
-          {/* Desktop pill nav */}
-          <ul
-            className={cn(
-              'hidden items-center gap-0.5 rounded-full border px-1.5 py-1 backdrop-blur-md lg:flex',
-              overHero ? 'border-white/15 bg-white/10' : 'border-border/30 bg-background/40'
-            )}
-          >
-            {menuItems.map((item) => {
-              const active = isActivePath(pathname, item.href);
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    aria-current={active ? 'page' : undefined}
-                    className={cn(
-                      'relative block rounded-full px-4 py-2 text-sm font-medium transition-colors outline-hidden',
-                      'focus-visible:ring-2 focus-visible:ring-ring',
-                      overHero
-                        ? 'text-white/85 hover:bg-white/10 hover:text-white'
-                        : 'text-foreground hover:bg-primary/10 hover:text-primary',
-                      active && (overHero ? 'text-white' : 'text-primary')
-                    )}
-                  >
-                    {item.title}
-                    {active && (
-                      <motion.span
-                        layoutId="nav-active-dot"
-                        transition={springSheet}
-                        className="absolute bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-secondary shadow-[0_0_8px_hsl(var(--secondary))]"
-                        aria-hidden="true"
-                      />
-                    )}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-
-          {/* Actions */}
-          <div className="flex shrink-0 items-center gap-1 sm:gap-2">
-            <IconButton
-              label="جستجو (Ctrl+K)"
-              icon={<Search />}
-              className={iconClass}
-              onClick={() => setSearchOpen(true)}
-            />
-
-            <ThemeSwitcher className="hidden lg:flex" />
-
-            <IconButton
-              label="سبد خرید"
-              icon={<ShoppingCart />}
-              badge={cartCount}
-              className={iconClass}
-              onClick={toggleCart}
-              data-cart-target="desktop"
-            />
-
-            {status === 'authenticated' && <NotificationBell className={iconClass} />}
-
-            <IconButton
-              asChild
-              label={status === 'anonymous' ? 'ورود به حساب' : 'پروفایل'}
-              icon={<User />}
-              className={cn('hidden lg:inline-flex', iconClass)}
-            >
-              <Link href={profileHref} />
-            </IconButton>
-
-            <Button
-              asChild
-              variant="secondary"
-              className="hidden gap-2 bg-linear-to-r from-secondary via-secondary/90 to-secondary shadow-lg shadow-secondary/20 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/30 lg:inline-flex"
-            >
-              <a href={`tel:${CONTACT.phoneEn}`}>
-                <Phone className="h-4 w-4" aria-hidden="true" />
-                <span>تماس فوری</span>
-                <Sparkles className="h-3 w-3" aria-hidden="true" />
-              </a>
-            </Button>
-
-            <IconButton
-              label="بیشتر"
-              icon={<MoreHorizontal />}
-              className={cn('lg:hidden', iconClass)}
-              onClick={() => setMoreOpen(true)}
-            />
+        <nav className="mx-auto hidden items-center gap-1 lg:flex" aria-label="ناوبری اصلی">
+          <div className="group relative">
+            <Link href="/shop" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">فروشگاه</Link>
+            <div className="invisible absolute inset-x-auto start-0 top-full w-[min(78vw,58rem)] translate-y-2 rounded-2xl border border-border bg-popover p-4 opacity-0 shadow-panel transition-[opacity,transform,visibility] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
+              <div className="grid grid-cols-3 gap-3">
+                {CATEGORIES.map((category) => {
+                  const media = CATEGORY_MEDIA[category.id as keyof typeof CATEGORY_MEDIA];
+                  return (
+                    <Link key={category.id} href={`/category/${category.id}`} className="group/card relative min-h-36 overflow-hidden rounded-xl border border-border">
+                      <Image src={media.src} alt="" fill sizes="280px" fetchPriority="low" className="object-cover transition-transform duration-300 group-hover/card:scale-105" />
+                      <span className="absolute inset-0 bg-gradient-to-t from-[#090b0cee] to-transparent" />
+                      <span className="absolute inset-x-4 bottom-3 text-sm font-bold text-white">{category.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
           </div>
+          <Link href="/compare" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">مقایسه</Link>
+          <Link href="/blog" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">مجله تکنو</Link>
+          <Link href="/about" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">درباره ما</Link>
+        </nav>
+
+        <div className="ms-auto flex items-center gap-1 lg:ms-0">
+          <Button size="icon" variant="ghost" aria-label="جستجو (Ctrl+K)" onClick={() => setSearchOpen(true)}><Search className="size-5" aria-hidden="true" /></Button>
+          <span className="hidden sm:inline-flex"><ThemeSwitcher /></span>
+          <Button asChild size="icon" variant="ghost" className="relative hidden sm:inline-flex"><Link href="/wishlist" aria-label={`علاقه‌مندی‌ها، ${toPersianDigits(wishlist.count)} مورد`}><Heart className="size-5" aria-hidden="true" />{wishlist.count > 0 && <span className="absolute -top-1 -end-1 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground tabular-nums">{toPersianDigits(wishlist.count)}</span>}</Link></Button>
+          <Button size="icon" variant="ghost" className="relative" aria-label={`سبد خرید، ${toPersianDigits(totalItems)} کالا`} onClick={openCart}><ShoppingBag className="size-5" aria-hidden="true" />{totalItems > 0 && <span className="absolute -top-1 -end-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground tabular-nums">{toPersianDigits(totalItems)}</span>}</Button>
+          <Button size="icon" variant="ghost" className="lg:hidden" aria-label="باز کردن دسته‌بندی‌ها" onClick={() => setMenuOpen(true)}><Menu className="size-5" aria-hidden="true" /></Button>
         </div>
-      </nav>
-    </motion.header>
+      </div>
+
+      <BottomSheet open={menuOpen} onOpenChange={setMenuOpen} title="دسته‌بندی تکنو خان" description="گجت موردنظر را از یک مسیر کوتاه پیدا کنید">
+        <nav className="grid gap-2 py-3" aria-label="دسته‌بندی موبایل">
+          {CATEGORIES.map((category) => <Link key={category.id} href={`/category/${category.id}`} onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">{category.name}</Link>)}
+          <Link href="/blog" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">مجله تکنو</Link>
+          <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">علاقه‌مندی‌ها</Link>
+        </nav>
+      </BottomSheet>
+    </header>
   );
-};
+}

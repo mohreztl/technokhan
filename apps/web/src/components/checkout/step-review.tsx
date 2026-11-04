@@ -132,7 +132,7 @@ export function StepReview({ items, address, method, totals, accepted, onAccepte
             <Link href={ROUTES.TERMS} target="_blank" className="text-secondary underline-offset-4 hover:underline">
               قوانین و شرایط
             </Link>{' '}
-            اتولانژ را خوانده‌ام و می‌پذیرم
+            تکنو خان را خوانده‌ام و می‌پذیرم
           </>
         }
         error={!accepted && error ? error : undefined}

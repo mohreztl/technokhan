@@ -1,285 +1,37 @@
-'use client';
-
-import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
-import {
-  Award,
-  Clock,
-  Mail,
-  MapPin,
-  Phone,
-  ShieldCheck,
-  Truck,
-} from 'lucide-react';
-import { InstagramIcon, TelegramIcon, WhatsappIcon } from '@/components/icons/brands';
-import {
-  APP_DESCRIPTION,
-  APP_NAME,
-  ROUTES,
-  SERVICES,
-  toPersianDigits,
-} from '@autolounge/shared';
-import { Button } from '@/components/ui/button';
-import { IconButton } from '@/components/ui/icon-button';
-import { Input } from '@/components/ui/input';
-import { showToast } from '@/components/ui/toaster';
-import { useSettings } from '@/lib/hooks/use-settings';
-import { closedDaysLabel } from '@/lib/settings-format';
-import { fadeInUp, viewportConfig } from '@/lib/animation-variants';
-import { isChromeHidden } from '@/lib/routes';
+import { ShieldCheck, Truck, RotateCcw, Headphones } from 'lucide-react';
+import { APP_NAME } from '@autolounge/shared';
 
-const SERVICE_LINKS = SERVICES.slice(0, 6).map((service) => ({
-  title: service.name,
-  href: `${ROUTES.SERVICES}/${service.id}`,
-}));
-
-const QUICK_LINKS = [
-  { title: 'خدمات', href: ROUTES.SERVICES },
-  { title: 'فروشگاه', href: ROUTES.PRODUCTS },
-  { title: 'نمونه کارها', href: ROUTES.GALLERY },
-  { title: 'رزرو نوبت', href: ROUTES.BOOKING },
-  { title: 'مقایسهٔ خدمات', href: ROUTES.COMPARE },
-  { title: 'پیگیری سفارش', href: ROUTES.TRACK },
-  { title: 'مجله', href: ROUTES.BLOG },
-  { title: 'سؤالات متداول', href: ROUTES.FAQ },
-  { title: 'درباره ما', href: ROUTES.ABOUT },
-  { title: 'تماس با ما', href: ROUTES.CONTACT },
+const guarantees = [
+  { icon: ShieldCheck, title: 'ضمانت اصالت', text: 'سریال و منشأ کالا بررسی می‌شود' },
+  { icon: Truck, title: 'ارسال سریع', text: 'بسته‌بندی امن و رهگیری آنلاین' },
+  { icon: RotateCcw, title: '۷ روز فرصت بازگشت', text: 'با شرایط شفاف و بدون پیچیدگی' },
+  { icon: Headphones, title: 'مشاوره انتخاب', text: 'راهنمایی پیش از خرید، نه فقط فروش' },
 ];
 
-const SOCIAL_ICONS = {
-  instagram: { label: 'اینستاگرام', icon: <InstagramIcon /> },
-  telegram: { label: 'تلگرام', icon: <TelegramIcon /> },
-  whatsapp: { label: 'واتس‌اپ', icon: <WhatsappIcon /> },
-} as const;
-
-const TRUST = [
-  { icon: ShieldCheck, label: 'گارانتی کتبی خدمات' },
-  { icon: Award, label: 'متخصصان دارای مدرک' },
-  { icon: Truck, label: 'ارسال سریع محصولات' },
-];
-
-const columnMotion = {
-  variants: fadeInUp,
-  initial: 'hidden' as const,
-  whileInView: 'visible' as const,
-  viewport: viewportConfig.once,
-};
-
-function NewsletterForm() {
-  const [email, setEmail] = React.useState('');
-  const [submitting, setSubmitting] = React.useState(false);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const value = email.trim();
-    if (!value) return;
-    setSubmitting(true);
-    // Newsletter subscriptions are not part of the API contract yet; acknowledge locally.
-    window.setTimeout(() => {
-      setSubmitting(false);
-      setEmail('');
-      showToast.success('ثبت شد', 'از این پس خبرها و تخفیف‌های اتولانژ را برایتان می‌فرستیم.');
-    }, 350);
-  };
-
+/** Storefront assurances, useful navigation and honest demo contact information. */
+export function Footer() {
   return (
-    <form onSubmit={handleSubmit} className="mt-6" aria-label="عضویت در خبرنامه">
-      <label htmlFor="footer-newsletter" className="mb-2 block text-sm font-semibold text-foreground">
-        خبرنامهٔ اتولانژ
-      </label>
-      <div className="flex gap-2">
-        <Input
-          id="footer-newsletter"
-          type="email"
-          inputMode="email"
-          dir="ltr"
-          autoComplete="email"
-          placeholder="you@example.com"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          containerClassName="flex-1"
-          className="min-h-11 text-start"
-        />
-        <Button type="submit" variant="secondary" loading={submitting} className="min-h-11 shrink-0">
-          عضویت
-        </Button>
+    <footer className="border-t border-border bg-background-secondary pb-24 lg:pb-0">
+      <div className="container-custom grid gap-6 border-b border-border py-8 sm:grid-cols-2 lg:grid-cols-4">
+        {guarantees.map(({ icon: Icon, title, text }) => <div key={title} className="flex items-center gap-3"><span className="flex size-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card"><Icon className="size-5 text-secondary" aria-hidden="true" /></span><div><h2 className="text-sm font-bold">{title}</h2><p className="mt-1 text-xs text-muted-foreground">{text}</p></div></div>)}
       </div>
-      <p className="mt-2 text-xs text-muted-foreground">تخفیف‌ها و نکات نگهداری خودرو؛ بدون اسپم.</p>
-    </form>
+      <div className="container-custom grid gap-10 py-10 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
+        <div>
+          <Link href="/" className="inline-flex items-center gap-3"><span className="flex size-10 items-center justify-center rounded-xl bg-foreground text-lg font-black text-background">T</span><span className="text-xl font-black">{APP_NAME}</span></Link>
+          <p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">فروشگاه مستقل گجت و لوازم جانبی دیجیتال با انتخاب محدود، مشخصات روشن و راهنمای خرید فارسی.</p>
+          <p className="mt-4 text-xs leading-6 text-muted-foreground">این نسخه نمایشی است؛ سفارش و پرداخت در حالت دمو انجام می‌شود.</p>
+        </div>
+        <FooterLinks title="فروشگاه" links={[['همه محصولات', '/shop'], ['پیشنهادهای تخفیف‌دار', '/shop?deals=true'], ['مقایسه محصولات', '/compare'], ['علاقه‌مندی‌ها', '/wishlist']]} />
+        <FooterLinks title="راهنما" links={[['مجله تکنو', '/blog'], ['سوالات متداول', '/faq'], ['پیگیری سفارش', '/track'], ['تماس با ما', '/contact']]} />
+        <FooterLinks title="تکنو خان" links={[['درباره ما', '/about'], ['دیزاین سیستم', '/design-system'], ['حریم خصوصی', '/privacy'], ['شرایط استفاده', '/terms']]} />
+      </div>
+      <div className="container-custom flex flex-wrap items-center justify-between gap-3 border-t border-border py-5 text-xs text-muted-foreground"><span>© ۱۴۰۵ تکنو خان</span><span dir="ltr">technokhan.com</span></div>
+    </footer>
   );
 }
 
-export const Footer: React.FC = () => {
-  const pathname = usePathname();
-  const settings = useSettings();
-  // The admin dashboard has its own shell.
-  if (isChromeHidden(pathname ?? '')) return null;
-
-  return (
-    <footer className="mt-16 border-t border-border bg-background-secondary pb-tabbar lg:mt-24 lg:pb-0">
-      {/* Trust strip */}
-      <div className="border-b border-border/70">
-        <div className="container-custom grid grid-cols-1 gap-3 py-5 sm:grid-cols-3">
-          {TRUST.map(({ icon: Icon, label }) => (
-            <div key={label} className="flex items-center gap-3 text-sm font-semibold text-foreground">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary/15 text-secondary">
-                <Icon className="h-5 w-5" aria-hidden="true" />
-              </span>
-              {label}
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="container-custom py-12 lg:py-16">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-12">
-          {/* Brand */}
-          <motion.div {...columnMotion}>
-            <Link href={ROUTES.HOME} className="mb-4 inline-flex items-center gap-3" aria-label={APP_NAME}>
-              <span className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl bg-linear-to-br from-primary via-secondary to-primary shadow-glow-primary">
-                <span className="text-2xl font-black text-primary-foreground">A</span>
-                <span
-                  aria-hidden="true"
-                  className="absolute inset-0 animate-shine rounded-xl bg-gradient-shine bg-size-[200%_100%]"
-                />
-              </span>
-              <span className="text-2xl font-black text-gradient-luxury">{APP_NAME}</span>
-            </Link>
-            <p className="leading-relaxed text-muted-foreground">{APP_DESCRIPTION}</p>
-            <div className="mt-5 flex gap-2">
-              {/* A shop that cleared a link in the admin panel has no icon for it. */}
-              {(Object.keys(SOCIAL_ICONS) as (keyof typeof SOCIAL_ICONS)[])
-                .filter((key) => settings[key])
-                .map((key) => (
-                <IconButton key={key} asChild label={SOCIAL_ICONS[key].label} icon={SOCIAL_ICONS[key].icon} variant="outline">
-                  <a href={settings[key]} target="_blank" rel="noopener noreferrer" />
-                </IconButton>
-              ))}
-            </div>
-            <NewsletterForm />
-          </motion.div>
-
-          {/* Services */}
-          <motion.nav {...columnMotion} transition={{ delay: 0.05 }} aria-labelledby="footer-services">
-            <h3 id="footer-services" className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
-              خدمات ما
-            </h3>
-            <ul className="space-y-1">
-              {SERVICE_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="link-hover inline-flex min-h-10 items-center text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    {link.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.nav>
-
-          {/* Quick links */}
-          <motion.nav {...columnMotion} transition={{ delay: 0.1 }} aria-labelledby="footer-quick">
-            <h3 id="footer-quick" className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
-              دسترسی سریع
-            </h3>
-            <ul className="space-y-1">
-              {QUICK_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="link-hover inline-flex min-h-10 items-center text-muted-foreground transition-colors hover:text-primary"
-                  >
-                    {link.title}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </motion.nav>
-
-          {/* Contact */}
-          <motion.div {...columnMotion} transition={{ delay: 0.15 }}>
-            <h3 className="mb-5 flex items-center gap-2 text-lg font-bold text-foreground">
-              <span aria-hidden="true" className="h-5 w-1 rounded-full bg-linear-to-b from-primary to-secondary" />
-              تماس با ما
-            </h3>
-            <ul className="space-y-3">
-              <li>
-                <a
-                  href={`tel:${settings.phone}`}
-                  className="group flex min-h-11 items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                    <Phone className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <span className="tabular-nums" dir="ltr">
-                    {toPersianDigits(settings.phone)}
-                  </span>
-                </a>
-              </li>
-              <li>
-                <a
-                  href={`mailto:${settings.email}`}
-                  className="group flex min-h-11 items-center gap-3 text-muted-foreground transition-colors hover:text-primary"
-                >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
-                    <Mail className="h-5 w-5" aria-hidden="true" />
-                  </span>
-                  <span dir="ltr">{settings.email}</span>
-                </a>
-              </li>
-              <li className="flex items-start gap-3 text-muted-foreground">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <MapPin className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <span className="pt-2 leading-relaxed">{settings.address}</span>
-              </li>
-              <li className="flex items-start gap-3 text-muted-foreground">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Clock className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <span className="pt-2 leading-relaxed">
-                  {settings.workingHours}
-                  <br />
-                  <span className="text-xs">{closedDaysLabel(settings.closedWeekdays)}</span>
-                </span>
-              </li>
-            </ul>
-          </motion.div>
-        </div>
-
-        {/* Bottom bar */}
-        <motion.div
-          className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-border pt-8 text-sm md:flex-row"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <p className="text-center text-muted-foreground md:text-start">
-            © {toPersianDigits(new Date().getFullYear())} {APP_NAME}. تمامی حقوق محفوظ است.
-          </p>
-          <nav aria-label="حقوقی" className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1">
-            <Link href={ROUTES.PRIVACY} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
-              حریم خصوصی
-            </Link>
-            <Link href={ROUTES.TERMS} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
-              شرایط استفاده
-            </Link>
-            <Link href={ROUTES.TRACK} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
-              پیگیری سفارش
-            </Link>
-            <Link href={ROUTES.ORDERS} className="link-hover inline-flex min-h-10 items-center text-muted-foreground hover:text-primary">
-              سفارش‌های من
-            </Link>
-          </nav>
-        </motion.div>
-      </div>
-    </footer>
-  );
-};
+interface FooterLinksProps { title: string; links: [string, string][] }
+function FooterLinks({ title, links }: FooterLinksProps) {
+  return <nav aria-label={title}><h2 className="mb-4 text-sm font-bold">{title}</h2><ul className="space-y-3 text-sm text-muted-foreground">{links.map(([label, href]) => <li key={href}><Link href={href} className="inline-flex min-h-8 items-center transition-colors hover:text-foreground">{label}</Link></li>)}</ul></nav>;
+}

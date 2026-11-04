@@ -35,7 +35,7 @@ import { IconButton } from '@/components/ui/icon-button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { showToast } from '@/components/ui/toaster';
-import { ProductCard } from '@/components/molecules/product-card';
+import { ProductCard } from '@/components/storefront/product-card';
 import { useRequireAuth } from '@/components/auth/login-sheet';
 import { useValidateCoupon } from '@/lib/hooks';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
@@ -97,7 +97,7 @@ function CartLine({
   const { product, quantity } = item;
   const unit = effectivePrice(product);
   const percent = discountPercent(product);
-  const href = `${ROUTES.PRODUCTS}/${product.id}`;
+  const href = `/product/${product.id}`;
   const max = Math.min(MAX_QTY, product.stock > 0 ? product.stock : MAX_QTY);
 
   return (
@@ -130,6 +130,7 @@ function CartLine({
             <Link href={href} className="line-clamp-2 text-sm font-semibold leading-6 hover:text-secondary">
               {product.name}
             </Link>
+            {item.selection && <p className="mt-1 text-[11px] text-muted-foreground">{[item.selection.colorName, item.selection.warrantyTitle].filter(Boolean).join(' · ')}</p>}
           </div>
           <IconButton
             label={`حذف ${product.name}`}
@@ -211,7 +212,7 @@ function CouponBox({ subtotal }: { subtotal: number }) {
               void apply();
             }
           }}
-          placeholder="مثلاً WELCOME10"
+          placeholder="مثلاً TECH10"
           dir="ltr"
           autoCapitalize="characters"
           autoCorrect="off"
@@ -354,15 +355,15 @@ function EmptyCart({ featured }: { featured: Product[] }) {
       {featured.length > 0 && (
         <section className="mt-6">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold">پیشنهاد اتولانژ</h2>
-            <Link href={ROUTES.PRODUCTS} className="flex items-center gap-1 text-sm text-secondary hover:underline">
+            <h2 className="text-lg font-bold">پیشنهاد تکنو خان</h2>
+            <Link href="/shop" className="flex items-center gap-1 text-sm text-secondary hover:underline">
               همهٔ محصولات
               <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
             {featured.map((p) => (
-              <ProductCard key={p.id} product={p} onAddToCart={(product) => addItem(product)} />
+              <ProductCard key={p.id} product={p} />
             ))}
           </div>
         </section>

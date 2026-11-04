@@ -17,6 +17,13 @@ import { sendOrderConfirmation } from '../services/sms.service';
 
 const ORDER_STATUSES = Object.values(OrderStatus) as string[];
 
+/** Reads a warranty surcharge from the persisted catalog JSON, never from client pricing. */
+function warrantyDelta(warranties: Prisma.JsonValue, warrantyId?: string): number {
+  if (!warrantyId || !Array.isArray(warranties)) return 0;
+  const option = warranties.find((item) => typeof item === 'object' && item !== null && 'id' in item && item.id === warrantyId);
+  return option && typeof option === 'object' && option !== null && 'priceDelta' in option && typeof option.priceDelta === 'number' ? option.priceDelta : 0;
+}
+
 export const orderRoutes: FastifyPluginAsync = async (fastify) => {
   // POST /orders/validate-coupon (public)
   fastify.post('/validate-coupon', async (request, reply) => {
@@ -46,20 +53,29 @@ export const orderRoutes: FastifyPluginAsync = async (fastify) => {
     const shortage = products.find((p) => p.stock < (quantities.get(p.id) ?? 0));
     if (shortage) throw conflict(`موجودی «${shortage.name}» کافی نیست`);
 
-    const lines = products.map((p) => ({
-      product: { price: p.price, discountPrice: p.discountPrice ?? undefined },
-      quantity: quantities.get(p.id) ?? 0,
-    }));
+    const lines = input.items.map((item) => {
+      const product = products.find((candidate) => candidate.id === item.productId)!;
+      const delta = warrantyDelta(product.warranties, item.selection?.warrantyId);
+      return {
+        product: { price: product.price + delta, discountPrice: product.discountPrice ? product.discountPrice + delta : undefined },
+        quantity: item.quantity,
+      };
+    });
     const totals = computeOrderTotals(lines, input.couponCode, await activeCoupons());
     if (input.couponCode && !totals.coupon.valid) {
       throw badRequest(totals.coupon.message || 'کد تخفیف نامعتبر است');
     }
 
-    const orderItems = products.map((p) => ({
-      productId: p.id,
-      quantity: quantities.get(p.id) ?? 0,
-      price: effectivePrice({ price: p.price, discountPrice: p.discountPrice ?? undefined }),
-    }));
+    const orderItems = input.items.map((item) => {
+      const product = products.find((candidate) => candidate.id === item.productId)!;
+      const delta = warrantyDelta(product.warranties, item.selection?.warrantyId);
+      return {
+        productId: product.id,
+        quantity: item.quantity,
+        price: effectivePrice({ price: product.price + delta, discountPrice: product.discountPrice ? product.discountPrice + delta : undefined }),
+        selection: item.selection ?? Prisma.JsonNull,
+      };
+    });
 
     const { isDefault: _ignored, ...shippingAddress } = input.shippingAddress;
 

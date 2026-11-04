@@ -3,7 +3,7 @@ import { CartPageClient } from './client';
 
 export const metadata: Metadata = {
   title: 'سبد خرید | مشاهده و مدیریت سفارش',
-  description: 'مشاهده محصولات انتخاب شده، تغییر تعداد و تکمیل خرید در اتولانژ',
+  description: 'مشاهده گجت‌های انتخاب‌شده، تغییر تعداد، کد تخفیف و تکمیل خرید در تکنو خان',
 };
 
 export default function CartPage() {

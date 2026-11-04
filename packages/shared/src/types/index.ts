@@ -266,11 +266,18 @@ export interface Address {
   isDefault?: boolean;
 }
 
+export interface OrderItemSelection {
+  colorName?: string;
+  warrantyId?: string;
+  warrantyTitle?: string;
+}
+
 export interface OrderItem {
   id?: string;
   productId: string;
   quantity: number;
   price: number;
+  selection?: OrderItemSelection;
   /** populated by the API on reads */
   product?: Pick<Product, 'id' | 'name' | 'nameEn' | 'images' | 'brand'>;
 }
@@ -299,7 +306,7 @@ export interface Order {
 }
 
 export interface CreateOrderInput {
-  items: { productId: string; quantity: number }[];
+  items: { productId: string; quantity: number; unitPrice?: number; selection?: OrderItemSelection }[];
   shippingAddress: Address;
   paymentMethod: PaymentMethod;
   couponCode?: string;

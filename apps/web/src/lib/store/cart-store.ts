@@ -1,11 +1,14 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { CouponTerms, Product } from '@autolounge/shared';
+import type { CouponTerms, OrderItemSelection, Product } from '@autolounge/shared';
 import { computeOrderTotals } from '@autolounge/shared';
+
+export type ProductSelection = OrderItemSelection;
 
 export interface CartItem {
   product: Product;
   quantity: number;
+  selection?: ProductSelection;
 }
 
 export interface CartState {
@@ -18,7 +21,7 @@ export interface CartState {
    * again when the order is placed, and that answer is the binding one.
    */
   coupon: CouponTerms | null;
-  addItem: (product: Product, quantity?: number) => void;
+  addItem: (product: Product, quantity?: number, selection?: ProductSelection) => void;
   removeItem: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -37,20 +40,16 @@ export const useCartStore = create<CartState>()(
       isOpen: false,
       couponCode: null,
       coupon: null,
-      addItem: (product, quantity = 1) =>
+      addItem: (product, quantity = 1, selection) =>
         set((s) => {
           if (product.stock <= 0) return s;
-          const existing = s.items.find((i) => i.product.id === product.id);
-          if (existing) {
+          const sameVariant = (item: CartItem) => item.product.id === product.id && item.selection?.colorName === selection?.colorName && item.selection?.warrantyTitle === selection?.warrantyTitle;
+          if (s.items.some(sameVariant)) {
             return {
-              items: s.items.map((i) =>
-                i.product.id === product.id
-                  ? { ...i, quantity: Math.min(product.stock, i.quantity + quantity) }
-                  : i
-              ),
+              items: s.items.map((item) => sameVariant(item) ? { ...item, quantity: Math.min(product.stock, item.quantity + quantity) } : item),
             };
           }
-          return { items: [...s.items, { product, quantity: Math.max(1, Math.min(product.stock, quantity)) }] };
+          return { items: [...s.items, { product, quantity: Math.max(1, Math.min(product.stock, quantity)), selection }] };
         }),
       removeItem: (productId) =>
         set((s) => ({ items: s.items.filter((i) => i.product.id !== productId) })),

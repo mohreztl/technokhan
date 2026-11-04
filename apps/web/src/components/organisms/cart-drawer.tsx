@@ -48,10 +48,10 @@ function EmptyCart({ onClose }: { onClose: () => void }) {
       </div>
       <h3 className="mb-1 text-lg font-bold text-foreground">سبد خرید شما خالی است</h3>
       <p className="mb-6 max-w-xs text-sm text-muted-foreground">
-        محصولات حرفه‌ای دیتیلینگ را به سبد اضافه کنید تا اینجا ببینید
+        گجت موردنظر خود را به سبد اضافه کنید تا اینجا ببینید
       </p>
       <Button asChild variant="primary" className="gap-2">
-        <Link href={ROUTES.PRODUCTS} onClick={onClose}>
+        <Link href="/shop" onClick={onClose}>
           مشاهده محصولات
           <ArrowLeft className="h-4 w-4" aria-hidden="true" />
         </Link>
@@ -84,7 +84,7 @@ function CartLine({
       className="flex gap-3 rounded-2xl border border-border/40 bg-card/60 p-3"
     >
       <Link
-        href={`${ROUTES.PRODUCTS}/${product.id}`}
+        href={`/product/${product.id}`}
         className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-muted"
         aria-label={product.name}
       >
@@ -105,9 +105,12 @@ function CartLine({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-2">
-          <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
-            {product.name}
-          </h4>
+          <div>
+            <h4 className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+              {product.name}
+            </h4>
+            {item.selection && <p className="mt-1 text-[11px] text-muted-foreground">{[item.selection.colorName, item.selection.warrantyTitle].filter(Boolean).join(' · ')}</p>}
+          </div>
           <IconButton
             label={`حذف ${product.name}`}
             icon={<Trash2 />}
