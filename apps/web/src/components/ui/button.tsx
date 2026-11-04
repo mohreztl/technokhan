@@ -2,100 +2,80 @@
 
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
-import { motion } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all duration-300 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 active:scale-95 select-none touch-manipulation',
+  'inline-flex select-none touch-manipulation items-center justify-center gap-2 rounded-xl font-semibold transition-[background-color,color,border-color,box-shadow,transform] duration-200 focus-visible:outline-2 focus-visible:outline-offset-3 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-45 active:scale-[0.98]',
   {
     variants: {
       variant: {
-        primary:
-          'bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-glow-primary hover:scale-[1.02]',
-        secondary:
-          'bg-secondary text-secondary-foreground hover:bg-secondary/90 hover:shadow-glow-secondary hover:scale-[1.02]',
-        accent:
-          'bg-accent text-accent-foreground hover:bg-accent/90 hover:shadow-glow-accent hover:scale-[1.02]',
-        outline:
-          'border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-primary-foreground',
-        ghost: 'text-foreground hover:bg-primary/10 hover:text-foreground',
-        link: 'text-primary underline-offset-4 hover:underline hover:text-primary/80',
+        primary: 'bg-primary text-primary-foreground shadow-control hover:bg-primary/90',
+        secondary: 'bg-secondary text-secondary-foreground shadow-control hover:bg-secondary/90',
+        accent: 'bg-accent text-accent-foreground shadow-control hover:bg-accent/90',
+        outline: 'border border-foreground/25 bg-transparent text-foreground hover:border-foreground hover:bg-foreground/5',
+        ghost: 'text-foreground hover:bg-foreground/7',
+        link: 'min-h-0 px-0 text-foreground underline-offset-4 hover:underline',
         destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
         success: 'bg-success text-success-foreground hover:bg-success/90',
-        glass: 'glass-effect text-foreground hover:bg-background/60',
+        glass: 'border border-border/70 bg-background/65 text-foreground backdrop-blur-xl hover:bg-background/90',
       },
       size: {
-        sm: 'h-10 px-4 text-sm',
-        md: 'h-11 px-6 text-base',
-        lg: 'h-14 px-8 text-lg',
-        xl: 'h-16 px-10 text-xl',
-        /* 44px minimum touch target */
-        icon: 'h-11 w-11',
-        'icon-sm': 'h-9 w-9',
+        sm: 'min-h-11 px-4 text-sm',
+        md: 'min-h-11 px-5 text-sm',
+        lg: 'min-h-12 px-6 text-base',
+        xl: 'min-h-14 px-8 text-lg',
+        icon: 'h-11 w-11 p-0',
+        'icon-sm': 'h-11 w-11 p-0 [&_svg]:h-4 [&_svg]:w-4',
       },
     },
-    defaultVariants: {
-      variant: 'primary',
-      size: 'md',
-    },
+    defaultVariants: { variant: 'primary', size: 'md' },
   }
 );
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
-  /** Render the child element (e.g. <Link>) with the button styles instead of a <button>. */
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+  /** Clone a Link or other single child with button styling instead of nesting controls. */
   asChild?: boolean;
   loading?: boolean;
   loadingText?: string;
 }
 
-const Spinner = () => <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />;
+type ButtonChild = React.ReactElement<{
+  className?: string;
+  ref?: React.Ref<HTMLButtonElement>;
+  'aria-disabled'?: boolean;
+  'aria-busy'?: boolean;
+}>;
 
+/** Accessible action control with loading, icon, glass and polymorphic link variants. */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { className, variant, size, loading, loadingText, children, disabled, asChild, ...props },
-    ref
-  ) => {
-    const classes = cn(buttonVariants({ variant, size, className }));
+  ({ className, variant, size, loading = false, loadingText, children, disabled, asChild, ...props }, ref) => {
+    const classes = cn(buttonVariants({ variant, size }), className);
 
     if (asChild && React.isValidElement(children)) {
-      const child = children as React.ReactElement<any>;
+      const child = children as ButtonChild;
       return React.cloneElement(child, {
         ...props,
         ...child.props,
         ref,
         className: cn(classes, child.props.className),
         'aria-disabled': disabled || loading || undefined,
+        'aria-busy': loading || undefined,
       });
     }
 
-    const { onAnimationStart, onAnimationEnd, onDragStart, onDrag, onDragEnd, ...restProps } =
-      props as any;
-
     return (
-      <motion.button
-        className={classes}
-        ref={ref}
-        disabled={disabled || loading}
-        whileTap={{ scale: 0.95 }}
-        aria-busy={loading || undefined}
-        {...restProps}
-      >
+      <button ref={ref} className={classes} disabled={disabled || loading} aria-busy={loading || undefined} {...props}>
         {loading ? (
-          <span className="flex items-center gap-2">
-            <Spinner />
-            {loadingText ?? 'در حال بارگذاری...'}
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+            {loadingText ?? 'در حال بارگذاری…'}
           </span>
-        ) : (
-          children
-        )}
-      </motion.button>
+        ) : children}
+      </button>
     );
   }
 );
 
 Button.displayName = 'Button';
-
 export { Button, buttonVariants };

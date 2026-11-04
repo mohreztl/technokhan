@@ -7,77 +7,52 @@ import { Navbar } from '@/components/organisms/navbar';
 import { Footer } from '@/components/organisms/footer';
 import { GoogleAnalytics } from '@/components/analytics/google-analytics';
 import { ScrollProgress } from '@/components/ui/interactive-effects';
-import { APP_NAME, APP_DESCRIPTION } from '@autolounge/shared';
 
-const shabnam = localFont({
-  src: [{ path: '../../public/fonts/Shabnam-FD.woff2', weight: '400', style: 'normal' }],
-  variable: '--font-Shabnam-FD',
+const vazirmatn = localFont({
+  src: '../../public/fonts/Vazirmatn-Variable.ttf',
+  variable: '--font-vazirmatn',
+  weight: '100 900',
+  style: 'normal',
   display: 'swap',
   preload: true,
   fallback: ['Tahoma', 'Arial', 'sans-serif'],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://technokhan.com';
 
 export const metadata: Metadata = {
   title: {
-    default: `${APP_NAME} | ${APP_DESCRIPTION}`,
-    template: `%s | ${APP_NAME}`,
+    default: 'تکنو خان | گجت‌های اورجینال، انتخاب دقیق',
+    template: '%s | تکنو خان',
   },
-  description: APP_DESCRIPTION,
-  keywords: [
-    'دیتیلینگ خودرو',
-    'رپینت خودرو',
-    'کارواش',
-    'سرامیک بدنه',
-    'محافظ رنگ',
-    'لوازم دیتیلینگ',
-    'car detailing',
-    'paint restoration',
-    'car wrap',
-  ],
-  authors: [{ name: 'AutoLounge' }],
-  creator: 'AutoLounge',
-  publisher: 'AutoLounge',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
+  description: 'فروشگاه تخصصی گجت‌های هوشمند، لوازم جانبی موبایل و تجهیزات دیجیتال با ضمانت اصالت و راهنمای انتخاب.',
+  keywords: ['گجت هوشمند', 'لوازم جانبی موبایل', 'هدفون', 'شارژر GaN', 'پاوربانک', 'ساعت هوشمند', 'تکنو خان'],
+  authors: [{ name: 'TechnoKhan' }],
+  creator: 'TechnoKhan',
+  publisher: 'TechnoKhan',
+  formatDetection: { email: false, address: false, telephone: false },
   metadataBase: new URL(siteUrl),
-  alternates: {
-    canonical: '/',
-  },
+  alternates: { canonical: '/' },
   openGraph: {
     type: 'website',
     locale: 'fa_IR',
     url: '/',
-    siteName: APP_NAME,
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
+    siteName: 'تکنو خان',
+    title: 'تکنو خان | گجت‌های اورجینال، انتخاب دقیق',
+    description: 'تجهیزات دیجیتال منتخب با ضمانت اصالت، ارسال سریع و راهنمای تخصصی خرید.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: APP_NAME,
-    description: APP_DESCRIPTION,
+    title: 'تکنو خان',
+    description: 'گجت‌های اورجینال، انتخاب دقیق.',
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+    googleBot: { index: true, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   manifest: '/manifest.json',
-  appleWebApp: {
-    capable: true,
-    title: APP_NAME,
-    statusBarStyle: 'black-translucent',
-  },
+  appleWebApp: { capable: true, title: 'تکنو خان', statusBarStyle: 'black-translucent' },
 };
 
 export const viewport: Viewport = {
@@ -85,27 +60,31 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: 'cover',
+  colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#F9F7F2' },
-    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+    { media: '(prefers-color-scheme: light)', color: '#F2F3EF' },
+    { media: '(prefers-color-scheme: dark)', color: '#090B0C' },
   ],
 };
 
+/** Persian RTL document shell with a self-hosted variable font and global providers. */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fa" dir="rtl" className={`${shabnam.variable} no-js`} suppressHydrationWarning>
+    <html lang="fa" dir="rtl" className={`${vazirmatn.variable} no-js`} suppressHydrationWarning>
+      <head>
+        <meta name="color-scheme" content="light dark" />
+      </head>
       <body className="min-h-dvh bg-background font-sans text-foreground antialiased">
-        {/* Runs while the HTML is still parsing, so scroll-reveal styles stay
-            authoritative for anyone who has JavaScript. See `.no-js` in globals.css. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.remove('no-js')" }} />
-        <Suspense fallback={null}>
-          <GoogleAnalytics />
-        </Suspense>
+        <a href="#content" className="fixed inset-s-4 top-3 z-[100] -translate-y-20 rounded-lg bg-primary px-4 py-2 text-primary-foreground transition-transform focus:translate-y-0">
+          رفتن به محتوای اصلی
+        </a>
+        <Suspense fallback={null}><GoogleAnalytics /></Suspense>
         <Providers>
           <ScrollProgress />
           <div className="flex min-h-dvh flex-col">
             <Navbar />
-            <main className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-tabbar lg:pb-0">
+            <main id="content" tabIndex={-1} className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-tabbar lg:pb-0">
               {children}
             </main>
             <Footer />

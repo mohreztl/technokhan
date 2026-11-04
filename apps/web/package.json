@@ -7,6 +7,7 @@
     "build": "next build && serwist build serwist.config.mjs",
     "start": "next start -p 3000",
     "lint": "eslint .",
+    "test": "tsx --test \"src/**/*.test.ts\"",
     "type-check": "tsc --noEmit && tsc -p tsconfig.sw.json",
     "assets": "tsx scripts/generate-assets.ts"
   },

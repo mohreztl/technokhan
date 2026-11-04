@@ -1,27 +1,25 @@
-'use client';
-
 import * as React from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 const badgeVariants = cva(
-  'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex w-fit items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold leading-5',
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground shadow-sm hover:bg-primary/80',
-        secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive:
-          'border-transparent bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/80',
-        success: 'border-transparent bg-success text-success-foreground shadow-sm hover:bg-success/80',
-        warning: 'border-transparent bg-warning text-warning-foreground shadow-sm hover:bg-warning/80',
-        outline: 'text-foreground border-border',
-        ghost: 'border-transparent hover:bg-accent hover:text-accent-foreground',
-        /** Soft gold tint used for premium labels (warranty, featured). */
-        gold: 'border-secondary/40 bg-secondary/15 text-foreground',
-        /** Quiet neutral chip. */
+        default: 'border-primary/15 bg-primary text-primary-foreground',
+        secondary: 'border-secondary/20 bg-secondary text-secondary-foreground',
+        destructive: 'border-destructive/20 bg-destructive text-destructive-foreground',
+        success: 'border-success/20 bg-success/10 text-success',
+        warning: 'border-warning/25 bg-warning/10 text-warning',
+        outline: 'border-border bg-transparent text-foreground',
+        ghost: 'border-transparent bg-foreground/6 text-foreground',
+        gold: 'border-secondary/35 bg-secondary/10 text-foreground',
         muted: 'border-transparent bg-muted text-muted-foreground',
+        deal: 'border-accent/20 bg-accent text-accent-foreground tabular-nums',
+        stock: 'border-success/25 bg-success/10 text-success',
+        original: 'border-foreground/15 bg-foreground/6 text-foreground',
+        shipping: 'border-info/25 bg-info/10 text-info',
       },
       size: {
         sm: 'px-2 py-0.5 text-[10px]',
@@ -29,19 +27,15 @@ const badgeVariants = cva(
         lg: 'px-3 py-1 text-sm',
       },
     },
-    defaultVariants: {
-      variant: 'default',
-      size: 'md',
-    },
+    defaultVariants: { variant: 'default', size: 'md' },
   }
 );
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
-function Badge({ className, variant, size, ...props }: BadgeProps) {
+/** Compact semantic label for discounts, inventory, authenticity and delivery. */
+export function Badge({ className, variant, size, ...props }: BadgeProps) {
   return <span className={cn(badgeVariants({ variant, size }), className)} {...props} />;
 }
 
-export { Badge, badgeVariants };
+export { badgeVariants };

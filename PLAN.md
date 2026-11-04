@@ -105,11 +105,11 @@
 
 **Interfaces:** variants پایدار `Button`, `Badge`, `Input`, `Dialog`, `Tabs`, `Accordion` حفظ می‌شوند؛ `PriceTag { price, originalPrice?, size?, className? }` و `RangeSlider { min, max, value:[number,number], onValueChange }` اضافه می‌شوند.
 
-- [ ] مستندات Next.js 16 و راهنمای modern-web/frontend را پیش از تغییر کد بخوان.
-- [ ] توکن‌ها، Vazirmatn، dark/light، focus و motion را پیاده‌سازی کن.
-- [ ] primitives لازم را با API تایپ‌شده، TSDoc و حالت disabled/loading/error بساز.
-- [ ] صفحه تعاملی `/design-system` همه توکن‌ها و variants را نمایش دهد.
-- [ ] `pnpm --filter web type-check && pnpm --filter web lint` و smoke test مرورگر.
+- [x] مستندات Next.js 16 و راهنمای modern-web/frontend را پیش از تغییر کد بخوان.
+- [x] توکن‌ها، Vazirmatn، dark/light، focus و motion را پیاده‌سازی کن.
+- [x] primitives لازم را با API تایپ‌شده، TSDoc و حالت disabled/loading/error بساز.
+- [x] صفحه تعاملی `/design-system` همه توکن‌ها و variants را نمایش دهد.
+- [x] `pnpm --filter web type-check && pnpm --filter web lint` و smoke test مرورگر.
 - [ ] Commit/push `feat(phase-1): craft bespoke TechnoKhan RTL design system and reusable UI primitives`.
 
 ### Task 2: دارایی‌های بصری

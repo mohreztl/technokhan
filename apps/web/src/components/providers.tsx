@@ -9,10 +9,10 @@ import { StoreHydrator } from '@/lib/store/hydration';
 import { AppShell } from '@/components/organisms/app-shell';
 
 export const BRAND_COLORS = {
-  navy: '#001F3F',
-  gold: '#C2B280',
-  navyRgb: '0, 31, 63',
-  goldRgb: '194, 178, 128',
+  graphite: '#111315',
+  volt: '#C8F45A',
+  graphiteRgb: '17, 19, 21',
+  voltRgb: '200, 244, 90',
 } as const;
 
 /** Theme hook with brand colors attached (kept for existing consumers). */

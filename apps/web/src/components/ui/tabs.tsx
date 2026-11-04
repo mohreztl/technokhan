@@ -20,117 +20,58 @@ interface TabsProps {
   className?: string;
 }
 
+/** Controlled or uncontrolled tabs with linked tab/panel ids. */
 export function Tabs({ defaultValue, value, onValueChange, children, className }: TabsProps) {
   const baseId = React.useId();
   const [internal, setInternal] = React.useState(value ?? defaultValue);
   const activeTab = value ?? internal;
-
-  const setActiveTab = React.useCallback(
-    (next: string) => {
-      setInternal(next);
-      onValueChange?.(next);
-    },
-    [onValueChange]
-  );
-
+  const setActiveTab = React.useCallback((next: string) => { setInternal(next); onValueChange?.(next); }, [onValueChange]);
   const ctx = React.useMemo(() => ({ activeTab, setActiveTab, baseId }), [activeTab, setActiveTab, baseId]);
-
-  return (
-    <TabsContext.Provider value={ctx}>
-      <div className={cn('w-full', className)}>{children}</div>
-    </TabsContext.Provider>
-  );
+  return <TabsContext.Provider value={ctx}><div className={cn('w-full', className)}>{children}</div></TabsContext.Provider>;
 }
 
-export function TabsList({
-  children,
-  className,
-  label,
-}: {
-  children: React.ReactNode;
-  className?: string;
-  label?: string;
-}) {
+/** Scrollable tablist with roving keyboard focus in both reading directions. */
+export function TabsList({ children, className, label }: { children: React.ReactNode; className?: string; label?: string }) {
+  const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    const tabs = Array.from(event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="tab"]:not([disabled])'));
+    const current = tabs.indexOf(document.activeElement as HTMLButtonElement);
+    if (current < 0 || tabs.length === 0) return;
+    event.preventDefault();
+    const direction = event.key === 'ArrowLeft' ? 1 : event.key === 'ArrowRight' ? -1 : 0;
+    const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (current + direction + tabs.length) % tabs.length;
+    tabs[nextIndex]?.focus();
+    tabs[nextIndex]?.click();
+  };
+
   return (
-    <div
-      role="tablist"
-      aria-label={label}
-      className={cn(
-        'hide-scrollbar -mx-4 flex items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0',
-        className
-      )}
-    >
-      <div className="inline-flex min-w-full items-center gap-1 rounded-xl bg-muted p-1 text-muted-foreground sm:min-w-0">
-        {children}
-      </div>
+    <div role="tablist" aria-label={label} onKeyDown={onKeyDown} className={cn('hide-scrollbar -mx-4 flex items-center gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0', className)}>
+      <div className="inline-flex min-w-full items-center gap-1 rounded-xl border border-border/60 bg-muted p-1 text-muted-foreground sm:min-w-0">{children}</div>
     </div>
   );
 }
 
-interface TabsTriggerProps {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-}
+interface TabsTriggerProps { value: string; children: React.ReactNode; className?: string; disabled?: boolean }
 
-export function TabsTrigger({ value, children, className }: TabsTriggerProps) {
+export function TabsTrigger({ value, children, className, disabled }: TabsTriggerProps) {
   const context = React.useContext(TabsContext);
   if (!context) throw new Error('TabsTrigger must be used within Tabs');
-
   const { activeTab, setActiveTab, baseId } = context;
   const isActive = activeTab === value;
-
   return (
-    <button
-      type="button"
-      role="tab"
-      id={`${baseId}-tab-${value}`}
-      aria-selected={isActive}
-      aria-controls={`${baseId}-panel-${value}`}
-      tabIndex={isActive ? 0 : -1}
-      onClick={() => setActiveTab(value)}
-      className={cn(
-        'relative inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary/60 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
-        isActive ? 'text-foreground' : 'hover:text-foreground',
-        className
-      )}
-    >
-      {isActive && (
-        <motion.span
-          layoutId={`${baseId}-active-tab`}
-          className="absolute inset-0 -z-10 rounded-lg bg-background shadow-xs"
-          transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-        />
-      )}
+    <button type="button" role="tab" id={`${baseId}-tab-${value}`} aria-selected={isActive} aria-controls={`${baseId}-panel-${value}`} tabIndex={isActive ? 0 : -1} disabled={disabled} onClick={() => setActiveTab(value)} className={cn('relative inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50', isActive ? 'text-foreground' : 'hover:text-foreground', className)}>
+      {isActive && <motion.span layoutId={`${baseId}-active-tab`} className="absolute inset-0 -z-10 rounded-lg bg-background shadow-control" transition={{ type: 'spring', bounce: 0.15, duration: 0.35 }} />}
       <span className="relative">{children}</span>
     </button>
   );
 }
 
-interface TabsContentProps {
-  value: string;
-  children: React.ReactNode;
-  className?: string;
-}
+interface TabsContentProps { value: string; children: React.ReactNode; className?: string }
 
 export function TabsContent({ value, children, className }: TabsContentProps) {
   const context = React.useContext(TabsContext);
   if (!context) throw new Error('TabsContent must be used within Tabs');
-
   const { activeTab, baseId } = context;
   if (activeTab !== value) return null;
-
-  return (
-    <motion.div
-      role="tabpanel"
-      id={`${baseId}-panel-${value}`}
-      aria-labelledby={`${baseId}-tab-${value}`}
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className={cn('mt-4', className)}
-    >
-      {children}
-    </motion.div>
-  );
+  return <div role="tabpanel" id={`${baseId}-panel-${value}`} aria-labelledby={`${baseId}-tab-${value}`} className={cn('mt-4 animate-fade-in', className)}>{children}</div>;
 }

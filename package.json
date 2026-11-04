@@ -17,7 +17,7 @@
     "start:api": "pnpm --filter api start",
     "lint": "pnpm --filter \"./apps/**\" lint",
     "type-check": "pnpm --filter @autolounge/shared build && pnpm -r type-check",
-    "test": "pnpm --filter @autolounge/shared test",
+    "test": "pnpm -r test",
     "assets": "pnpm --filter @autolounge/shared build && pnpm --filter web assets",
     "db:migrate": "pnpm --filter api prisma:migrate",
     "db:seed": "pnpm --filter api db:seed",
