@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "test": "tsx --test \"src/**/*.test.ts\"",
     "type-check": "tsc --noEmit && tsc -p tsconfig.sw.json",
-    "assets": "tsx scripts/generate-assets.ts"
+    "assets": "tsx scripts/generate-assets.ts",
+    "assets:ai": "node scripts/optimize-ai-assets.mjs --clean"
   },
   "dependencies": {
     "@autolounge/shared": "workspace:*",

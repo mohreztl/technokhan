@@ -110,7 +110,7 @@
 - [x] primitives لازم را با API تایپ‌شده، TSDoc و حالت disabled/loading/error بساز.
 - [x] صفحه تعاملی `/design-system` همه توکن‌ها و variants را نمایش دهد.
 - [x] `pnpm --filter web type-check && pnpm --filter web lint` و smoke test مرورگر.
-- [ ] Commit/push `feat(phase-1): craft bespoke TechnoKhan RTL design system and reusable UI primitives`.
+- [x] Commit/push `feat(phase-1): craft bespoke TechnoKhan RTL design system and reusable UI primitives`.
 
 ### Task 2: دارایی‌های بصری
 
@@ -118,10 +118,10 @@
 
 **Interfaces:** `MediaAsset { src, alt, width, height, kind, prompt? }` و مجموعه‌های `HERO_MEDIA`, `CATEGORY_MEDIA`, `PRODUCT_MEDIA`, `ARTICLE_MEDIA`.
 
-- [ ] مرورگر داخلی را به AI Studio وصل کن؛ اگر ورود/تولید در دسترس نبود، محدودیت را صریح ثبت کن و مسیر جایگزین تولید محلی هم‌پالت را بدون ادعای AI Studio اجرا کن.
-- [ ] تصاویر جدول مانیفست را تولید/دانلود و به WebP بهینه کن.
-- [ ] مانیفست تایپ‌شده با alt سئوشده و ابعاد واقعی بساز.
-- [ ] وجود فایل‌ها، فرمت، ابعاد و بارگذاری در مرورگر را بررسی کن.
+- [x] مرورگر Chrome واقعی را به AI Studio وصل کن؛ مدل خطادار Imagen با Nano Banana 2 Lite جایگزین و خطا در ledger ثبت شد.
+- [x] تصاویر جدول مانیفست را تولید/دانلود و به WebP بهینه کن.
+- [x] مانیفست تایپ‌شده با alt سئوشده و ابعاد واقعی بساز.
+- [x] وجود فایل‌ها، فرمت، ابعاد، contact sheet و یکتایی SHA-256 را بررسی کن.
 - [ ] Typecheck/Lint سپس commit/push `feat(phase-2): generate and integrate studio-grade AI visual assets for TechnoKhan`.
 
 ### Task 3: کاتالوگ، Fastify و state
