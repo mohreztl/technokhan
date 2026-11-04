@@ -18,6 +18,7 @@ import authPlugin from './plugins/auth';
 
 import { authRoutes } from './routes/auth';
 import { productRoutes } from './routes/products';
+import { articleRoutes } from './routes/articles';
 import { serviceRoutes } from './routes/services';
 import { bookingRoutes } from './routes/bookings';
 import { orderRoutes } from './routes/orders';
@@ -188,6 +189,7 @@ async function registerRoutes() {
     async (instance) => {
       await instance.register(authRoutes, { prefix: '/auth' });
       await instance.register(productRoutes, { prefix: '/products' });
+      await instance.register(articleRoutes, { prefix: '/articles' });
       await instance.register(serviceRoutes, { prefix: '/services' });
       await instance.register(bookingRoutes, { prefix: '/bookings' });
       await instance.register(orderRoutes, { prefix: '/orders' });

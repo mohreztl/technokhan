@@ -111,6 +111,11 @@ model Product {
   tags             String[] @default([])
   rating           Float?   @default(0)
   reviewCount      Int      @default(0)
+  colors           Json?
+  warranties       Json?
+  salesCount       Int      @default(0)
+  editorChoice     Boolean  @default(false)
+  dealEndsAt       DateTime?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

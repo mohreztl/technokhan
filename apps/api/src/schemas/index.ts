@@ -71,8 +71,13 @@ const queryNumber = z.preprocess((v) => {
   return Number.isFinite(n) ? n : undefined;
 }, z.number().optional());
 
+export const queryStringList = z.preprocess((value) => {
+  const items = Array.isArray(value) ? value : typeof value === 'string' ? value.split(',') : [];
+  return items.map((item) => String(item).trim()).filter(Boolean);
+}, z.array(z.string().min(1)).optional());
+
 export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc');
-export const catalogSortBySchema = z.enum(['createdAt', 'price', 'rating', 'name']).default('createdAt');
+export const catalogSortBySchema = z.enum(['createdAt', 'newest', 'popular', 'price', 'rating', 'name']).default('createdAt');
 
 export const pageQuery = (defaultLimit = 12, maxLimit = 100) =>
   z.object({
@@ -83,6 +88,8 @@ export const pageQuery = (defaultLimit = 12, maxLimit = 100) =>
 export const productQuerySchema = pageQuery(12).extend({
   category: z.string().trim().min(1).optional(),
   brand: z.string().trim().min(1).optional(),
+  brands: queryStringList,
+  features: queryStringList,
   featured: queryBool,
   search: z.string().trim().min(1).max(100).optional(),
   minPrice: queryNumber,

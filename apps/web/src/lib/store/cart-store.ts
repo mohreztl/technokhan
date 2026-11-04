@@ -28,7 +28,7 @@ export interface CartState {
   setCoupon: (code: string | null, coupon?: CouponTerms | null) => void;
 }
 
-export const CART_STORAGE_KEY = 'autolounge_cart';
+export const CART_STORAGE_KEY = 'technokhan_cart';
 
 export const useCartStore = create<CartState>()(
   persist(
@@ -39,27 +39,26 @@ export const useCartStore = create<CartState>()(
       coupon: null,
       addItem: (product, quantity = 1) =>
         set((s) => {
+          if (product.stock <= 0) return s;
           const existing = s.items.find((i) => i.product.id === product.id);
-          const maxQty = product.stock > 0 ? product.stock : 99;
           if (existing) {
             return {
               items: s.items.map((i) =>
                 i.product.id === product.id
-                  ? { ...i, quantity: Math.min(maxQty, i.quantity + quantity) }
+                  ? { ...i, quantity: Math.min(product.stock, i.quantity + quantity) }
                   : i
               ),
             };
           }
-          return { items: [...s.items, { product, quantity: Math.min(maxQty, quantity) }] };
+          return { items: [...s.items, { product, quantity: Math.max(1, Math.min(product.stock, quantity)) }] };
         }),
       removeItem: (productId) =>
         set((s) => ({ items: s.items.filter((i) => i.product.id !== productId) })),
       updateQuantity: (productId, quantity) =>
         set((s) => ({
-          items:
-            quantity <= 0
-              ? s.items.filter((i) => i.product.id !== productId)
-              : s.items.map((i) => (i.product.id === productId ? { ...i, quantity } : i)),
+          items: s.items
+            .map((i) => i.product.id === productId ? { ...i, quantity: Math.min(i.product.stock, quantity) } : i)
+            .filter((i) => i.quantity > 0),
         })),
       clearCart: () => set({ items: [], couponCode: null, coupon: null }),
       toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),

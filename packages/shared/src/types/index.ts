@@ -24,15 +24,45 @@ export interface User {
 // ---------------------------------------------------------------------------
 
 export enum ProductCategory {
-  DETAILING = 'detailing',
-  CAR_WRAP = 'car_wrap',
-  ACCESSORIES = 'accessories',
-  TOOLS = 'tools',
+  CHARGERS = 'chargers',
+  HEADPHONES = 'headphones',
+  POWERBANKS = 'powerbanks',
+  GAMING = 'gaming',
+  WEARABLES = 'wearables',
+  CABLES = 'cables',
+}
+
+export interface Category {
+  id: ProductCategory;
+  name: string;
+  description: string;
+  image: string;
+}
+
+export interface Brand {
+  id: string;
+  name: string;
+  nameFa: string;
+  country: string;
 }
 
 export interface ProductSpecification {
   label: string;
   value: string;
+}
+
+export interface ProductColor {
+  id: string;
+  name: string;
+  hex: string;
+  image?: string;
+}
+
+export interface WarrantyOption {
+  id: string;
+  title: string;
+  months: number;
+  priceDelta: number;
 }
 
 export interface Review {
@@ -49,7 +79,7 @@ export interface Review {
 export type ProductReview = Review;
 
 export interface Product {
-  /** stable slug id, e.g. "carnauba-wax" */
+  /** Stable URL slug shared by the catalog, API and storefront. */
   id: string;
   name: string;
   nameEn: string;
@@ -70,6 +100,11 @@ export interface Product {
   specifications?: ProductSpecification[];
   features?: string[];
   tags?: string[];
+  colors?: ProductColor[];
+  warranties?: WarrantyOption[];
+  salesCount?: number;
+  editorChoice?: boolean;
+  dealEndsAt?: string;
   isActive?: boolean;
   createdAt: DateLike;
   updatedAt: DateLike;
@@ -620,6 +655,8 @@ export interface ApiResponse<T = any> {
 export interface ProductListQuery {
   category?: string;
   brand?: string;
+  brands?: string[];
+  features?: string[];
   featured?: boolean;
   search?: string;
   minPrice?: number;
@@ -627,7 +664,7 @@ export interface ProductListQuery {
   inStock?: boolean;
   page?: number;
   limit?: number;
-  sortBy?: 'createdAt' | 'price' | 'rating' | 'name';
+  sortBy?: 'createdAt' | 'newest' | 'popular' | 'price' | 'rating' | 'name';
   sortOrder?: 'asc' | 'desc';
 }
 

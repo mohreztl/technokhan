@@ -68,6 +68,11 @@ function productData(p: Product): Omit<Prisma.ProductUncheckedCreateInput, 'id'>
     tags: p.tags ?? [],
     rating: p.rating ?? 0,
     reviewCount: p.reviewCount ?? p.reviews?.length ?? 0,
+    colors: json(p.colors),
+    warranties: json(p.warranties),
+    salesCount: p.salesCount ?? 0,
+    editorChoice: p.editorChoice ?? false,
+    dealEndsAt: toDate(p.dealEndsAt) ?? null,
   };
 }
 
@@ -161,7 +166,12 @@ async function seedReviews(
 }
 
 async function main() {
-  console.log(`Seeding AutoLounge (${PRODUCTS.length} products, ${SERVICES.length} services)…`);
+  console.log(`Seeding TechnoKhan (${PRODUCTS.length} products)…`);
+
+  await prisma.product.updateMany({
+    where: { id: { notIn: PRODUCTS.map((product) => product.id) } },
+    data: { isActive: false },
+  });
 
   let productCount = 0;
   let serviceCount = 0;

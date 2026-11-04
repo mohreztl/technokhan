@@ -7,42 +7,25 @@ import { useWishlistStore } from './wishlist-store';
 import { useGarageStore } from './garage-store';
 import { useCompareStore } from './compare-store';
 import { useNotificationStore } from './notification-store';
+import { useRecentlyViewedStore } from './recently-viewed-store';
 
-const persistedStores = [
-  useAuthStore,
-  useCartStore,
-  useWishlistStore,
-  useGarageStore,
-  useCompareStore,
-  useNotificationStore,
-] as const;
+const persistedStores = [useAuthStore, useCartStore, useWishlistStore, useGarageStore, useCompareStore, useNotificationStore, useRecentlyViewedStore] as const;
 
-/**
- * Rehydrates every persisted store after mount. Stores are created with
- * `skipHydration: true`, so the server and the first client render agree
- * (empty cart, anonymous user) and the real values arrive without a
- * hydration mismatch. Mount once, inside Providers.
- */
+/** Rehydrates local stores after the server-compatible first paint. */
 export function StoreHydrator() {
   useEffect(() => {
-    persistedStores.forEach((store) => {
-      void store.persist.rehydrate();
-    });
+    persistedStores.forEach((store) => { void store.persist.rehydrate(); });
   }, []);
   return null;
 }
 
 type PersistedStore = (typeof persistedStores)[number];
 
-function subscribe(store: PersistedStore, cb: () => void) {
-  return store.persist.onFinishHydration(cb);
+function subscribe(store: PersistedStore, callback: () => void) {
+  return store.persist.onFinishHydration(callback);
 }
 
-/** true once the given store has read localStorage (false during SSR and the first paint) */
+/** Returns true after the selected persisted store has read localStorage. */
 export function useHydrated(store: PersistedStore = useAuthStore): boolean {
-  return useSyncExternalStore(
-    (cb) => subscribe(store, cb),
-    () => store.persist.hasHydrated(),
-    () => false
-  );
+  return useSyncExternalStore((callback) => subscribe(store, callback), () => store.persist.hasHydrated(), () => false);
 }

@@ -9,7 +9,7 @@ export interface WishlistState {
   clear: () => void;
 }
 
-export const WISHLIST_STORAGE_KEY = 'autolounge_wishlist';
+export const WISHLIST_STORAGE_KEY = 'technokhan_wishlist';
 
 export const useWishlistStore = create<WishlistState>()(
   persist(

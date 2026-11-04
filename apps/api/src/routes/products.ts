@@ -1,11 +1,13 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Prisma } from '@prisma/client';
+import { BRANDS, CATEGORIES } from '@autolounge/shared';
 import { prisma } from '../lib/prisma';
 import { productQuerySchema, limitQuerySchema, idParamSchema, reviewSchema } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
 import { conflict, notFound } from '../lib/errors';
 import { approvedReviews, displayName, reviewSelect, searchFilter } from '../lib/catalog';
 
+/** Public product catalog, filtering, related items and authenticated reviews. */
 export const productRoutes: FastifyPluginAsync = async (fastify) => {
   // GET /products
   fastify.get('/', async (request, reply) => {
@@ -13,7 +15,9 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
 
     const where: Prisma.ProductWhereInput = { isActive: true };
     if (q.category) where.category = q.category;
-    if (q.brand) where.brand = { equals: q.brand, mode: 'insensitive' };
+    if (q.brands?.length) where.brand = { in: q.brands, mode: 'insensitive' };
+    else if (q.brand) where.brand = { equals: q.brand, mode: 'insensitive' };
+    if (q.features?.length) where.tags = { hasEvery: q.features };
     if (q.featured !== undefined) where.featured = q.featured;
     if (q.inStock === true) where.stock = { gt: 0 };
     if (q.minPrice !== undefined || q.maxPrice !== undefined) {
@@ -32,7 +36,9 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     const orderBy: Prisma.ProductOrderByWithRelationInput[] =
       q.sortBy === 'rating'
         ? [{ rating: q.sortOrder }, { reviewCount: 'desc' }]
-        : [{ [q.sortBy]: q.sortOrder }, { id: 'asc' }];
+        : q.sortBy === 'popular'
+          ? [{ salesCount: q.sortOrder }, { reviewCount: 'desc' }]
+          : [{ [q.sortBy === 'newest' ? 'createdAt' : q.sortBy]: q.sortOrder }, { id: 'asc' }];
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({ where, orderBy, skip: (q.page - 1) * q.limit, take: q.limit }),
@@ -65,6 +71,16 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
       reply,
       rows.map((r) => r.category).filter(Boolean)
     );
+  });
+
+  // GET /products/categories/details
+  fastify.get('/categories/details', async (_request, reply) => {
+    return apiResponse.success(reply, CATEGORIES);
+  });
+
+  // GET /products/brands/list
+  fastify.get('/brands/list', async (_request, reply) => {
+    return apiResponse.success(reply, BRANDS);
   });
 
   // GET /products/:id

@@ -1,11 +1,11 @@
 // Shared constants
 import type { SiteSettings, VehicleSize } from '../types';
 
-export const APP_NAME = 'اتولانژ';
-export const APP_NAME_EN = 'AutoLounge';
-export const APP_DESCRIPTION = 'مرکز تخصصی مراقبت و زیبایی خودرو';
-export const APP_DESCRIPTION_EN = 'Premium Automotive Care & Detailing Center';
-export const APP_TAGLINE = 'جایی که خودروی شما دوباره می‌درخشد';
+export const APP_NAME = 'تکنو خان';
+export const APP_NAME_EN = 'TechnoKhan';
+export const APP_DESCRIPTION = 'فروشگاه تخصصی گجت‌های هوشمند و لوازم جانبی دیجیتال';
+export const APP_DESCRIPTION_EN = 'Curated Smart Gadgets and Digital Accessories';
+export const APP_TAGLINE = 'گجت‌های اورجینال، انتخاب دقیق';
 
 export const CONTACT = {
   phone: '۰۲۱-۱۲۳۴۵۶۷۸',
@@ -181,10 +181,12 @@ export const PAYMENT_METHOD_LABELS: Record<string, string> = {
 };
 
 export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
-  detailing: 'دیتیلینگ',
-  car_wrap: 'کاور و رپ',
-  accessories: 'لوازم جانبی',
-  tools: 'ابزار',
+  chargers: 'شارژرهای فوق سریع',
+  headphones: 'هدفون و ایرباد',
+  powerbanks: 'پاوربانک و مگ‌سیف',
+  gaming: 'گیمینگ و دسکتاپ',
+  wearables: 'گجت‌های پوشیدنی',
+  cables: 'کابل، هاب و مبدل',
 };
 
 export const SERVICE_TYPE_LABELS: Record<string, string> = {

@@ -9,14 +9,14 @@ export const COMPARE_LIMIT = 4;
 
 export interface CompareState {
   ids: string[];
-  /** Returns whether the service ended up selected. */
-  toggle: (serviceId: string) => boolean;
-  add: (serviceId: string) => boolean;
-  remove: (serviceId: string) => void;
+  /** Returns whether the product ended up selected. */
+  toggle: (productId: string) => boolean;
+  add: (productId: string) => boolean;
+  remove: (productId: string) => void;
   clear: () => void;
 }
 
-export const COMPARE_STORAGE_KEY = 'autolounge_compare';
+export const COMPARE_STORAGE_KEY = 'technokhan_compare';
 
 export const useCompareStore = create<CompareState>()(
   persist(

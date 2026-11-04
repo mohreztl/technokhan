@@ -1,5 +1,8 @@
 import 'server-only';
 import type {
+  Article,
+  Brand,
+  Category,
   GalleryItem,
   PagedList,
   Product,
@@ -7,6 +10,7 @@ import type {
   Service,
   ServiceListQuery,
 } from '@autolounge/shared';
+import { BRANDS, CATEGORIES, findArticle, sortedArticles } from '@autolounge/shared';
 import { apiFetch, buildQuery, isDemoMode } from '@/lib/api/client';
 import {
   findLocalProduct,
@@ -148,4 +152,45 @@ export async function getFeatured(): Promise<
 export async function getGallery(serviceType?: string): Promise<GalleryItem[]> {
   // Gallery is editorial content shipped with the app (no API endpoint yet)
   return localGallery(serviceType);
+}
+
+
+/** Returns category metadata from Fastify or the bundled fallback. */
+export async function getCategories(): Promise<Category[]> {
+  if (!isDemoMode()) {
+    const result = await apiFetch<Category[]>('/products/categories/details', { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['categories'] } });
+    if (result.ok && Array.isArray(result.data)) return result.data;
+  }
+  return CATEGORIES;
+}
+
+/** Returns original brand metadata used by filters and brand showcases. */
+export async function getBrands(): Promise<Brand[]> {
+  if (!isDemoMode()) {
+    const result = await apiFetch<Brand[]>('/products/brands/list', { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['brands'] } });
+    if (result.ok && Array.isArray(result.data)) return result.data;
+  }
+  return BRANDS;
+}
+
+/** Lists magazine articles newest-first with optional category/search filtering. */
+export async function getArticles(options: { category?: string; search?: string; limit?: number } = {}): Promise<Article[]> {
+  if (!isDemoMode()) {
+    const result = await apiFetch<Article[]>(`/articles${buildQuery(options as Record<string, unknown>)}`, { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['articles'] } });
+    if (result.ok && Array.isArray(result.data)) return result.data;
+  }
+  const search = options.search?.toLocaleLowerCase('fa');
+  return sortedArticles()
+    .filter((article) => !options.category || article.category === options.category)
+    .filter((article) => !search || `${article.title} ${article.excerpt} ${article.tags.join(' ')}`.toLocaleLowerCase('fa').includes(search))
+    .slice(0, options.limit ?? 12);
+}
+
+/** Finds one article by its canonical slug. */
+export async function getArticle(slug: string): Promise<Article | null> {
+  if (!isDemoMode()) {
+    const result = await apiFetch<Article>(`/articles/${encodeURIComponent(slug)}`, { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['articles', `article:${slug}`] } });
+    if (result.ok && result.data?.slug) return result.data;
+  }
+  return findArticle(slug) ?? null;
 }

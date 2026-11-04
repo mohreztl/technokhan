@@ -1,8 +1,8 @@
-// Bundled catalog & content data for AutoLounge (used by the web app in demo
-// mode, by the API seed script and as the fallback when the API is offline).
+// Bundled TechnoKhan catalog used by demo mode, API seeding and offline fallback.
 import type { Article, Coupon, GalleryItem, Product, Service, WrapColor } from '../types';
 import { ARTICLES } from './articles';
 import { PRODUCTS } from './products';
+export { CATEGORIES, BRANDS, findCategory } from './categories';
 import { SERVICES } from './services';
 import { GALLERY } from './gallery';
 import { COUPONS } from './coupons';

@@ -122,7 +122,7 @@
 - [x] تصاویر جدول مانیفست را تولید/دانلود و به WebP بهینه کن.
 - [x] مانیفست تایپ‌شده با alt سئوشده و ابعاد واقعی بساز.
 - [x] وجود فایل‌ها، فرمت، ابعاد، contact sheet و یکتایی SHA-256 را بررسی کن.
-- [ ] Typecheck/Lint سپس commit/push `feat(phase-2): generate and integrate studio-grade AI visual assets for TechnoKhan`.
+- [x] Typecheck/Lint سپس commit/push `feat(phase-2): generate and integrate studio-grade AI visual assets for TechnoKhan`.
 
 ### Task 3: کاتالوگ، Fastify و state
 
@@ -130,10 +130,10 @@
 
 **Interfaces:** `filterProducts(products, query): Product[]`, `searchProducts(query)`, `getProductBySlug(slug)`, stores پایدار `useCart`, `useWishlist`, `useCompare`, `useRecentlyViewed`.
 
-- [ ] مدل‌ها و حداقل ۱۲ محصول کامل فارسی، ۶ دسته، ۷ برند، ۴ مقاله و نظرات را بساز.
-- [ ] فیلتر/جستجو/مرتب‌سازی خالص و تست‌های ترکیبی، بازه قیمت، خالی و موجودی بنویس.
-- [ ] Fastify را برای slug و queryهای جدید سازگار و fallback محلی را به‌روز کن.
-- [ ] سبد با کنترل موجودی، wishlist، compare حداکثر ۴ و recent items را پایدار کن و تست store اجرا کن.
+- [x] مدل‌ها و حداقل ۱۲ محصول کامل فارسی، ۶ دسته، ۷ برند، ۴ مقاله و نظرات را بساز.
+- [x] فیلتر/جستجو/مرتب‌سازی خالص و تست‌های ترکیبی، بازه قیمت، خالی و موجودی بنویس.
+- [x] Fastify را برای slug و queryهای جدید سازگار و fallback محلی را به‌روز کن.
+- [x] سبد با کنترل موجودی، wishlist، compare حداکثر ۴ و recent items را پایدار کن و تست store اجرا کن.
 - [ ] تست shared + Typecheck/Lint؛ commit/push `feat(phase-3): configure Fastify data services, Persian tech catalog, and client state stores`.
 
 ### Task 4: تجربه کامل فروشگاه
