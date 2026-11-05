@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { RatingStars } from '@/components/ui/rating-stars';
 import { Skeleton } from '@/components/ui/skeleton';
+import { handleImageError } from '@/lib/image-fallback';
 
 /** Side-by-side comparison of up to four products with the union of technical specifications. */
 export function CompareClient() {
@@ -27,7 +28,7 @@ export function CompareClient() {
       <div className="overflow-x-auto rounded-2xl border border-border" tabIndex={0} role="region" aria-label="جدول مقایسه محصولات">
         <table className="w-full min-w-[760px] border-collapse text-sm">
           <caption className="sr-only">مقایسه قیمت و مشخصات فنی محصولات انتخاب‌شده</caption>
-          <thead><tr className="border-b border-border"><th scope="col" className="w-40 bg-muted/40 p-4 text-start">محصول</th>{products.map((product) => <th key={product.id} scope="col" className="min-w-52 bg-card p-4 align-top"><div className="relative"><Button variant="ghost" size="icon-sm" className="absolute -top-2 -end-2" aria-label={`حذف ${product.name}`} onClick={() => compare.remove(product.id)}><X className="size-4" aria-hidden="true" /></Button><Link href={`/product/${product.id}`} className="relative mx-auto block size-28 overflow-hidden rounded-xl bg-[#e3e6e2]"><Image src={product.images[0]!} alt="" fill sizes="112px" className="object-cover" /></Link><h2 className="mt-3 text-sm font-bold leading-6"><Link href={`/product/${product.id}`}>{product.name}</Link></h2><Badge variant="outline" className="mt-2">{product.brand}</Badge></div></th>)}</tr></thead>
+          <thead><tr className="border-b border-border"><th scope="col" className="w-40 bg-muted/40 p-4 text-start">محصول</th>{products.map((product) => <th key={product.id} scope="col" className="min-w-52 bg-card p-4 align-top"><div className="relative"><Button variant="ghost" size="icon-sm" className="absolute -top-2 -end-2" aria-label={`حذف ${product.name}`} onClick={() => compare.remove(product.id)}><X className="size-4" aria-hidden="true" /></Button><Link href={`/product/${product.id}`} className="relative mx-auto block size-28 overflow-hidden rounded-xl bg-[#e3e6e2]"><Image src={product.images[0]!} alt="" fill sizes="112px" onError={handleImageError} className="object-cover" /></Link><h2 className="mt-3 text-sm font-bold leading-6"><Link href={`/product/${product.id}`}>{product.name}</Link></h2><Badge variant="outline" className="mt-2">{product.brand}</Badge></div></th>)}</tr></thead>
           <tbody>
             <CompareRow label="قیمت">{products.map((product) => <td key={product.id} className="p-4 font-black tabular-nums">{formatToman(effectivePrice(product))}</td>)}</CompareRow>
             <CompareRow label="امتیاز">{products.map((product) => <td key={product.id} className="p-4"><RatingStars value={product.rating ?? 0} showValue={false} size="sm" /></td>)}</CompareRow>

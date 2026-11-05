@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import Fastify, { type FastifyInstance } from 'fastify';
+import { PRODUCTS } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import { productRoutes } from './products';
 
@@ -60,5 +61,17 @@ describe('productRoutes offline catalog', () => {
     const categories = await app.inject({ method: 'GET', url: '/products/categories/list' });
     assert.equal(categories.statusCode, 200);
     assert.equal(categories.json().data.length, 6);
+  });
+
+  it('filters and sorts live database products by their effective discounted price', async () => {
+    const cheap = { ...PRODUCTS[0]!, id: 'cheap', price: 1_000, discountPrice: null };
+    const discounted = { ...PRODUCTS[0]!, id: 'discounted', price: 1_500, discountPrice: 500 };
+    prisma.product.findMany = (async () => [cheap, discounted]) as unknown as typeof prisma.product.findMany;
+    prisma.product.count = (async () => 2) as typeof prisma.product.count;
+
+    const response = await app.inject({ method: 'GET', url: '/products?maxPrice=1000&sortBy=price&sortOrder=asc' });
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.json().data.map((product: { id: string }) => product.id), ['discounted', 'cheap']);
+    assert.equal(response.json().pagination.total, 2);
   });
 });

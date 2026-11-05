@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { Product } from '@technokhan/shared';
 
 export const RECENTLY_VIEWED_LIMIT = 8;
 export const RECENTLY_VIEWED_STORAGE_KEY = 'technokhan_recently_viewed';
@@ -7,6 +8,14 @@ export const RECENTLY_VIEWED_STORAGE_KEY = 'technokhan_recently_viewed';
 /** Returns unique newest-first product ids capped at the storefront history limit. */
 export function recentIds(current: string[], id: string): string[] {
   return [id, ...current.filter((item) => item !== id)].slice(0, RECENTLY_VIEWED_LIMIT);
+}
+
+/** Resolves persisted ids into display products, preserving history order. */
+export function recentProducts(ids: string[], currentProductId: string, source: Product[]): Product[] {
+  return ids
+    .filter((id) => id !== currentProductId)
+    .map((id) => source.find((product) => product.id === id))
+    .filter((product): product is Product => product !== undefined);
 }
 
 export interface RecentlyViewedState {

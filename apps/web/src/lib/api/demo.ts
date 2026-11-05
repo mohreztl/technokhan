@@ -532,7 +532,12 @@ export const demoOrders = {
     });
     const missing = lines.find((l) => !l.product);
     if (missing) return fail<Order>('یکی از محصولات موجود نیست', 404, 'NOT_FOUND');
-    const outOfStock = lines.find((l) => l.product!.stock < l.quantity);
+    const quantities = lines.reduce((totals, line) => {
+      const id = line.product!.id;
+      totals.set(id, (totals.get(id) ?? 0) + line.quantity);
+      return totals;
+    }, new Map<string, number>());
+    const outOfStock = lines.find((line) => line.product!.stock < (quantities.get(line.product!.id) ?? 0));
     if (outOfStock) return fail<Order>(`موجودی «${outOfStock.product!.name}» کافی نیست`, 409, 'CONFLICT');
     const totals = computeOrderTotals(
       lines.map((l) => ({ product: l.product!, quantity: l.quantity })),

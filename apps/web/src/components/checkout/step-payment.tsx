@@ -34,12 +34,12 @@ export function StepPayment({ method, onMethodChange, notes, onNotesChange, subt
           checked={method === 'zarinpal'}
           onChange={() => onMethodChange('zarinpal')}
           icon={<CreditCard className="h-5 w-5" aria-hidden="true" />}
-          label="پرداخت آنلاین"
-          description="امن و سریع از طریق درگاه زرین‌پال؛ همهٔ کارت‌های عضو شتاب"
+          label="پرداخت آنلاین نمایشی"
+          description="شبیه‌سازی درگاه زرین‌پال، بدون تراکنش واقعی یا دریافت اطلاعات کارت"
           trailing={
             <span className="flex items-center gap-1 text-xs text-success">
               <ShieldCheck className="h-4 w-4" aria-hidden="true" />
-              امن
+              دمو
             </span>
           }
         />
@@ -51,11 +51,11 @@ export function StepPayment({ method, onMethodChange, notes, onNotesChange, subt
           disabled={!codAllowed}
           onChange={() => onMethodChange('cod')}
           icon={<Banknote className="h-5 w-5" aria-hidden="true" />}
-          label="پرداخت در محل"
+          label="پرداخت در محل نمایشی"
           description={
             codAllowed
-              ? 'پرداخت نقدی یا با کارت هنگام تحویل'
-              : `برای سفارش‌های بالای ${formatToman(COD_MAX_SUBTOTAL)} فقط پرداخت آنلاین ممکن است`
+              ? 'ثبت آزمایشی سفارش؛ هیچ پرداخت یا ارسال واقعی انجام نمی‌شود'
+              : `برای سفارش‌های بالای ${formatToman(COD_MAX_SUBTOTAL)} فقط پرداخت آنلاین نمایشی ممکن است`
           }
         />
       </fieldset>

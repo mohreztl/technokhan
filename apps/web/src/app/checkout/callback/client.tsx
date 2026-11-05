@@ -209,9 +209,9 @@ export function PaymentCallbackClient() {
             >
               <CheckCircle2 className="h-11 w-11" aria-hidden="true" />
             </motion.div>
-            <h1 className="text-2xl font-black">پرداخت با موفقیت انجام شد</h1>
+            <h1 className="text-2xl font-black">پرداخت نمایشی با موفقیت انجام شد</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              {bookingId ? 'پرداخت رزرو شما ثبت شد.' : 'سفارش شما در حال پردازش است.'}
+              هیچ تراکنش واقعی انجام نشد؛ {bookingId ? 'پرداخت رزرو شما در حالت دمو ثبت شد.' : 'سفارش نمایشی شما در حال پردازش است.'}
             </p>
           </div>
 

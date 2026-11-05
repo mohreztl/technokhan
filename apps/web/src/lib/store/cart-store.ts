@@ -22,8 +22,8 @@ export interface CartState {
    */
   coupon: CouponTerms | null;
   addItem: (product: Product, quantity?: number, selection?: ProductSelection) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  removeItem: (productId: string, selection?: ProductSelection) => void;
+  updateQuantity: (productId: string, quantity: number, selection?: ProductSelection) => void;
   clearCart: () => void;
   toggleCart: () => void;
   openCart: () => void;
@@ -33,6 +33,23 @@ export interface CartState {
 
 export const CART_STORAGE_KEY = 'technokhan_cart';
 
+/** Stable identity for a product with a specific color and warranty. */
+export function cartItemKey(item: Pick<CartItem, 'product' | 'selection'>): string {
+  return [item.product.id, item.selection?.colorName ?? '', item.selection?.warrantyId ?? item.selection?.warrantyTitle ?? ''].join('::');
+}
+
+function sameVariant(item: CartItem, productId: string, selection?: ProductSelection): boolean {
+  return item.product.id === productId
+    && item.selection?.colorName === selection?.colorName
+    && (item.selection?.warrantyId ?? item.selection?.warrantyTitle) === (selection?.warrantyId ?? selection?.warrantyTitle);
+}
+
+function quantityOutsideVariant(items: CartItem[], productId: string, selection?: ProductSelection): number {
+  return items
+    .filter((item) => item.product.id === productId && !sameVariant(item, productId, selection))
+    .reduce((total, item) => total + item.quantity, 0);
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set) => ({
@@ -41,24 +58,33 @@ export const useCartStore = create<CartState>()(
       couponCode: null,
       coupon: null,
       addItem: (product, quantity = 1, selection) =>
-        set((s) => {
-          if (product.stock <= 0) return s;
-          const sameVariant = (item: CartItem) => item.product.id === product.id && item.selection?.colorName === selection?.colorName && item.selection?.warrantyTitle === selection?.warrantyTitle;
-          if (s.items.some(sameVariant)) {
+        set((state) => {
+          if (product.stock <= 0) return state;
+          const available = Math.max(0, product.stock - quantityOutsideVariant(state.items, product.id, selection));
+          if (available <= 0) return state;
+          const existing = state.items.some((item) => sameVariant(item, product.id, selection));
+          if (existing) {
             return {
-              items: s.items.map((item) => sameVariant(item) ? { ...item, quantity: Math.min(product.stock, item.quantity + quantity) } : item),
+              items: state.items
+                .map((item) => sameVariant(item, product.id, selection) ? { ...item, quantity: Math.min(available, item.quantity + quantity) } : item)
+                .filter((item) => item.quantity > 0),
             };
           }
-          return { items: [...s.items, { product, quantity: Math.max(1, Math.min(product.stock, quantity)), selection }] };
+          return { items: [...state.items, { product, quantity: Math.max(1, Math.min(available, quantity)), selection }] };
         }),
-      removeItem: (productId) =>
-        set((s) => ({ items: s.items.filter((i) => i.product.id !== productId) })),
-      updateQuantity: (productId, quantity) =>
-        set((s) => ({
-          items: s.items
-            .map((i) => i.product.id === productId ? { ...i, quantity: Math.min(i.product.stock, quantity) } : i)
-            .filter((i) => i.quantity > 0),
-        })),
+      removeItem: (productId, selection) =>
+        set((state) => ({ items: state.items.filter((item) => !sameVariant(item, productId, selection)) })),
+      updateQuantity: (productId, quantity, selection) =>
+        set((state) => {
+          const stock = state.items.find((item) => item.product.id === productId)?.product.stock;
+          if (stock === undefined) return state;
+          const available = Math.max(0, stock - quantityOutsideVariant(state.items, productId, selection));
+          return {
+            items: state.items
+              .map((item) => sameVariant(item, productId, selection) ? { ...item, quantity: Math.max(0, Math.min(available, quantity)) } : item)
+              .filter((item) => item.quantity > 0),
+          };
+        }),
       clearCart: () => set({ items: [], couponCode: null, coupon: null }),
       toggleCart: () => set((s) => ({ isOpen: !s.isOpen })),
       openCart: () => set({ isOpen: true }),
@@ -120,7 +146,7 @@ export function useCart() {
     /** effective (discounted) subtotal */
     discountedPrice: totals.subtotal,
     isInCart: (productId: string) => items.some((i) => i.product.id === productId),
-    quantityOf: (productId: string) => items.find((i) => i.product.id === productId)?.quantity ?? 0,
+    quantityOf: (productId: string) => items.filter((item) => item.product.id === productId).reduce((total, item) => total + item.quantity, 0),
   };
 }
 

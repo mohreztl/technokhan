@@ -23,7 +23,7 @@ import {
   toPersianDigits,
 } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
-import { useCart, type CartItem } from '@/lib/store/cart-store';
+import { cartItemKey, useCart, type CartItem } from '@/lib/store/cart-store';
 import { useValidateCoupon } from '@/lib/hooks/use-orders';
 import { useIsMobile } from '@/lib/hooks/use-media-query';
 import { useBodyScrollLock } from '@/lib/hooks/use-body-scroll-lock';
@@ -329,13 +329,13 @@ function CartBody({ onClose }: { onClose: () => void }) {
         <AnimatePresence initial={false}>
           {items.map((item) => (
             <CartLine
-              key={item.product.id}
+              key={cartItemKey(item)}
               item={item}
               onRemove={() => {
-                removeItem(item.product.id);
+                removeItem(item.product.id, item.selection);
                 showToast.removedFromCart(item.product.name);
               }}
-              onQuantity={(q) => updateQuantity(item.product.id, q)}
+              onQuantity={(q) => updateQuantity(item.product.id, q, item.selection)}
             />
           ))}
         </AnimatePresence>

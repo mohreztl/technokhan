@@ -34,4 +34,17 @@ describe('demo order warranty pricing', () => {
     if (!result.ok) return;
     assert.equal(result.data.totalPrice, 5_120_000);
   });
+
+  it('rejects variants whose combined quantity exceeds product stock', async () => {
+    const result = await demoOrders.create({
+      items: [
+        { productId: 'gan-charger', quantity: 10, selection: { colorName: 'گرافیت' } },
+        { productId: 'gan-charger', quantity: 10, selection: { colorName: 'نقره‌ای', warrantyId: 'extended-24' } },
+      ],
+      shippingAddress: address,
+      paymentMethod: 'cod',
+    });
+    assert.equal(result.ok, false);
+    if (!result.ok) assert.equal(result.status, 409);
+  });
 });

@@ -35,4 +35,21 @@ describe('cart stock boundaries', () => {
     useCartStore.getState().addItem(product, 1, { colorName: 'نقره‌ای', warrantyTitle: 'گارانتی ۲۴ ماهه' });
     assert.deepEqual(useCartStore.getState().items[0]?.selection, { colorName: 'نقره‌ای', warrantyTitle: 'گارانتی ۲۴ ماهه' });
   });
+
+  it('manages variants independently while enforcing aggregate product stock', () => {
+    const product = { ...PRODUCTS[0]!, stock: 2 };
+    const graphite = { colorName: 'گرافیت', warrantyId: 'standard-12', warrantyTitle: 'گارانتی شرکتی' };
+    const silver = { colorName: 'نقره‌ای', warrantyId: 'extended-24', warrantyTitle: 'گارانتی تعویض' };
+    const { addItem, updateQuantity, removeItem } = useCartStore.getState();
+
+    addItem(product, 1, graphite);
+    addItem(product, 1, silver);
+    addItem(product, 1, graphite);
+    assert.deepEqual(useCartStore.getState().items.map((item) => item.quantity), [1, 1]);
+
+    updateQuantity(product.id, 2, silver);
+    assert.equal(useCartStore.getState().items[1]?.quantity, 1);
+    removeItem(product.id, graphite);
+    assert.deepEqual(useCartStore.getState().items.map((item) => item.selection), [silver]);
+  });
 });

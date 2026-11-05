@@ -4,7 +4,7 @@ import { useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ArrowLeft, CalendarCheck, CalendarPlus, Heart, MapPin, Package, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, Heart, MapPin, Package, ShoppingBag } from 'lucide-react';
 import { ROUTES, toPersianDigits } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,18 +12,13 @@ import { AuthGate } from '@/components/profile/auth-gate';
 import { ProfileHeader } from '@/components/profile/profile-header';
 import { ProfileTabs, isProfileTab, type ProfileTab } from '@/components/profile/profile-tabs';
 import { TabAddresses } from '@/components/profile/tab-addresses';
-import { TabBookings } from '@/components/profile/tab-bookings';
-import { TabGarage } from '@/components/profile/tab-garage';
 import { TabOrders } from '@/components/profile/tab-orders';
 import { TabSettings } from '@/components/profile/tab-settings';
 import { TabWishlist } from '@/components/profile/tab-wishlist';
-import { BookingCard } from '@/components/profile/booking-card';
 import { OrderCard } from '@/components/orders/order-card';
-import { useAddresses, useMyBookings, useMyOrders } from '@/lib/hooks';
+import { useAddresses, useMyOrders } from '@/lib/hooks';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { useWishlist } from '@/lib/store/wishlist-store';
-
-const ACTIVE_BOOKING = new Set(['pending', 'confirmed', 'in_progress']);
 
 function StatTile({
   icon: Icon,
@@ -57,10 +52,9 @@ function StatTile({
   );
 }
 
-/** Snapshot panel: counters, the latest order and the next booking. */
+/** Storefront snapshot with order, address and wishlist shortcuts. */
 function TabOverview({ onSelect }: { onSelect: (tab: ProfileTab) => void }) {
   const orders = useMyOrders();
-  const bookings = useMyBookings();
   const addresses = useAddresses();
   const { count: wishlistCount } = useWishlist();
 
@@ -70,40 +64,17 @@ function TabOverview({ onSelect }: { onSelect: (tab: ProfileTab) => void }) {
     return list[0];
   }, [orders.data]);
 
-  const nextBooking = useMemo(() => {
-    const list = (bookings.data ?? []).filter((b) => ACTIVE_BOOKING.has(b.status));
-    list.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    return list[0];
-  }, [bookings.data]);
-
-  const activeBookings = (bookings.data ?? []).filter((b) => ACTIVE_BOOKING.has(b.status)).length;
-
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         <StatTile icon={Package} label="سفارش‌ها" value={orders.data?.length ?? 0} href={ROUTES.ORDERS} loading={orders.isLoading} />
-        <StatTile
-          icon={CalendarCheck}
-          label="رزروهای فعال"
-          value={activeBookings}
-          href={`${ROUTES.PROFILE}?tab=bookings`}
-          loading={bookings.isLoading}
-        />
-        <StatTile
-          icon={MapPin}
-          label="آدرس‌ها"
-          value={addresses.data?.length ?? 0}
-          href={`${ROUTES.PROFILE}?tab=addresses`}
-          loading={addresses.isLoading}
-        />
+        <StatTile icon={MapPin} label="آدرس‌ها" value={addresses.data?.length ?? 0} href={`${ROUTES.PROFILE}?tab=addresses`} loading={addresses.isLoading} />
         <StatTile icon={Heart} label="علاقه‌مندی‌ها" value={wishlistCount} href={ROUTES.WISHLIST} />
       </div>
 
       <section aria-labelledby="overview-order" className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <h2 id="overview-order" className="text-lg font-bold">
-            آخرین سفارش
-          </h2>
+          <h2 id="overview-order" className="text-lg font-bold">آخرین سفارش</h2>
           <Button variant="ghost" size="sm" onClick={() => onSelect('orders')}>
             همهٔ سفارش‌ها
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
@@ -125,33 +96,6 @@ function TabOverview({ onSelect }: { onSelect: (tab: ProfileTab) => void }) {
           </div>
         )}
       </section>
-
-      <section aria-labelledby="overview-booking" className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 id="overview-booking" className="text-lg font-bold">
-            رزرو پیش‌رو
-          </h2>
-          <Button variant="ghost" size="sm" onClick={() => onSelect('bookings')}>
-            همهٔ رزروها
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-          </Button>
-        </div>
-        {bookings.isLoading ? (
-          <Skeleton className="h-44 rounded-2xl" />
-        ) : nextBooking ? (
-          <BookingCard booking={nextBooking} />
-        ) : (
-          <div className="glass-effect rounded-2xl p-6 text-center">
-            <p className="text-sm text-muted-foreground">رزرو فعالی ندارید.</p>
-            <Button variant="secondary" size="sm" className="mt-4" asChild>
-              <Link href={ROUTES.BOOKING}>
-                <CalendarPlus className="h-4 w-4" aria-hidden="true" />
-                رزرو نوبت
-              </Link>
-            </Button>
-          </div>
-        )}
-      </section>
     </div>
   );
 }
@@ -160,12 +104,8 @@ function ProfilePanels({ tab, onSelect }: { tab: ProfileTab; onSelect: (tab: Pro
   switch (tab) {
     case 'orders':
       return <TabOrders />;
-    case 'bookings':
-      return <TabBookings />;
     case 'addresses':
       return <TabAddresses />;
-    case 'garage':
-      return <TabGarage />;
     case 'wishlist':
       return <TabWishlist />;
     case 'settings':
@@ -193,15 +133,13 @@ export function ProfileClient() {
 
   return (
     <div className="container-custom pb-16">
-      <AuthGate title="برای مشاهدهٔ پروفایل وارد شوید" description="سفارش‌ها، رزروها و آدرس‌های شما پس از ورود نمایش داده می‌شوند.">
+      <AuthGate title="برای مشاهدهٔ پروفایل وارد شوید" description="سفارش‌ها، علاقه‌مندی‌ها و آدرس‌های شما پس از ورود نمایش داده می‌شوند.">
         <ProfileHeader onEdit={() => select('settings')} />
 
         <div className="lg:grid lg:grid-cols-[16rem_1fr] lg:items-start lg:gap-8">
           <ProfileTabs tab={tab} onSelect={select} />
 
-          {/* Keyed enter animation, deliberately without AnimatePresence: the active tab comes
-              from the URL, and a router transition can leave mode="wait" waiting forever on an
-              exit that never completes, which freezes the panel on the previous tab. */}
+          {/* URL-driven tabs avoid exit animations that can leave the old panel frozen. */}
           <motion.div
             key={tab}
             id={`profile-panel-${tab}`}

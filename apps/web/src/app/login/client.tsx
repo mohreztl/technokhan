@@ -4,16 +4,16 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CalendarCheck, Gift, History, PackageSearch, Sparkles } from 'lucide-react';
+import { Gift, History, MapPin, PackageSearch, Sparkles } from 'lucide-react';
 import { APP_NAME, ROUTES } from '@technokhan/shared';
 import { OtpForm } from '@/components/auth/otp-form';
 import { useAuth } from '@/lib/store/auth-store';
 
 const FEATURES = [
-  { icon: PackageSearch, text: 'پیگیری لحظه‌ای سفارش‌ها و رزروها' },
-  { icon: History, text: 'تاریخچهٔ خدمات و خریدهای شما' },
+  { icon: PackageSearch, text: 'پیگیری سفارش و ارسال گجت‌ها' },
+  { icon: History, text: 'تاریخچهٔ خرید و علاقه‌مندی‌های شما' },
   { icon: Gift, text: 'تخفیف‌های ویژهٔ اعضا' },
-  { icon: CalendarCheck, text: 'رزرو سریع‌تر با خودروهای ذخیره‌شده' },
+  { icon: MapPin, text: 'تسویه سریع‌تر با آدرس‌های ذخیره‌شده' },
 ];
 
 function safeRedirect(v: string | null): string {
@@ -48,7 +48,7 @@ export function LoginClient() {
               باشگاه مشتریان {APP_NAME}
             </span>
             <h2 className="mt-6 text-3xl font-black leading-tight xl:text-4xl">
-              خودروی شما، <span className="text-gradient-luxury">شایستهٔ بهترین‌هاست</span>
+              گجت بعدی شما، <span className="text-gradient-luxury">با انتخابی دقیق‌تر</span>
             </h2>
             <p className="mt-4 max-w-sm leading-8 text-white/75">
               با یک شماره موبایل وارد شوید؛ بدون رمز عبور، بدون فرم طولانی.

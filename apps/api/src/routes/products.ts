@@ -1,6 +1,6 @@
 import { type FastifyPluginAsync, type FastifyRequest } from 'fastify';
 import { Prisma } from '@prisma/client';
-import { BRANDS, CATEGORIES, PRODUCTS, filterProducts, findProduct, getFeaturedProducts, getRelatedProducts } from '@technokhan/shared';
+import { BRANDS, CATEGORIES, PRODUCTS, filterProducts, findProduct, getFeaturedProducts, getRelatedProducts, type Product } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import { productQuerySchema, limitQuerySchema, idParamSchema, reviewSchema } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
@@ -25,12 +25,6 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     if (q.features?.length) where.tags = { hasEvery: q.features };
     if (q.featured !== undefined) where.featured = q.featured;
     if (q.inStock === true) where.stock = { gt: 0 };
-    if (q.minPrice !== undefined || q.maxPrice !== undefined) {
-      where.price = {
-        ...(q.minPrice !== undefined ? { gte: q.minPrice } : {}),
-        ...(q.maxPrice !== undefined ? { lte: q.maxPrice } : {}),
-      };
-    }
     if (q.search) {
       where.OR = [
         ...(searchFilter(q.search, ['name', 'nameEn', 'shortDescription', 'description', 'brand']) as Prisma.ProductWhereInput[]),
@@ -38,19 +32,13 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
       ];
     }
 
-    const orderBy: Prisma.ProductOrderByWithRelationInput[] =
-      q.sortBy === 'rating'
-        ? [{ rating: q.sortOrder }, { reviewCount: 'desc' }]
-        : q.sortBy === 'popular'
-          ? [{ salesCount: q.sortOrder }, { reviewCount: 'desc' }]
-          : [{ [q.sortBy === 'newest' ? 'createdAt' : q.sortBy]: q.sortOrder }, { id: 'asc' }];
-
     try {
-      const [products, total] = await Promise.all([
-        prisma.product.findMany({ where, orderBy, skip: (q.page - 1) * q.limit, take: q.limit }),
-        prisma.product.count({ where }),
-      ]);
-      return apiResponse.paginated(reply, products, total, q.page, q.limit);
+      const rows = await prisma.product.findMany({ where });
+      // Prisma JSON fields match the shared catalog at runtime; filtering here
+      // keeps discounted-price semantics identical to demo and offline reads.
+      const products = filterProducts(rows as unknown as Product[], q);
+      const start = (q.page - 1) * q.limit;
+      return apiResponse.paginated(reply, products.slice(start, start + q.limit), products.length, q.page, q.limit);
     } catch (error) {
       logCatalogFallback(request, error);
       const products = filterProducts(PRODUCTS, q);

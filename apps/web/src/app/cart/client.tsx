@@ -8,7 +8,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
-  CalendarCheck,
+  BookOpen,
   Check,
   Minus,
   Plus,
@@ -39,7 +39,7 @@ import { ProductCard } from '@/components/storefront/product-card';
 import { useRequireAuth } from '@/components/auth/login-sheet';
 import { useValidateCoupon } from '@/lib/hooks';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
-import { useCart, useCartStore, type CartItem } from '@/lib/store/cart-store';
+import { cartItemKey, useCart, useCartStore, type CartItem } from '@/lib/store/cart-store';
 import { useHydrated } from '@/lib/store/hydration';
 import { cn } from '@/lib/utils';
 
@@ -334,7 +334,7 @@ function EmptyCart({ featured }: { featured: Product[] }) {
         </motion.div>
         <h1 className="text-2xl font-black">سبد خرید شما خالی است</h1>
         <p className="mt-2 text-sm leading-7 text-muted-foreground">
-          محصولات حرفه‌ای دیتیلینگ و نگهداری خودرو را ببینید یا برای خدمات حضوری نوبت بگیرید.
+          گجت‌ها و لوازم جانبی دیجیتال را ببینید یا پیش از انتخاب، راهنمای تخصصی تکنو خان را بخوانید.
         </p>
         <div className="mt-6 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
           <Button size="lg" asChild>
@@ -344,9 +344,9 @@ function EmptyCart({ featured }: { featured: Product[] }) {
             </Link>
           </Button>
           <Button size="lg" variant="outline" asChild>
-            <Link href={ROUTES.BOOKING}>
-              <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-              رزرو خدمات
+            <Link href={ROUTES.BLOG}>
+              <BookOpen className="h-5 w-5" aria-hidden="true" />
+              خواندن مجله تکنو
             </Link>
           </Button>
         </div>
@@ -403,11 +403,11 @@ export function CartPageClient() {
   const featured = useMemo(() => getFeaturedProducts(4), []);
 
   const handleRemove = (item: CartItem) => {
-    removeItem(item.product.id);
+    removeItem(item.product.id, item.selection);
     toast(`«${item.product.name}» از سبد حذف شد`, {
       action: {
         label: 'بازگردانی',
-        onClick: () => addItem(item.product, item.quantity),
+        onClick: () => addItem(item.product, item.quantity, item.selection),
       },
     });
   };
@@ -440,9 +440,9 @@ export function CartPageClient() {
             <AnimatePresence initial={false}>
               {items.map((item) => (
                 <CartLine
-                  key={item.product.id}
+                  key={cartItemKey(item)}
                   item={item}
-                  onQuantity={(qty) => updateQuantity(item.product.id, qty)}
+                  onQuantity={(qty) => updateQuantity(item.product.id, qty, item.selection)}
                   onRemove={() => handleRemove(item)}
                 />
               ))}

@@ -4,11 +4,11 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Check, ChevronLeft, GitCompareArrows, Heart, Minus, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 import { toast } from 'sonner';
-import { effectivePrice, toPersianDigits, type Product } from '@technokhan/shared';
+import { PRODUCTS, effectivePrice, toPersianDigits, type Product } from '@technokhan/shared';
 import { useCart } from '@/lib/store/cart-store';
 import { useWishlist } from '@/lib/store/wishlist-store';
 import { useCompare } from '@/lib/store/compare-store';
-import { useRecentlyViewed } from '@/lib/store/recently-viewed-store';
+import { recentProducts, useRecentlyViewed } from '@/lib/store/recently-viewed-store';
 import { cn } from '@/lib/utils';
 import { ProductGallery } from './product-gallery';
 import { ProductGrid } from './product-grid';
@@ -24,7 +24,7 @@ export interface ProductDetailsClientProps {
   related: Product[];
 }
 
-/** Complete purchasable product detail with variants, warranty, reviews and recently viewed tracking. */
+/** Complete purchasable product detail with variants, warranty, reviews and a recently viewed rail. */
 export function ProductDetailsClient({ product, related }: ProductDetailsClientProps) {
   const [colorId, setColorId] = React.useState(product.colors?.[0]?.id);
   const [warrantyId, setWarrantyId] = React.useState(product.warranties?.[0]?.id);
@@ -33,6 +33,7 @@ export function ProductDetailsClient({ product, related }: ProductDetailsClientP
   const wishlist = useWishlist();
   const compare = useCompare();
   const recent = useRecentlyViewed();
+  const recentlyViewed = recentProducts(recent.ids, product.id, PRODUCTS);
   React.useEffect(() => { recent.add(product.id); }, [product.id, recent.add]);
   const color = product.colors?.find((item) => item.id === colorId);
   const warranty = product.warranties?.find((item) => item.id === warrantyId);
@@ -82,6 +83,7 @@ export function ProductDetailsClient({ product, related }: ProductDetailsClientP
       </section>
 
       {related.length > 0 && <section className="mt-14"><SectionHeader title="تجهیزات مکمل و مرتبط" description="محصولاتی که با این انتخاب بهتر کار می‌کنند." /><ProductGrid products={related} /></section>}
+      {recentlyViewed.length > 0 && <section className="mt-14"><SectionHeader title="بازدیدهای اخیر" description="گجت‌هایی که پیش از این صفحه بررسی کرده‌اید." /><ProductGrid products={recentlyViewed} /></section>}
 
       <div className="fixed inset-x-3 bottom-20 z-30 flex items-center gap-3 rounded-2xl border border-border bg-background/95 p-3 shadow-panel backdrop-blur-xl lg:hidden">
         <PriceTag price={unitPrice * quantity} size="sm" className="flex-1" /><Button disabled={product.stock === 0} onClick={add}><ShoppingBag className="size-4" aria-hidden="true" /> افزودن</Button>

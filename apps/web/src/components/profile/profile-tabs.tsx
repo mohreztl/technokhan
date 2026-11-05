@@ -2,18 +2,16 @@
 
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
-import { CalendarCheck, Car, Gauge, Heart, MapPin, Package, Settings } from 'lucide-react';
+import { Gauge, Heart, MapPin, Package, Settings } from 'lucide-react';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { cn } from '@/lib/utils';
 
-export type ProfileTab = 'overview' | 'orders' | 'bookings' | 'addresses' | 'garage' | 'wishlist' | 'settings';
+export type ProfileTab = 'overview' | 'orders' | 'addresses' | 'wishlist' | 'settings';
 
 export const PROFILE_TABS: { key: ProfileTab; label: string; icon: LucideIcon }[] = [
   { key: 'overview', label: 'نمای کلی', icon: Gauge },
   { key: 'orders', label: 'سفارش‌ها', icon: Package },
-  { key: 'bookings', label: 'رزروها', icon: CalendarCheck },
   { key: 'addresses', label: 'آدرس‌ها', icon: MapPin },
-  { key: 'garage', label: 'گاراژ', icon: Car },
   { key: 'wishlist', label: 'علاقه‌مندی‌ها', icon: Heart },
   { key: 'settings', label: 'تنظیمات', icon: Settings },
 ];
