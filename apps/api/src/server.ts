@@ -214,7 +214,7 @@ async function start() {
     await registerRoutes();
     await fastify.listen({ port: config.port, host: config.host });
 
-    fastify.log.info(`AutoLounge API listening on http://${config.host}:${config.port}/api/v1`);
+    fastify.log.info(`TechnoKhan API listening on http://${config.host}:${config.port}/api/v1`);
     fastify.log.info(
       {
         env: config.env,

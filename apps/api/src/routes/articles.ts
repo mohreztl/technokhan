@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { findArticle, sortedArticles } from '@autolounge/shared';
+import { findArticle, sortedArticles } from '@technokhan/shared';
 import { z } from 'zod';
 import { notFound } from '../lib/errors';
 import { apiResponse, parse } from '../lib/validation';

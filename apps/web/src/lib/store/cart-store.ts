@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { CouponTerms, OrderItemSelection, Product } from '@autolounge/shared';
-import { computeOrderTotals } from '@autolounge/shared';
+import type { CouponTerms, OrderItemSelection, Product } from '@technokhan/shared';
+import { computeOrderTotals } from '@technokhan/shared';
 
 export type ProductSelection = OrderItemSelection;
 

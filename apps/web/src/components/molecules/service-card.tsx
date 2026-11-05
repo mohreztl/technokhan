@@ -4,7 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Calendar, Clock, ShieldCheck, Sparkles, Star } from 'lucide-react';
-import { ROUTES, formatToman, toPersianDigits, type Service } from '@autolounge/shared';
+import { ROUTES, formatToman, toPersianDigits, type Service } from '@technokhan/shared';
 import { cn, formatDuration } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { CompareToggle } from '@/components/catalog/compare-toggle';

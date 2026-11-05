@@ -30,14 +30,14 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/web/package.json ./apps/web/
 COPY apps/api/package.json ./apps/api/
-RUN pnpm install --frozen-lockfile --filter web... --filter @autolounge/shared
+RUN pnpm install --frozen-lockfile --filter web... --filter @technokhan/shared
 
 # Sources
 COPY packages/shared ./packages/shared
 COPY apps/web ./apps/web
 
 ENV NEXT_STANDALONE=true
-RUN pnpm --filter @autolounge/shared build
+RUN pnpm --filter @technokhan/shared build
 RUN pnpm --filter web build
 
 # ---------------------------------------------------------------------------

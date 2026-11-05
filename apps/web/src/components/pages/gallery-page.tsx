@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { CalendarCheck, Camera } from 'lucide-react';
-import { ROUTES, SERVICE_TYPE_LABELS, type GalleryItem, type ServiceType } from '@autolounge/shared';
+import { ROUTES, SERVICE_TYPE_LABELS, type GalleryItem, type ServiceType } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { AnimatedCounter } from '@/components/ui/text-effects';
 import { AmbientOrbs } from '@/components/ui/ambient';

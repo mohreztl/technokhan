@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 /**
- * Idempotent seed: catalog (PRODUCTS / SERVICES from @autolounge/shared, slug ids),
+ * Idempotent seed: catalog (PRODUCTS / SERVICES from @technokhan/shared, slug ids),
  * their reviews (approved, attached to synthetic "system" customer users) and the admin user.
  *
  * Run with `pnpm --filter api db:seed` (prisma db seed → tsx prisma/seed.ts).
@@ -17,8 +17,8 @@ import {
   PRODUCTS,
   SERVICES,
   SOCIAL_MEDIA,
-} from '@autolounge/shared';
-import type { Product, Review, Service } from '@autolounge/shared';
+} from '@technokhan/shared';
+import type { Product, Review, Service } from '@technokhan/shared';
 
 dotenv.config({ quiet: true });
 

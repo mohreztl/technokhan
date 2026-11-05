@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Phone, RefreshCw, WifiOff } from 'lucide-react';
-import { CONTACT } from '@autolounge/shared';
+import { CONTACT } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 
 export function OfflineClient() {

@@ -54,7 +54,7 @@ import {
   Zap,
   type LucideIcon,
 } from 'lucide-react';
-import { ServiceType } from '@autolounge/shared';
+import { ServiceType } from '@technokhan/shared';
 
 /** Icon per service type (used by the configurator, gallery filters, timeline fallbacks). */
 export const SERVICE_TYPE_ICONS: Record<ServiceType, LucideIcon> = {

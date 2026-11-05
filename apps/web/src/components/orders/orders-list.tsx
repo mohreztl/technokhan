@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PackageOpen, RefreshCw, ShoppingBag } from 'lucide-react';
-import { ORDER_STATUS_LABELS, ROUTES } from '@autolounge/shared';
+import { ORDER_STATUS_LABELS, ROUTES } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMyOrders } from '@/lib/hooks';

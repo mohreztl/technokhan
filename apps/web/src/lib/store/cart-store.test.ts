@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it, beforeEach } from 'node:test';
-import { PRODUCTS } from '@autolounge/shared';
+import { PRODUCTS } from '@technokhan/shared';
 import { useCartStore } from './cart-store';
 
 const memory = new Map<string, string>();

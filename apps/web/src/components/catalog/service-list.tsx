@@ -12,7 +12,7 @@ import {
   type PagedList,
   type Service,
   type ServiceType,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useServices } from '@/lib/hooks/use-services';
 import { Button } from '@/components/ui/button';

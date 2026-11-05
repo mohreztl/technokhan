@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build shared package
-        run: pnpm --filter @autolounge/shared build
+        run: pnpm --filter @technokhan/shared build
 
       - name: Validate Prisma schema & generate client
         run: |

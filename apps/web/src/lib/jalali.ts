@@ -1,5 +1,5 @@
 import { format, getDate, getDay, getMonth, getYear, newDate } from 'date-fns-jalali';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 
 export const JALALI_MONTHS = [
   'فروردین',

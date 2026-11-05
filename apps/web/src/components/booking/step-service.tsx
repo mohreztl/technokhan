@@ -1,8 +1,8 @@
 'use client';
 
 import { useCallback } from 'react';
-import type { QuoteInput, WrapFinish } from '@autolounge/shared';
-import { SERVICES, findWrapColor } from '@autolounge/shared';
+import type { QuoteInput, WrapFinish } from '@technokhan/shared';
+import { SERVICES, findWrapColor } from '@technokhan/shared';
 import { Palette } from 'lucide-react';
 import { QuoteConfigurator } from '@/components/creative';
 import { fieldErrorClass } from '@/components/ui/input';

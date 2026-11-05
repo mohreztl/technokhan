@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 

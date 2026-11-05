@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Banknote, CreditCard, ShieldCheck, Tag } from 'lucide-react';
-import type { PaymentMethod } from '@autolounge/shared';
-import { ROUTES, formatToman } from '@autolounge/shared';
+import type { PaymentMethod } from '@technokhan/shared';
+import { ROUTES, formatToman } from '@technokhan/shared';
 import { Radio } from '@/components/ui/radio';
 import { Textarea } from '@/components/ui/textarea';
 

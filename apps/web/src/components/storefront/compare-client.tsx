@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { GitCompareArrows, Trash2, X } from 'lucide-react';
-import { effectivePrice, findProduct, formatToman, toPersianDigits } from '@autolounge/shared';
+import { effectivePrice, findProduct, formatToman, toPersianDigits } from '@technokhan/shared';
 import { useCompare, useCompareStore } from '@/lib/store/compare-store';
 import { useHydrated } from '@/lib/store/hydration';
 import { Button } from '@/components/ui/button';

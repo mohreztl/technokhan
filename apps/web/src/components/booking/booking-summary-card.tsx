@@ -1,8 +1,8 @@
 'use client';
 
 import Image from 'next/image';
-import type { QuoteResult, Service } from '@autolounge/shared';
-import { SERVICE_TYPE_LABELS, toPersianDigits } from '@autolounge/shared';
+import type { QuoteResult, Service } from '@technokhan/shared';
+import { SERVICE_TYPE_LABELS, toPersianDigits } from '@technokhan/shared';
 import { RollingNumber, formatDurationFa } from '@/components/creative';
 import type { BookingDraft } from '@/lib/booking/draft';
 import { formatSlot, sizeLabel, vehicleModelLabel } from '@/lib/booking/wizard';

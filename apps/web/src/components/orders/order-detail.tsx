@@ -18,7 +18,7 @@ import {
   Receipt,
   Truck,
 } from 'lucide-react';
-import { PAYMENT_METHOD_LABELS, ROUTES, formatToman, toPersianDigits } from '@autolounge/shared';
+import { PAYMENT_METHOD_LABELS, ROUTES, formatToman, toPersianDigits } from '@technokhan/shared';
 import { ConfettiBurst } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

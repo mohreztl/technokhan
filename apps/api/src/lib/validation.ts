@@ -1,6 +1,6 @@
 import { FastifyReply } from 'fastify';
 import { ZodError, ZodTypeAny, z } from 'zod';
-import type { Pagination } from '@autolounge/shared';
+import type { Pagination } from '@technokhan/shared';
 
 /**
  * Parse `data` with a Zod schema. Throws a ZodError which the global error

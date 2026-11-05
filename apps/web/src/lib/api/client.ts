@@ -1,5 +1,5 @@
-import type { Pagination } from '@autolounge/shared';
-import { API_PREFIX } from '@autolounge/shared';
+import type { Pagination } from '@technokhan/shared';
+import { API_PREFIX } from '@technokhan/shared';
 import { getAuthToken, useAuthStore } from '@/lib/store/auth-store';
 
 export type ApiOk<T> = { ok: true; data: T; pagination?: Pagination; status: number };

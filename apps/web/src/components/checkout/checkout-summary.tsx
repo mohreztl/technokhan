@@ -2,8 +2,8 @@
 
 import Image from 'next/image';
 import { ShieldCheck, Truck } from 'lucide-react';
-import type { OrderTotals } from '@autolounge/shared';
-import { SHIPPING, formatToman, toPersianDigits } from '@autolounge/shared';
+import type { OrderTotals } from '@technokhan/shared';
+import { SHIPPING, formatToman, toPersianDigits } from '@technokhan/shared';
 import { RollingNumber } from '@/components/creative';
 import type { CartItem } from '@/lib/store/cart-store';
 import { cn } from '@/lib/utils';

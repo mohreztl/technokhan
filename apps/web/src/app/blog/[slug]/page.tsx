@@ -8,10 +8,9 @@ import {
   ROUTES,
   findArticle,
   findProduct,
-  findService,
   getRelatedArticles,
   toPersianDigits,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { absoluteUrl } from '@/lib/site';
 import { JsonLd, articleJsonLd, breadcrumbJsonLd } from '@/lib/seo';
 import { formatJalali } from '@/lib/jalali';
@@ -69,7 +68,6 @@ export default async function ArticlePage({ params }: { params: Params }) {
   const path = `${ROUTES.BLOG}/${article.slug}`;
   const related = getRelatedArticles(article.slug, 3);
   const headings = article.body.filter((b) => b.kind === 'heading');
-  const services = (article.relatedServiceIds ?? []).map(findService).filter(Boolean);
   const products = (article.relatedProductIds ?? []).map(findProduct).filter(Boolean);
 
   return (
@@ -126,7 +124,7 @@ export default async function ArticlePage({ params }: { params: Params }) {
           <div className="relative mx-auto mt-8 aspect-16/9 max-w-4xl overflow-hidden rounded-3xl border border-border">
             <Image
               src={article.cover}
-              alt=""
+              alt={article.title}
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 896px"
@@ -158,25 +156,16 @@ export default async function ArticlePage({ params }: { params: Params }) {
           </div>
         </article>
 
-        {(services.length > 0 || products.length > 0) && (
+        {products.length > 0 && (
           <section aria-labelledby="article-related-catalog" className="mx-auto mt-14 max-w-5xl">
             <h2 id="article-related-catalog" className="mb-4 text-lg font-black text-foreground">
               مرتبط با این مقاله
             </h2>
             <div className="grid gap-3 sm:grid-cols-2">
-              {services.map((s) => (
-                <CatalogLink
-                  key={s!.id}
-                  href={`${ROUTES.SERVICES}/${s!.id}`}
-                  eyebrow="خدمت"
-                  title={s!.name}
-                  description={s!.shortDescription ?? s!.description.slice(0, 90)}
-                />
-              ))}
               {products.map((p) => (
                 <CatalogLink
                   key={p!.id}
-                  href={`${ROUTES.PRODUCTS}/${p!.id}`}
+                  href={`/product/${p!.id}`}
                   eyebrow="محصول"
                   title={p!.name}
                   description={p!.shortDescription ?? p!.description.slice(0, 90)}

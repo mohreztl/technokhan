@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ExternalLink } from 'lucide-react';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 export interface AdminPageHeaderProps {

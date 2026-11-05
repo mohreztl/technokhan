@@ -22,7 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { InstagramIcon, WhatsappIcon } from '@/components/icons/brands';
-import { APP_NAME, ROUTES, toPersianDigits } from '@autolounge/shared';
+import { APP_NAME, ROUTES, toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Button } from '@/components/ui/button';

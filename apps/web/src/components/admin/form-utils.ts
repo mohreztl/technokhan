@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { FieldValues, Resolver } from 'react-hook-form';
-import { faErrorMap, toEnglishDigits } from '@autolounge/shared';
+import { faErrorMap, toEnglishDigits } from '@technokhan/shared';
 
 /** «۱٬۲۵۰٬۰۰۰» / "1,250,000" / 1250000 → 1250000 (undefined when empty or not a number). */
 export function parseNumber(v: unknown): number | undefined {

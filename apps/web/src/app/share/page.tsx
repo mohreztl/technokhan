@@ -1,18 +1,14 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import { PageSkeleton } from '@/components/molecules/loading-skeletons';
 import { SharePageClient } from './client';
 
 export const metadata: Metadata = {
-  title: 'اشتراک‌گذاری با اتولانژ',
-  description: 'محتوای اشتراک‌گذاری‌شده را در اتولانژ جستجو کنید.',
+  title: 'اشتراک‌گذاری با تکنو خان',
+  description: 'محتوای اشتراک‌گذاری‌شده را در تکنو خان جستجو کنید.',
   robots: { index: false, follow: false },
 };
 
+/** PWA share-target landing page. */
 export default function SharePage() {
-  return (
-    <Suspense fallback={<PageSkeleton rows={1} />}>
-      <SharePageClient />
-    </Suspense>
-  );
+  return <Suspense fallback={null}><SharePageClient /></Suspense>;
 }

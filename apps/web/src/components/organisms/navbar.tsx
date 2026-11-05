@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Heart, Menu, Search, ShoppingBag } from 'lucide-react';
-import { CATEGORIES, toPersianDigits } from '@autolounge/shared';
+import { CATEGORIES, toPersianDigits } from '@technokhan/shared';
 import { CATEGORY_MEDIA } from '@/content/media-assets';
 import { useCart } from '@/lib/store/cart-store';
 import { useWishlist } from '@/lib/store/wishlist-store';

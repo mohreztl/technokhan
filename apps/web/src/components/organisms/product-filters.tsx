@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { ChevronDown, RotateCcw } from 'lucide-react';
-import { formatTomanCompact, toPersianDigits, type ProductListQuery } from '@autolounge/shared';
+import { formatTomanCompact, toPersianDigits, type ProductListQuery } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';

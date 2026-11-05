@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ShieldCheck, Truck, RotateCcw, Headphones } from 'lucide-react';
-import { APP_NAME } from '@autolounge/shared';
+import { APP_NAME } from '@technokhan/shared';
 
 const guarantees = [
   { icon: ShieldCheck, title: 'ضمانت اصالت', text: 'سریال و منشأ کالا بررسی می‌شود' },

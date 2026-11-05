@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { User } from '@autolounge/shared';
+import type { User } from '@technokhan/shared';
 
 export type AuthStatus = 'idle' | 'anonymous' | 'authenticated';
 

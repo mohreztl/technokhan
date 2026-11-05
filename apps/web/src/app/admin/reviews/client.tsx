@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { BadgeCheck, ExternalLink, Package, Star, Trash2, Wrench } from 'lucide-react';
-import { findProduct, findService, toPersianDigits } from '@autolounge/shared';
+import { findProduct, findService, toPersianDigits } from '@technokhan/shared';
 import type { AdminReview } from '@/lib/api/endpoints';
 import { useAdminMutations, useAdminReviews } from '@/lib/hooks/use-admin';
 import { formatJalaliDateTime } from '@/lib/jalali';

@@ -1,6 +1,6 @@
 # TechnoKhan Storefront Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** ساخت فروشگاه کامل، سریع و فارسی «تکنو خان» برای گجت‌های هوشمند و لوازم جانبی دیجیتال با تجربه بصری ممتاز و جریان خرید واقعی در حالت دمو.
 
@@ -96,8 +96,8 @@
 - [x] Clone در پوشه خالی `technokhan` و rename به `upstream-autolounge`.
 - [x] ساخت `mohreztl/technokhan` و اتصال `origin`.
 - [x] اسکن Next.js، Fastify، shared و قراردادهای frontend.
-- [ ] اجرای `pnpm lint` و `pnpm type-check` و ثبت وضعیت پایه.
-- [ ] Commit `chore(init): initialize technokhan repository from base stack and add master PLAN.md` و push به `origin/main`.
+- [x] اجرای `pnpm lint` و `pnpm type-check` و ثبت وضعیت پایه.
+- [x] Commit `chore(init): initialize technokhan repository from base stack and add master PLAN.md` و push به `origin/main`.
 
 ### Task 1: دیزاین سیستم و UI primitives
 
@@ -148,7 +148,7 @@
 - [x] `/product/[slug]` با gallery/zoom، رنگ و گارانتی، تب‌ها، نقد، نظرات، compare، recent، sticky CTA و مکمل‌ها بساز.
 - [x] `/compare`, `/wishlist`, `/cart`, `/checkout` و خلاصه سفارش/کد تخفیف/هزینه ارسال را کامل کن.
 - [x] جریان واقعی افزودن به سبد → reload → کوپن → فرم معتبر → سفارش دمو را در مرورگر دسکتاپ و موبایل آزمایش کن.
-- [ ] Typecheck/Lint/build و commit/push `feat(phase-4): build complete TechnoKhan storefront pages, interactive gadget finder, and cart/checkout flows`.
+- [x] Typecheck/Lint/build و commit/push `feat(phase-4): build complete TechnoKhan storefront pages, interactive gadget finder, and cart/checkout flows`.
 
 ### Task 5: مجله، صفحات اطلاعاتی، SEO و انتشار نهایی
 
@@ -156,12 +156,12 @@
 
 **Interfaces:** metadata canonical بر اساس `https://technokhan.com`; schemaهای Organization, WebSite/SearchAction, Product/Offer, BreadcrumbList, Article و FAQPage.
 
-- [ ] `/blog` و `/blog/[slug]` با دسته‌بندی، جستجو، TOC، مطالب مرتبط و اشتراک‌گذاری کامل کن.
-- [ ] صفحات درباره، تماس، سوالات متداول، حریم خصوصی، شرایط، رهگیری و ۴۰۴ را با برند تکنو خان نهایی کن.
-- [ ] metadata/OG، canonical، sitemap، robots، JSON-LD، manifest و PWA را به‌روز کن.
-- [ ] کدهای قدیمی خودرویی را از مسیرهای عمومی و bundle تجربه اصلی حذف و docs/package names را به TechnoKhan تغییر بده.
-- [ ] Lighthouse/audit دسترسی و لینک‌ها، تست build production، تست API health و smoke همه مسیرهای اصلی را انجام بده.
-- [ ] `git status` را بررسی و خروجی‌های موقت را پاک کن؛ commit/push `feat(phase-5): launch TechnoKhan magazine, informational pages, technical SEO, and final optimizations`.
+- [x] `/blog` و `/blog/[slug]` با دسته‌بندی، جستجو، TOC، مطالب مرتبط و اشتراک‌گذاری کامل کن.
+- [x] صفحات درباره، تماس، سوالات متداول، حریم خصوصی، شرایط، رهگیری و ۴۰۴ را با برند تکنو خان نهایی کن.
+- [x] metadata/OG، canonical، sitemap، robots، JSON-LD، manifest و PWA را به‌روز کن.
+- [x] کدهای قدیمی خودرویی را از مسیرهای عمومی و bundle تجربه اصلی حذف و docs/package names را به TechnoKhan تغییر بده.
+- [x] Lighthouse/audit دسترسی و لینک‌ها، تست build production، تست API health و smoke همه مسیرهای اصلی را انجام بده.
+- [x] `git status` را بررسی و خروجی‌های موقت را پاک کن؛ commit/push `feat(phase-5): launch TechnoKhan magazine, informational pages, technical SEO, and final optimizations`.
 
 ## Definition of Done
 

@@ -11,7 +11,7 @@ import {
   formatToman,
   toPersianDigits,
   type Product,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

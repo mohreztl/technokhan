@@ -17,7 +17,7 @@ import {
   startOfDay,
   startOfMonth,
 } from 'date-fns-jalali';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { JALALI_MONTHS, JALALI_WEEKDAYS, JALALI_WEEKDAYS_SHORT, weekColumn } from '@/lib/jalali';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { cn } from '@/lib/utils';

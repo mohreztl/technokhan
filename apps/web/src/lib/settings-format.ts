@@ -1,4 +1,4 @@
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 
 /** JS getDay() order, as Persian day names. */
 const WEEKDAY_NAMES = ['یکشنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنجشنبه', 'جمعه', 'شنبه'] as const;

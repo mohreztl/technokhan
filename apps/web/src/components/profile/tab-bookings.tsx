@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import Link from 'next/link';
 import { AnimatePresence } from 'framer-motion';
 import { CalendarPlus, CalendarX2, RefreshCw } from 'lucide-react';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMyBookings } from '@/lib/hooks';

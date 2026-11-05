@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import type { FaqItem } from '@autolounge/shared';
+import type { FaqItem } from '@technokhan/shared';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { cn } from '@/lib/utils';
 

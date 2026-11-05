@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowLeft, BadgeCheck, Calendar, Clock, Phone, Users } from 'lucide-react';
-import { CONTACT, ROUTES } from '@autolounge/shared';
+import { CONTACT, ROUTES } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { AmbientOrbs } from '@/components/ui/ambient';
 

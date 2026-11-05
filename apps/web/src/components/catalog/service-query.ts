@@ -1,4 +1,4 @@
-import { SERVICES, SERVICE_TYPE_LABELS, type ServiceListQuery } from '@autolounge/shared';
+import { SERVICES, SERVICE_TYPE_LABELS, type ServiceListQuery } from '@technokhan/shared';
 
 export const SERVICE_LIST_LIMIT = 50;
 

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, BookOpen } from 'lucide-react';
-import { ROUTES, sortedArticles } from '@autolounge/shared';
+import { ROUTES, sortedArticles } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/ui/premium-components';
 import { ArticleCard } from '@/components/blog/article-card';

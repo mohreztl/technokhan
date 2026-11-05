@@ -5,7 +5,7 @@ import {
   trackingCodeFromId,
   type ServiceAddon,
   type ServicePricing,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import { sendBookingConfirmation } from '../services/sms.service';
 import {

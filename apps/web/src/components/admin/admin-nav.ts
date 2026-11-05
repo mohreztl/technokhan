@@ -11,7 +11,7 @@ import {
   Users,
   Wrench,
 } from 'lucide-react';
-import type { AdminDashboardStats } from '@autolounge/shared';
+import type { AdminDashboardStats } from '@technokhan/shared';
 
 export interface AdminNavItem {
   href: string;

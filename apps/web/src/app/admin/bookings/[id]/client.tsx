@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { ArrowLeft, Ban, CalendarDays, Car, ClipboardList, Save, Wrench } from 'lucide-react';
-import { BookingStatus, VEHICLE_SIZES, findService, formatToman, toPersianDigits } from '@autolounge/shared';
+import { BookingStatus, VEHICLE_SIZES, findService, formatToman, toPersianDigits } from '@technokhan/shared';
 import { useAdminBooking, useAdminMutations } from '@/lib/hooks/use-admin';
 import { formatJalali, formatJalaliDateTime } from '@/lib/jalali';
 import { Button } from '@/components/ui/button';

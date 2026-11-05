@@ -4,7 +4,7 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { AnimatePresence, motion, useInView } from 'framer-motion';
-import { discountPercent, formatToman, toPersianDigits } from '@autolounge/shared';
+import { discountPercent, formatToman, toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

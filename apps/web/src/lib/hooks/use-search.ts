@@ -2,8 +2,8 @@
 
 import Fuse, { type IFuseOptions } from 'fuse.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PRODUCTS, SERVICES } from '@autolounge/shared';
-import type { Product, Service } from '@autolounge/shared';
+import { PRODUCTS, SERVICES } from '@technokhan/shared';
+import type { Product, Service } from '@technokhan/shared';
 
 // Search result types
 export interface SearchResult {

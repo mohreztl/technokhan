@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Award, Calendar, Shield, ShoppingBag, Sparkles, Zap } from 'lucide-react';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { HeroCarousel, type HeroSlide } from '@/components/organisms/hero-carousel';
 import { HeroStats } from '@/components/pages/sections/hero-stats';
 

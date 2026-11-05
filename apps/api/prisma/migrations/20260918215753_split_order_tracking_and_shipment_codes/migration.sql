@@ -14,7 +14,7 @@ UPDATE "Order"
    AND "trackingCode" NOT LIKE 'OR-%';
 
 -- Re-issue the shop code for every order now without one. Same derivation as
--- trackingCodeFromId('OR', id) in @autolounge/shared.
+-- trackingCodeFromId('OR', id) in @technokhan/shared.
 UPDATE "Order"
    SET "trackingCode" = 'OR-' || UPPER(RIGHT(REGEXP_REPLACE("id", '[^a-zA-Z0-9]', '', 'g'), 6))
  WHERE "trackingCode" IS NULL;

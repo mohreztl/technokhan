@@ -11,7 +11,7 @@ import type {
   Product,
   Service,
   SiteSettings,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { adminApi } from '@/lib/api/endpoints';
 import type { AdminQuery } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';

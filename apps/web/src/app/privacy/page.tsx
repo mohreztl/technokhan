@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { LEGAL_DOCS } from '@autolounge/shared';
+import { LEGAL_DOCS } from '@technokhan/shared';
 import { LegalPage } from '@/components/pages/legal-page';
 
 const doc = LEGAL_DOCS.privacy;

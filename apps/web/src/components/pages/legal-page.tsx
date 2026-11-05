@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { CalendarClock, FileText, ShieldCheck } from 'lucide-react';
-import type { LegalDoc } from '@autolounge/shared';
-import { toPersianDigits } from '@autolounge/shared';
+import type { LegalDoc } from '@technokhan/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 const sectionId = (i: number) => `section-${i + 1}`;
@@ -100,7 +100,7 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
           ))}
 
           <footer className="mt-8 rounded-2xl border border-secondary/30 bg-secondary/5 p-5 text-sm leading-7 text-foreground/80">
-            این سند ممکن است به‌روزرسانی شود. ادامهٔ استفاده از خدمات اتولانژ به معنای پذیرش آخرین نسخهٔ آن است.
+            این سند ممکن است به‌روزرسانی شود. ادامهٔ استفاده از خدمات تکنو خان به معنای پذیرش آخرین نسخهٔ آن است.
             برای هرگونه پرسش از طریق{' '}
             <Link href="/contact" className="font-semibold text-secondary hover:underline">
               صفحهٔ تماس

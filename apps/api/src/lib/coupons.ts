@@ -1,4 +1,4 @@
-import type { Coupon } from '@autolounge/shared';
+import type { Coupon } from '@technokhan/shared';
 
 import { prisma } from './prisma';
 

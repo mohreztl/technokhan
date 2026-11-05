@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { Car, Check } from 'lucide-react';
-import type { VehicleSize } from '@autolounge/shared';
-import { CAR_COLORS, VEHICLE_SIZES } from '@autolounge/shared';
+import type { VehicleSize } from '@technokhan/shared';
+import { CAR_COLORS, VEHICLE_SIZES } from '@technokhan/shared';
 import { PlateInput, isPlateComplete } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { Input, fieldErrorClass } from '@/components/ui/input';

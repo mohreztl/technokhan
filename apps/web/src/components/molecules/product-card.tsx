@@ -12,7 +12,7 @@ import {
   formatToman,
   toPersianDigits,
   type Product,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { useIsCoarsePointer } from '@/lib/hooks/use-media-query';

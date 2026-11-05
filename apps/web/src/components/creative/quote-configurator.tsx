@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { CalendarCheck, Car, Check, Clock, Plus } from 'lucide-react';
-import type { QuoteInput, QuoteResult, Service, VehicleSize } from '@autolounge/shared';
+import type { QuoteInput, QuoteResult, Service, VehicleSize } from '@technokhan/shared';
 import {
   ROUTES,
   VEHICLE_SIZES,
@@ -11,7 +11,7 @@ import {
   formatToman,
   formatTomanCompact,
   toPersianDigits,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { RollingNumber } from './rolling-number';

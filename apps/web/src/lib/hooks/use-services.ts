@@ -1,7 +1,7 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { PagedList, Service, ServiceListQuery } from '@autolounge/shared';
+import type { PagedList, Service, ServiceListQuery } from '@technokhan/shared';
 import { servicesApi } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';
 import { unwrap } from '@/lib/api/client';

@@ -1,10 +1,10 @@
 /**
  * API validation schemas.
  * Request bodies are validated with the schemas shared with the web forms
- * (`@autolounge/shared`); only API-specific query/param schemas live here.
+ * (`@technokhan/shared`); only API-specific query/param schemas live here.
  */
 import { z } from 'zod';
-import { faErrorMap, toEnglishDigits } from '@autolounge/shared';
+import { faErrorMap, toEnglishDigits } from '@technokhan/shared';
 
 // The error envelope hands `details[0].message` to the client as the message a
 // user sees, so zod's English defaults would surface untranslated. Schemas
@@ -38,7 +38,7 @@ export {
   adminServiceSchema,
   idParamSchema,
   paginationQuerySchema,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 
 export type {
   SendOTPInput,
@@ -50,9 +50,9 @@ export type {
   ContactSchemaInput,
   AdminProductInput,
   AdminServiceInput,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 
-import { adminProductSchema, adminServiceSchema } from '@autolounge/shared';
+import { adminProductSchema, adminServiceSchema } from '@technokhan/shared';
 
 // ---------------------------------------------------------------------------
 // Query-string helpers

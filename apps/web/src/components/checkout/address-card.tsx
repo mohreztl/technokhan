@@ -1,8 +1,8 @@
 'use client';
 
 import { Check, MapPin, Phone } from 'lucide-react';
-import type { Address } from '@autolounge/shared';
-import { toPersianDigits } from '@autolounge/shared';
+import type { Address } from '@technokhan/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 

@@ -1,5 +1,5 @@
-import { BOOKING_MAX_DAYS_AHEAD } from '@autolounge/shared';
-import type { SiteSettings } from '@autolounge/shared';
+import { BOOKING_MAX_DAYS_AHEAD } from '@technokhan/shared';
+import type { SiteSettings } from '@technokhan/shared';
 import { config } from '../config';
 
 const YMD = /^\d{4}-\d{2}-\d{2}$/;

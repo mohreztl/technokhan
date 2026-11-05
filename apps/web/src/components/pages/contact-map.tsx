@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { MapPin, Navigation } from 'lucide-react';
-import { CONTACT } from '@autolounge/shared';
+import { CONTACT } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 

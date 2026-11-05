@@ -9,8 +9,8 @@ import type {
   ProductListQuery,
   Service,
   ServiceListQuery,
-} from '@autolounge/shared';
-import { BRANDS, CATEGORIES, findArticle, sortedArticles } from '@autolounge/shared';
+} from '@technokhan/shared';
+import { BRANDS, CATEGORIES, findArticle, sortedArticles } from '@technokhan/shared';
 import { apiFetch, buildQuery, isDemoMode } from '@/lib/api/client';
 import {
   findLocalProduct,

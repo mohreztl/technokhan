@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ChevronLeft, Filter, Grid2X2, List, RotateCcw, X } from 'lucide-react';
-import { toPersianDigits, type Brand, type Category, type PagedList, type Product, type ProductListQuery } from '@autolounge/shared';
+import { toPersianDigits, type Brand, type Category, type PagedList, type Product, type ProductListQuery } from '@technokhan/shared';
 import { useProducts } from '@/lib/hooks/use-products';
 import { cn } from '@/lib/utils';
 import { ProductGrid } from './product-grid';

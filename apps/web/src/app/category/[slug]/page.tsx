@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { CATEGORIES, findCategory } from '@autolounge/shared';
+import { CATEGORIES, findCategory } from '@technokhan/shared';
 import { ShopClient } from '@/components/storefront/shop-client';
 import { getBrands, getCategories, getProducts } from '@/lib/data/repository';
 import { parseShopQuery, type ShopSearchParams } from '@/lib/shop-query';

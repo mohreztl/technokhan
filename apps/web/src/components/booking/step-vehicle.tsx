@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Building2, Car, Check, MapPin, X } from 'lucide-react';
-import type { VehicleSize } from '@autolounge/shared';
-import { CAR_COLORS, CONTACT, VEHICLE_SIZES, toPersianDigits } from '@autolounge/shared';
+import type { VehicleSize } from '@technokhan/shared';
+import { CAR_COLORS, CONTACT, VEHICLE_SIZES, toPersianDigits } from '@technokhan/shared';
 import { PlateInput } from '@/components/creative';
 import { Input, fieldErrorClass } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Pencil } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { useMe } from '@/lib/hooks';

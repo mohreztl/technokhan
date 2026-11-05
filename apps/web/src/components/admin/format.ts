@@ -1,5 +1,5 @@
-import type { Booking, Order } from '@autolounge/shared';
-import { findService, toPersianDigits, trackingCodeFromId } from '@autolounge/shared';
+import type { Booking, Order } from '@technokhan/shared';
+import { findService, toPersianDigits, trackingCodeFromId } from '@technokhan/shared';
 import { fromIsoDate } from '@/lib/jalali';
 
 /** «OR-3F9A2C» — the customer-facing order code. */

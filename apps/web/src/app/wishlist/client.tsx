@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Heart, ShoppingBag, ShoppingCart, Trash2 } from 'lucide-react';
-import { ROUTES, findProduct, toPersianDigits, type Product } from '@autolounge/shared';
+import { ROUTES, findProduct, toPersianDigits, type Product } from '@technokhan/shared';
 import { useProduct } from '@/lib/hooks/use-products';
 import { useCart } from '@/lib/store/cart-store';
 import { useWishlist, useWishlistStore } from '@/lib/store/wishlist-store';

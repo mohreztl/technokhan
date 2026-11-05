@@ -4,7 +4,7 @@ import * as React from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { ROUTES, WRAP_COLORS } from '@autolounge/shared';
+import { ROUTES, WRAP_COLORS } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SectionHeading } from '@/components/ui/premium-components';

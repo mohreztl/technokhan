@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCw, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { DEMO_OTP_CODE, toPersianDigits } from '@autolounge/shared';
+import { DEMO_OTP_CODE, toPersianDigits } from '@technokhan/shared';
 import { isDemoMode } from '@/lib/api/client';
 import { demoSessionFlag, retryLiveApi } from '@/lib/api/endpoints';
 import { isTabBarHidden } from '@/lib/routes';

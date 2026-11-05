@@ -2,7 +2,7 @@
 
 import type { LucideIcon } from 'lucide-react';
 import { CalendarDays, Car, LogIn, Pencil, Sparkles } from 'lucide-react';
-import { formatToman, toPersianDigits } from '@autolounge/shared';
+import { formatToman, toPersianDigits } from '@technokhan/shared';
 import { RollingNumber, formatDurationFa } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/store/auth-store';

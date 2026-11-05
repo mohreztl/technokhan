@@ -4,7 +4,7 @@ import * as React from 'react';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronLeft, ShoppingBag } from 'lucide-react';
-import { formatToman, toPersianDigits } from '@autolounge/shared';
+import { formatToman, toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useCart } from '@/lib/store/cart-store';
 import { isCartPillRoute, isTabBarHidden } from '@/lib/routes';

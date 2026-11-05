@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { formatNumberFa } from '@autolounge/shared';
+import { formatNumberFa } from '@technokhan/shared';
 import { normalizeRange } from '@/lib/range';
 import { cn } from '@/lib/utils';
 

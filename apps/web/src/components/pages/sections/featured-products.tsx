@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowRight, ShoppingBag } from 'lucide-react';
-import { ROUTES, type Product } from '@autolounge/shared';
+import { ROUTES, type Product } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/ui/premium-components';
 import { RevealOnScroll } from '@/components/ui/card-3d';

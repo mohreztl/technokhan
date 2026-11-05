@@ -1,6 +1,6 @@
 import '@fastify/jwt';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import type { UserRole } from '@autolounge/shared';
+import type { UserRole } from '@technokhan/shared';
 
 /** JWT payload — `role` is the user's real role (see docs/API.md) */
 export interface JWTPayload {

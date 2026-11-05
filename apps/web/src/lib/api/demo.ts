@@ -24,7 +24,7 @@ import type {
   TrackResult,
   User,
   VehicleSize,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import {
   BOOKING_MAX_DAYS_AHEAD,
   BookingStatus,
@@ -44,7 +44,7 @@ import {
   toEnglishDigits,
   trackingCodeFromId,
   trackingCodeKind,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import type { ApiResult } from './client';
 import {
   findLocalProduct,
@@ -217,19 +217,23 @@ function byDateDesc<T extends { createdAt: unknown }>(a: T, b: T) {
 
 function catalogProducts(): Product[] {
   const db = load();
-  const base = PRODUCTS.filter((p) => !db.catalog.deletedProducts.includes(p.id)).map(
-    (p) => db.catalog.products[p.id] ?? p
+  const deletedProducts = db.catalog?.deletedProducts ?? [];
+  const catalog = db.catalog?.products ?? {};
+  const base = PRODUCTS.filter((p) => !deletedProducts.includes(p.id)).map(
+    (p) => catalog[p.id] ?? p
   );
-  const created = Object.values(db.catalog.products).filter((p) => !PRODUCTS.some((b) => b.id === p.id));
+  const created = Object.values(catalog).filter((p) => !PRODUCTS.some((b) => b.id === p.id));
   return [...created, ...base];
 }
 
 function catalogServices(): Service[] {
   const db = load();
-  const base = SERVICES.filter((s) => !db.catalog.deletedServices.includes(s.id)).map(
-    (s) => db.catalog.services[s.id] ?? s
+  const deletedServices = db.catalog?.deletedServices ?? [];
+  const catalog = db.catalog?.services ?? {};
+  const base = SERVICES.filter((s) => !deletedServices.includes(s.id)).map(
+    (s) => catalog[s.id] ?? s
   );
-  const created = Object.values(db.catalog.services).filter((s) => !SERVICES.some((b) => b.id === s.id));
+  const created = Object.values(catalog).filter((s) => !SERVICES.some((b) => b.id === s.id));
   return [...created, ...base];
 }
 

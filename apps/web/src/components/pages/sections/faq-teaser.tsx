@@ -1,7 +1,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowRight, MessageCircleQuestion } from 'lucide-react';
-import { FAQ, ROUTES } from '@autolounge/shared';
+import { FAQ, ROUTES } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/ui/premium-components';
 import { FaqAccordion } from '@/components/catalog/faq-accordion';

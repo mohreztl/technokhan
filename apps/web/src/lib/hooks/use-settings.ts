@@ -1,8 +1,8 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { DEFAULT_SITE_SETTINGS } from '@autolounge/shared';
-import type { SiteSettings } from '@autolounge/shared';
+import { DEFAULT_SITE_SETTINGS } from '@technokhan/shared';
+import type { SiteSettings } from '@technokhan/shared';
 import { settingsApi } from '@/lib/api/endpoints';
 import { unwrap } from '@/lib/api/client';
 import { qk } from '@/lib/api/query-keys';

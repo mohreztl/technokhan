@@ -18,7 +18,7 @@ import {
   Truck,
   X,
 } from 'lucide-react';
-import type { Product } from '@autolounge/shared';
+import type { Product } from '@technokhan/shared';
 import {
   ROUTES,
   SHIPPING,
@@ -28,7 +28,7 @@ import {
   getFeaturedProducts,
   toEnglishDigits,
   toPersianDigits,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { RollingNumber } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

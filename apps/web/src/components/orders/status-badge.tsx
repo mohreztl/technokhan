@@ -1,4 +1,4 @@
-import { BOOKING_STATUS_LABELS, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@autolounge/shared';
+import { BOOKING_STATUS_LABELS, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@technokhan/shared';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 type Variant = NonNullable<BadgeProps['variant']>;

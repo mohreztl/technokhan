@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Minus, Plus } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 export interface QuantityStepperProps {

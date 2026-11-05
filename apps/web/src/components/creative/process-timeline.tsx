@@ -3,8 +3,8 @@
 import { useRef } from 'react';
 import { motion, useMotionValue, useScroll, useTransform, type MotionValue } from 'framer-motion';
 import { Clock } from 'lucide-react';
-import type { ServiceStep } from '@autolounge/shared';
-import { toPersianDigits } from '@autolounge/shared';
+import type { ServiceStep } from '@technokhan/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { resolveIcon } from './icon-map';

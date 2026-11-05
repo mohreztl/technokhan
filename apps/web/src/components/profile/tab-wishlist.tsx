@@ -3,8 +3,8 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Heart, ShoppingBag } from 'lucide-react';
-import type { Product } from '@autolounge/shared';
-import { ROUTES, findProduct, toPersianDigits } from '@autolounge/shared';
+import type { Product } from '@technokhan/shared';
+import { ROUTES, findProduct, toPersianDigits } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ProductCard } from '@/components/molecules/product-card';

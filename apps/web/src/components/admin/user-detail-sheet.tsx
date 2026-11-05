@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarDays, ChevronLeft, Mail, Phone, ShoppingBag } from 'lucide-react';
-import { formatToman, toPersianDigits } from '@autolounge/shared';
+import { formatToman, toPersianDigits } from '@technokhan/shared';
 import { adminApi, type AdminUser } from '@/lib/api/endpoints';
 import { unwrap } from '@/lib/api/client';
 import { useAuth } from '@/lib/store/auth-store';

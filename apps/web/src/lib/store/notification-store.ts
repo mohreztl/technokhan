@@ -5,8 +5,8 @@ import {
   ORDER_STATUS_LABELS,
   ROUTES,
   formatToman,
-} from '@autolounge/shared';
-import type { Booking, Order } from '@autolounge/shared';
+} from '@technokhan/shared';
+import type { Booking, Order } from '@technokhan/shared';
 
 export type NotificationKind = 'order' | 'booking' | 'payment';
 

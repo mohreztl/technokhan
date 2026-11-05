@@ -1,5 +1,5 @@
 import type { User as DbUser } from '@prisma/client';
-import type { User } from '@autolounge/shared';
+import type { User } from '@technokhan/shared';
 
 /** Public user shape (matches shared `User`) */
 export function serializeUser(user: DbUser): User {

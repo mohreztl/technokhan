@@ -8,7 +8,7 @@ import {
   OrderStatus,
   PAYMENT_STATUS_LABELS,
   PaymentStatus,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 export type StatusKind = 'order' | 'booking' | 'payment';

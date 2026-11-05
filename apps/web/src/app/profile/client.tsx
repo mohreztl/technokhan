@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowLeft, CalendarCheck, CalendarPlus, Heart, MapPin, Package, ShoppingBag } from 'lucide-react';
-import { ROUTES, toPersianDigits } from '@autolounge/shared';
+import { ROUTES, toPersianDigits } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AuthGate } from '@/components/profile/auth-gate';

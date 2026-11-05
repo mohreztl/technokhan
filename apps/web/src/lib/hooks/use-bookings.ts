@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Booking, CreateBookingInput } from '@autolounge/shared';
+import type { Booking, CreateBookingInput } from '@technokhan/shared';
 import { bookingsApi } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';
 import { unwrap } from '@/lib/api/client';

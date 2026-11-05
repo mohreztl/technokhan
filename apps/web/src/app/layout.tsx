@@ -7,6 +7,7 @@ import { Navbar } from '@/components/organisms/navbar';
 import { Footer } from '@/components/organisms/footer';
 import { GoogleAnalytics } from '@/components/analytics/google-analytics';
 import { ScrollProgress } from '@/components/ui/interactive-effects';
+import { JsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 
 const vazirmatn = localFont({
   src: '../../public/fonts/Vazirmatn-Variable.ttf',
@@ -90,6 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
           </div>
         </Providers>
+        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       </body>
     </html>
   );

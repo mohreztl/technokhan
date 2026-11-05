@@ -1,4 +1,4 @@
-import type { ProductListQuery } from '@autolounge/shared';
+import type { ProductListQuery } from '@technokhan/shared';
 
 export type ShopSearchParams = Record<string, string | string[] | undefined>;
 

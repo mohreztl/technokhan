@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ExternalLink, Search, Share2, ShoppingBag, Wrench } from 'lucide-react';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { useUIStore } from '@/lib/store/ui-store';
 import { Button } from '@/components/ui/button';
 
@@ -40,9 +40,9 @@ export function SharePageClient() {
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/15 text-secondary">
             <Share2 className="h-7 w-7" aria-hidden="true" />
           </span>
-          <h1 className="mt-4 text-2xl font-black text-foreground sm:text-3xl">اشتراک‌گذاری با اتولانژ</h1>
+          <h1 className="mt-4 text-2xl font-black text-foreground sm:text-3xl">اشتراک‌گذاری با تکنو خان</h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            {hasContent ? 'این محتوا با اتولانژ به اشتراک گذاشته شد.' : 'محتوایی برای نمایش ارسال نشده است.'}
+            {hasContent ? 'این محتوا با تکنو خان به اشتراک گذاشته شد.' : 'محتوایی برای نمایش ارسال نشده است.'}
           </p>
         </div>
 
@@ -68,7 +68,7 @@ export function SharePageClient() {
         <div className="mt-6 space-y-3">
           <Button type="button" variant="primary" size="lg" onClick={() => setSearchOpen(true)} className="min-h-12 w-full gap-2 shadow-glow-primary">
             <Search className="h-5 w-5" aria-hidden="true" />
-            جستجو در اتولانژ
+            جستجو در تکنو خان
           </Button>
           <div className="grid grid-cols-2 gap-3">
             <Button asChild variant="outline" className="min-h-12 gap-2">
@@ -78,9 +78,9 @@ export function SharePageClient() {
               </Link>
             </Button>
             <Button asChild variant="outline" className="min-h-12 gap-2">
-              <Link href={ROUTES.SERVICES}>
+              <Link href={ROUTES.BLOG}>
                 <Wrench className="h-4 w-4" aria-hidden="true" />
-                خدمات
+                مجله تکنو
               </Link>
             </Button>
           </div>

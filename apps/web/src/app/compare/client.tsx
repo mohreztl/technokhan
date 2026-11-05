@@ -11,8 +11,8 @@ import {
   basePriceFor,
   formatToman,
   toPersianDigits,
-} from '@autolounge/shared';
-import type { Service } from '@autolounge/shared';
+} from '@technokhan/shared';
+import type { Service } from '@technokhan/shared';
 import { COMPARE_LIMIT, useCompare, useCompareStore } from '@/lib/store/compare-store';
 import { useHydrated } from '@/lib/store/hydration';
 import { Button } from '@/components/ui/button';

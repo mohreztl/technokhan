@@ -10,7 +10,7 @@ import {
   type PagedList,
   type Product,
   type ProductListQuery,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useProducts } from '@/lib/hooks/use-products';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';

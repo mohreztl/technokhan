@@ -17,8 +17,8 @@ import {
   ShoppingBag,
   XCircle,
 } from 'lucide-react';
-import type { PaymentVerifyResult } from '@autolounge/shared';
-import { ROUTES, formatToman, toPersianDigits } from '@autolounge/shared';
+import type { PaymentVerifyResult } from '@technokhan/shared';
+import { ROUTES, formatToman, toPersianDigits } from '@technokhan/shared';
 import { ConfettiBurst } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';

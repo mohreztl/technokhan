@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft, CalendarCheck2, Clock3, ShieldCheck } from 'lucide-react';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 
 /** A deliberately small booking entry point for the home page. The complete

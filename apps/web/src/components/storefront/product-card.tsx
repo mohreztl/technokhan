@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Check, Eye, GitCompareArrows, Heart, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
-import { discountPercent, effectivePrice, toPersianDigits, type Product } from '@autolounge/shared';
+import { discountPercent, effectivePrice, toPersianDigits, type Product } from '@technokhan/shared';
 import { PRODUCT_MEDIA } from '@/content/media-assets';
 import { useCart } from '@/lib/store/cart-store';
 import { useWishlist } from '@/lib/store/wishlist-store';

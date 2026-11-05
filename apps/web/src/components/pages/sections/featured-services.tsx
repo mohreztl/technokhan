@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
-import { ROUTES, type Service } from '@autolounge/shared';
+import { ROUTES, type Service } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/ui/premium-components';
 import { RevealOnScroll } from '@/components/ui/card-3d';

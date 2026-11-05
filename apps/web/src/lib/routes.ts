@@ -1,4 +1,4 @@
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 
 export type TabKey = 'home' | 'services' | 'booking' | 'shop' | 'profile';
 

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Eye, Users } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import type { AdminUser } from '@/lib/api/endpoints';
 import { useAdminUsers } from '@/lib/hooks/use-admin';
 import { formatJalali } from '@/lib/jalali';

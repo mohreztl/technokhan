@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, PackageSearch, Search } from 'lucide-react';
-import { effectivePrice, formatToman } from '@autolounge/shared';
+import { effectivePrice, formatToman } from '@technokhan/shared';
 import { queryLocalProducts } from '@/lib/data/local-query';
 import { PRODUCT_MEDIA } from '@/content/media-assets';
 import { useUIStore } from '@/lib/store/ui-store';

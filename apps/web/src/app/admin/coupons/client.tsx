@@ -3,8 +3,8 @@
 import * as React from 'react';
 import { toast } from 'sonner';
 import { Copy, Infinity as InfinityIcon, Pencil, Plus, Power, Tag, Trash2 } from 'lucide-react';
-import { formatToman, toPersianDigits } from '@autolounge/shared';
-import type { Coupon } from '@autolounge/shared';
+import { formatToman, toPersianDigits } from '@technokhan/shared';
+import type { Coupon } from '@technokhan/shared';
 import { useAdminCoupons, useAdminMutations } from '@/lib/hooks/use-admin';
 import { formatJalali } from '@/lib/jalali';
 import { Badge } from '@/components/ui/badge';

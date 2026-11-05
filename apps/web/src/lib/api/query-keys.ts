@@ -1,4 +1,4 @@
-import type { ProductListQuery, ServiceListQuery } from '@autolounge/shared';
+import type { ProductListQuery, ServiceListQuery } from '@technokhan/shared';
 
 /** Centralized React Query keys */
 export const qk = {

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { CalendarCheck, Gift, History, PackageSearch, Sparkles } from 'lucide-react';
-import { APP_NAME, ROUTES } from '@autolounge/shared';
+import { APP_NAME, ROUTES } from '@technokhan/shared';
 import { OtpForm } from '@/components/auth/otp-form';
 import { useAuth } from '@/lib/store/auth-store';
 

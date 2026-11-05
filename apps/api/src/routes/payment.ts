@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import type { PaymentRequestResult, PaymentVerifyResult } from '@autolounge/shared';
+import type { PaymentRequestResult, PaymentVerifyResult } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import { config as appConfig, isDemoGateway } from '../config';
 import * as zarinpal from '../services/zarinpal.service';

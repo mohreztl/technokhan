@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { motion, useInView } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Quote, Star } from 'lucide-react';
-import { TESTIMONIALS, toPersianDigits, type Testimonial } from '@autolounge/shared';
+import { TESTIMONIALS, toPersianDigits, type Testimonial } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Avatar } from '@/components/ui/avatar';
 import { IconButton } from '@/components/ui/icon-button';

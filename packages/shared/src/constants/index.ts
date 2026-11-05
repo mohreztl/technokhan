@@ -8,24 +8,24 @@ export const APP_DESCRIPTION_EN = 'Curated Smart Gadgets and Digital Accessories
 export const APP_TAGLINE = 'گجت‌های اورجینال، انتخاب دقیق';
 
 export const CONTACT = {
-  phone: '۰۲۱-۱۲۳۴۵۶۷۸',
-  phoneEn: '021-12345678',
-  mobile: '۰۹۱۲-۳۴۵-۶۷۸۹',
-  mobileEn: '09123456789',
-  email: 'info@autolounge.ir',
-  address: 'تهران، خیابان ولیعصر، پلاک ۱۲۳',
-  addressEn: 'Tehran, Vali-e-Asr St., No. 123',
+  phone: 'پشتیبانی آنلاین',
+  phoneEn: '',
+  mobile: 'پشتیبانی آنلاین',
+  mobileEn: '',
+  email: 'support@technokhan.com',
+  address: 'تهران، ایران',
+  addressEn: 'Tehran, Iran',
   /** used by the map embed */
   location: { lat: 35.7219, lng: 51.4105 },
-  workingHours: 'شنبه تا پنجشنبه ۸:۰۰ تا ۲۰:۰۰',
+  workingHours: 'پاسخ‌گویی آنلاین در روزهای کاری',
   workingDays: 'شنبه تا پنجشنبه',
   closedDays: 'جمعه‌ها تعطیل',
 };
 
 export const SOCIAL_MEDIA = {
-  instagram: 'https://instagram.com/autolounge.ir',
-  telegram: 'https://t.me/autolounge',
-  whatsapp: 'https://wa.me/989123456789',
+  instagram: 'https://instagram.com/technokhan',
+  telegram: 'https://t.me/technokhan',
+  whatsapp: 'https://wa.me/technokhan',
 };
 
 /** Browser-facing API host (without the /api/v1 prefix). */

@@ -1,5 +1,5 @@
 import type { Dispatch } from 'react';
-import type { QuoteResult, Service } from '@autolounge/shared';
+import type { QuoteResult, Service } from '@technokhan/shared';
 import type { BookingDraft, BookingStepIndex } from '@/lib/booking/draft';
 import type { StepErrors, WizardAction } from '@/lib/booking/wizard';
 

@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import { Lightbulb, TriangleAlert } from 'lucide-react';
-import type { ArticleBlock } from '@autolounge/shared';
-import { toPersianDigits } from '@autolounge/shared';
+import type { ArticleBlock } from '@technokhan/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 /**

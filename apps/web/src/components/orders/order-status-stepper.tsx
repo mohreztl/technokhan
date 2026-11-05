@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
 import { Ban, Check, CheckCircle2, Clock3, Package, Truck } from 'lucide-react';
-import { ORDER_STATUS_LABELS } from '@autolounge/shared';
+import { ORDER_STATUS_LABELS } from '@technokhan/shared';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { cn } from '@/lib/utils';
 

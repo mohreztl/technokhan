@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useEffect, useId, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { toEnglishDigits, toPersianDigits } from '@autolounge/shared';
+import { toEnglishDigits, toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 

@@ -13,7 +13,7 @@ import {
   type PanInfo,
 } from 'framer-motion';
 import { ChevronDown, ChevronLeft, ChevronRight, Star, type LucideIcon } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

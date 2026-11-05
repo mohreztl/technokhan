@@ -17,7 +17,7 @@ const standalone =
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@autolounge/shared'],
+  transpilePackages: ['@technokhan/shared'],
   ...(standalone ? { output: 'standalone' } : {}),
   devIndicators: false,
   outputFileTracingRoot: path.join(__dirname, '../../'),

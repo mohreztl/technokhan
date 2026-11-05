@@ -1,4 +1,4 @@
-import type { GalleryItem, Product, Service } from '@autolounge/shared';
+import type { GalleryItem, Product, Service } from '@technokhan/shared';
 import { HeroSection } from './sections/hero-section';
 import { FeaturedServices } from './sections/featured-services';
 import { QuoteTeaser } from './sections/quote-teaser';

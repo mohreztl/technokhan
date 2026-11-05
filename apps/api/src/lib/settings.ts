@@ -1,5 +1,5 @@
-import { DEFAULT_SITE_SETTINGS } from '@autolounge/shared';
-import type { SiteSettings } from '@autolounge/shared';
+import { DEFAULT_SITE_SETTINGS } from '@technokhan/shared';
+import type { SiteSettings } from '@technokhan/shared';
 
 import { prisma } from './prisma';
 

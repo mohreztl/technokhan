@@ -17,7 +17,7 @@ import {
   Wallet,
   Wrench,
 } from 'lucide-react';
-import { APP_NAME, ROUTES, formatToman, toPersianDigits } from '@autolounge/shared';
+import { APP_NAME, ROUTES, formatToman, toPersianDigits } from '@technokhan/shared';
 import { useAdminDashboard } from '@/lib/hooks/use-admin';
 import { formatJalali, formatJalaliDateTime } from '@/lib/jalali';
 import { Button } from '@/components/ui/button';

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { MapPin, Plus, RefreshCw } from 'lucide-react';
-import type { Address, ShippingAddressInput } from '@autolounge/shared';
+import type { Address, ShippingAddressInput } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { Skeleton } from '@/components/ui/skeleton';

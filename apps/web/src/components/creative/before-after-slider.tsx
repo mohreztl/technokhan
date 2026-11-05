@@ -12,7 +12,7 @@ import {
   useTransform,
 } from 'framer-motion';
 import { ChevronsLeftRight } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 

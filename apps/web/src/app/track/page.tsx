@@ -1,15 +1,15 @@
 import type { Metadata } from 'next';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { JsonLd, breadcrumbJsonLd } from '@/lib/seo';
 import { TrackPageClient } from './client';
 
 export const metadata: Metadata = {
-  title: 'پیگیری سفارش و رزرو | اتولانژ',
+  title: 'پیگیری سفارش | تکنو خان',
   description:
     'وضعیت سفارش یا نوبت خود را با کد پیگیری و شمارهٔ موبایل دنبال کنید — بدون نیاز به ورود به حساب کاربری.',
   alternates: { canonical: ROUTES.TRACK },
   openGraph: {
-    title: 'پیگیری سفارش و رزرو | اتولانژ',
+    title: 'پیگیری سفارش | تکنو خان',
     description: 'کد پیگیری و شمارهٔ موبایل را وارد کنید تا وضعیت سفارش یا نوبتتان را ببینید.',
   },
 };

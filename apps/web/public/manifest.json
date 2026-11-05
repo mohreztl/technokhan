@@ -1,14 +1,14 @@
 {
-  "name": "اتولانژ - AutoLounge",
-  "short_name": "اتولانژ",
-  "description": "مرکز تخصصی مراقبت و زیبایی خودرو - دیتیلینگ، سرامیک کوتینگ، رپ خودرو",
+  "name": "تکنو خان | TechnoKhan",
+  "short_name": "تکنو خان",
+  "description": "گجت‌های اورجینال، انتخاب دقیق؛ فروشگاه لوازم جانبی دیجیتال",
   "id": "/",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#0a0a0a",
-  "theme_color": "#001F3F",
+  "background_color": "#090B0C",
+  "theme_color": "#C8F45A",
   "orientation": "portrait-primary",
   "dir": "rtl",
   "lang": "fa-IR",
@@ -22,65 +22,18 @@
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-384.png", "sizes": "384x384", "type": "image/png", "purpose": "any" },
     { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    {
-      "src": "/icons/icon-maskable-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "maskable"
-    },
-    {
-      "src": "/icons/icon-maskable-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "/icons/icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
-  "categories": ["automotive", "business", "shopping", "lifestyle"],
+  "categories": ["shopping", "business", "lifestyle"],
   "screenshots": [
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "750x1624",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "صفحه اصلی اتولانژ"
-    },
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "نمایش دسکتاپ"
-    }
+    { "src": "/screenshots/mobile-1.png", "sizes": "860x1486", "type": "image/png", "form_factor": "narrow", "label": "صفحه اصلی تکنو خان" },
+    { "src": "/screenshots/desktop-1.png", "sizes": "1920x1080", "type": "image/png", "form_factor": "wide", "label": "فروشگاه تکنو خان" }
   ],
   "shortcuts": [
-    {
-      "name": "رزرو نوبت",
-      "short_name": "رزرو",
-      "description": "رزرو وقت آنلاین",
-      "url": "/booking?source=pwa",
-      "icons": [{ "src": "/icons/shortcut-booking.png", "sizes": "96x96", "type": "image/png" }]
-    },
-    {
-      "name": "محصولات",
-      "short_name": "محصولات",
-      "description": "مشاهده همه محصولات دیتیلینگ",
-      "url": "/products?source=pwa",
-      "icons": [{ "src": "/icons/shortcut-products.png", "sizes": "96x96", "type": "image/png" }]
-    },
-    {
-      "name": "خدمات",
-      "short_name": "خدمات",
-      "description": "خدمات مراقبت از خودرو",
-      "url": "/services?source=pwa",
-      "icons": [{ "src": "/icons/shortcut-services.png", "sizes": "96x96", "type": "image/png" }]
-    },
-    {
-      "name": "سبد خرید",
-      "short_name": "سبد",
-      "description": "مشاهده سبد خرید",
-      "url": "/cart?source=pwa",
-      "icons": [{ "src": "/icons/shortcut-cart.png", "sizes": "96x96", "type": "image/png" }]
-    }
+    { "name": "فروشگاه", "short_name": "فروشگاه", "description": "مشاهده همه گجت‌ها", "url": "/shop?source=pwa", "icons": [{ "src": "/icons/shortcut-products.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "جستجو", "short_name": "جستجو", "description": "جستجوی محصول", "url": "/shop?focus=search&source=pwa", "icons": [{ "src": "/icons/shortcut-services.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "سبد خرید", "short_name": "سبد", "description": "مشاهده سبد خرید", "url": "/cart?source=pwa", "icons": [{ "src": "/icons/shortcut-cart.png", "sizes": "96x96", "type": "image/png" }] }
   ],
   "share_target": {
     "action": "/share",

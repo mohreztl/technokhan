@@ -1,4 +1,4 @@
-import type { VehicleSize, WrapFinish } from '@autolounge/shared';
+import type { VehicleSize, WrapFinish } from '@technokhan/shared';
 
 /**
  * Booking wizard draft, mirrored to `sessionStorage` so a reload, an inline

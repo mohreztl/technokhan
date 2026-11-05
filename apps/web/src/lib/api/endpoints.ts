@@ -25,7 +25,7 @@ import type {
   TrackInput,
   TrackResult,
   User,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { apiDelete, apiGet, apiPost, apiPut, buildQuery, isDemoMode } from './client';
 import type { ApiResult } from './client';
 import {

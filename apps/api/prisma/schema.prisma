@@ -302,7 +302,7 @@ enum CouponType {
   fixed
 }
 
-/// Discount codes. These used to be a hard-coded list in @autolounge/shared;
+/// Discount codes. These used to be a hard-coded list in @technokhan/shared;
 /// the bundled list is now only the demo catalogue.
 model Coupon {
   id          String     @id @default(cuid())

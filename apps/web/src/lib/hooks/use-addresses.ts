@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Address } from '@autolounge/shared';
+import type { Address } from '@technokhan/shared';
 import { addressesApi } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';
 import { unwrap } from '@/lib/api/client';

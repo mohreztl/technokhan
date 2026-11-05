@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Prisma } from '@prisma/client';
 import { z } from 'zod';
-import { slugify, type AdminDashboardStats } from '@autolounge/shared';
+import { slugify, type AdminDashboardStats } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import {
   adminBookingQuerySchema,

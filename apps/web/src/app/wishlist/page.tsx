@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { WishlistPageClient } from './client';
 
 export const metadata: Metadata = {

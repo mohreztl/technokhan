@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { Check, ChevronLeft, GitCompareArrows, Heart, Minus, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 import { toast } from 'sonner';
-import { effectivePrice, toPersianDigits, type Product } from '@autolounge/shared';
+import { effectivePrice, toPersianDigits, type Product } from '@technokhan/shared';
 import { useCart } from '@/lib/store/cart-store';
 import { useWishlist } from '@/lib/store/wishlist-store';
 import { useCompare } from '@/lib/store/compare-store';

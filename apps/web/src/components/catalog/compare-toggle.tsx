@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { GitCompareArrows } from 'lucide-react';
-import type { Service } from '@autolounge/shared';
+import type { Service } from '@technokhan/shared';
 import { useCompare, useCompareStore } from '@/lib/store/compare-store';
 import { useHydrated } from '@/lib/store/hydration';
 import { Button } from '@/components/ui/button';

@@ -19,13 +19,13 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
-RUN pnpm install --frozen-lockfile --filter api... --filter @autolounge/shared
+RUN pnpm install --frozen-lockfile --filter api... --filter @technokhan/shared
 
 # Sources
 COPY packages/shared ./packages/shared
 COPY apps/api ./apps/api
 
-RUN pnpm --filter @autolounge/shared build
+RUN pnpm --filter @technokhan/shared build
 RUN pnpm --filter api exec prisma generate
 RUN pnpm --filter api build
 
@@ -39,7 +39,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/api/package.json ./apps/api/
 COPY apps/web/package.json ./apps/web/
-RUN pnpm install --frozen-lockfile --prod --filter api... --filter @autolounge/shared
+RUN pnpm install --frozen-lockfile --prod --filter api... --filter @technokhan/shared
 
 # Built shared package (consumed from dist by the API and the seed script)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist

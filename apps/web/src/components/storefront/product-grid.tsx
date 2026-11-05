@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { ShoppingBag } from 'lucide-react';
-import type { Product } from '@autolounge/shared';
+import type { Product } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { ProductCard } from './product-card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { PriceTag } from '@/components/ui/price-tag';
 import { Badge } from '@/components/ui/badge';
 import { useCart } from '@/lib/store/cart-store';
-import { effectivePrice } from '@autolounge/shared';
+import { effectivePrice } from '@technokhan/shared';
 
 export interface ProductGridProps {
   products: Product[];

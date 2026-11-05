@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { User } from '@autolounge/shared';
+import type { User } from '@technokhan/shared';
 import { authApi } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';
 import { unwrap } from '@/lib/api/client';

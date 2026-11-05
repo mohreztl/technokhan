@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
-import { formatTomanCompact, type ProductListQuery } from '@autolounge/shared';
+import { formatTomanCompact, type ProductListQuery } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {

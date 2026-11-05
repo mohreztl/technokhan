@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { motion, useSpring, useTransform } from 'framer-motion';
-import { formatNumberFa, toPersianDigits } from '@autolounge/shared';
+import { formatNumberFa, toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 

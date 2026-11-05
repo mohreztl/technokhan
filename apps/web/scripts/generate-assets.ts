@@ -5,7 +5,7 @@
  * services, gallery, team, avatars, certifications), PWA icons, favicons,
  * the Open Graph image, PWA screenshots, the logo and the background pattern.
  *
- * The list of required catalog images is derived from `@autolounge/shared`
+ * The list of required catalog images is derived from `@technokhan/shared`
  * so it can never drift from the data. Existing files are kept unless
  * `--force` is passed. Run: `pnpm --filter web assets [--force]`.
  */
@@ -20,7 +20,7 @@ import {
   SERVICES,
   TEAM,
   TESTIMONIALS,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 
 const ROOT = process.cwd();
 const PUBLIC = path.join(ROOT, 'public');

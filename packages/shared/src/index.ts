@@ -1,4 +1,4 @@
-// Shared types, data, schemas and utilities for AutoLounge
+// Shared types, data, schemas and utilities for TechnoKhan
 
 export * from './types';
 export * from './constants';

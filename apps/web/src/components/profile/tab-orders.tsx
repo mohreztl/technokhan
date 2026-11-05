@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { ROUTES } from '@autolounge/shared';
+import { ROUTES } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 import { OrdersList } from '@/components/orders/orders-list';
 

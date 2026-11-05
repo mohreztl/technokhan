@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { BadgeCheck } from 'lucide-react';
-import { toPersianDigits, type Certification } from '@autolounge/shared';
+import { toPersianDigits, type Certification } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';

@@ -1,4 +1,4 @@
-import { toEnglishDigits, type ProductListQuery } from '@autolounge/shared';
+import { toEnglishDigits, type ProductListQuery } from '@technokhan/shared';
 
 /** `searchParams` as delivered to a page, or a `URLSearchParams` on the client. */
 export type SearchParamsInput = Record<string, string | string[] | undefined> | URLSearchParams;

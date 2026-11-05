@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Clock3 } from 'lucide-react';
-import { toPersianDigits, type Article } from '@autolounge/shared';
+import { toPersianDigits, type Article } from '@technokhan/shared';
 import { formatJalali } from '@/lib/jalali';
 import { ARTICLE_MEDIA } from '@/content/media-assets';
 import { Badge } from '@/components/ui/badge';

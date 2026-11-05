@@ -1,7 +1,7 @@
 'use client';
 
 import { Star } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 export function RatingStars({ value, className, size = 'md' }: { value: number; className?: string; size?: 'sm' | 'md' }) {

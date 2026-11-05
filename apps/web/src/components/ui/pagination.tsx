@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 

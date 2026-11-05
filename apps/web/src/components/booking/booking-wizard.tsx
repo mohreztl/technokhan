@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { useSearchParams } from 'next/navigation';
 import { motion, type Variants } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
-import type { Booking, Service } from '@autolounge/shared';
-import { CONTACT, SERVICES, computeQuote, createBookingSchema, findService } from '@autolounge/shared';
+import type { Booking, Service } from '@technokhan/shared';
+import { CONTACT, SERVICES, computeQuote, createBookingSchema, findService } from '@technokhan/shared';
 import { RollingNumber } from '@/components/creative';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

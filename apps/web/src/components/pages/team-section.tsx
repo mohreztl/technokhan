@@ -4,7 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { InstagramIcon, LinkedinIcon } from '@/components/icons/brands';
-import { toPersianDigits, type TeamMember } from '@autolounge/shared';
+import { toPersianDigits, type TeamMember } from '@technokhan/shared';
 import { fadeInUp, staggerContainer, viewportConfig } from '@/lib/animation-variants';
 import { Badge } from '@/components/ui/badge';
 import { IconButton } from '@/components/ui/icon-button';

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { ServiceStep } from '@autolounge/shared';
+import type { ServiceStep } from '@technokhan/shared';
 import { SectionHeading } from '@/components/ui/premium-components';
 import { ProcessTimeline } from '@/components/creative/process-timeline';
 

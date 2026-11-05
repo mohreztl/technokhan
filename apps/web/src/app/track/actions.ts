@@ -1,7 +1,7 @@
 'use server';
 
-import { trackSchema } from '@autolounge/shared';
-import type { TrackResult } from '@autolounge/shared';
+import { trackSchema } from '@technokhan/shared';
+import type { TrackResult } from '@technokhan/shared';
 import { apiPost } from '@/lib/api/client';
 
 /**

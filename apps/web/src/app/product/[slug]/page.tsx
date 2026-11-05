@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { PRODUCTS, effectivePrice } from '@autolounge/shared';
+import { PRODUCTS, effectivePrice } from '@technokhan/shared';
 import { ProductDetailsClient } from '@/components/storefront/product-details-client';
 import { getProduct, getRelatedProducts } from '@/lib/data/repository';
 

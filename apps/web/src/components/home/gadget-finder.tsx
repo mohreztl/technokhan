@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Laptop, Smartphone, Headphones, Gamepad2, WandSparkles } from 'lucide-react';
-import { ProductCategory, type Product } from '@autolounge/shared';
+import { ProductCategory, type Product } from '@technokhan/shared';
 import { ProductGrid } from '@/components/storefront/product-grid';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/select';

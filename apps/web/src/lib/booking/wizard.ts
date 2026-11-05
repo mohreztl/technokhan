@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { getYear } from 'date-fns-jalali';
-import type { Service, Vehicle, VehicleSize, WrapFinish } from '@autolounge/shared';
+import type { Service, Vehicle, VehicleSize, WrapFinish } from '@technokhan/shared';
 import {
   BOOKING_MAX_DAYS_AHEAD,
   BOOKING_TIME_SLOTS,
@@ -8,7 +8,7 @@ import {
   VEHICLE_CATALOG,
   VEHICLE_SIZES,
   toPersianDigits,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { isPlateComplete } from '@/components/creative/plate-input';
 import { fromIsoDate, toIsoDate } from '@/lib/jalali';
 import {

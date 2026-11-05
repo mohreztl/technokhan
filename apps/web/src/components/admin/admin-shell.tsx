@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ExternalLink, Home, Lock, LogOut, ShieldAlert, Sparkles } from 'lucide-react';
-import { APP_NAME, DEMO_ADMIN_PHONE, DEMO_OTP_CODE, ROUTES, toPersianDigits } from '@autolounge/shared';
+import { APP_NAME, DEMO_ADMIN_PHONE, DEMO_OTP_CODE, ROUTES, toPersianDigits } from '@technokhan/shared';
 import { Avatar } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { IconButton } from '@/components/ui/icon-button';

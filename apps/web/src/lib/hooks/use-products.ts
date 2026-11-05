@@ -1,7 +1,7 @@
 'use client';
 
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import type { Product, ProductListQuery, PagedList } from '@autolounge/shared';
+import type { Product, ProductListQuery, PagedList } from '@technokhan/shared';
 import { productsApi } from '@/lib/api/endpoints';
 import { qk } from '@/lib/api/query-keys';
 import { unwrap } from '@/lib/api/client';

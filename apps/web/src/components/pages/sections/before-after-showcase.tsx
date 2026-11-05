@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { ArrowRight, Car } from 'lucide-react';
-import { ROUTES, SERVICE_TYPE_LABELS, type GalleryItem } from '@autolounge/shared';
+import { ROUTES, SERVICE_TYPE_LABELS, type GalleryItem } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { SectionHeading } from '@/components/ui/premium-components';

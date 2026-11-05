@@ -11,8 +11,8 @@ import {
   isTerminalStatus,
   toPersianDigits,
   trackingTimeline,
-} from '@autolounge/shared';
-import type { TrackResult } from '@autolounge/shared';
+} from '@technokhan/shared';
+import type { TrackResult } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { demoTrack } from '@/lib/api/demo';
 import { formatJalali, formatJalaliDateTime } from '@/lib/jalali';

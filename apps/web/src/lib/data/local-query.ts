@@ -1,14 +1,7 @@
-import type { GalleryItem, PagedList, Pagination, Product, ProductListQuery, Service, ServiceListQuery } from '@autolounge/shared';
-import { PRODUCTS, SERVICES, GALLERY, effectivePrice } from '@autolounge/shared';
+import type { GalleryItem, PagedList, Pagination, Product, ProductListQuery, Service, ServiceListQuery } from '@technokhan/shared';
+import { PRODUCTS, SERVICES, GALLERY, effectivePrice, filterProducts } from '@technokhan/shared';
 
-function paginate<T>(items: T[], page = 1, limit = 12): PagedList<T> {
-  const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / limit));
-  const current = Math.min(Math.max(1, page), totalPages);
-  const start = (current - 1) * limit;
-  const pagination: Pagination = { total, page: current, limit, totalPages, hasNext: current < totalPages, hasPrev: current > 1 };
-  return { items: items.slice(start, start + limit), pagination };
-}
+export { filterProducts } from '@technokhan/shared';
 
 function normalize(value: string): string {
   return value.toLowerCase().replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[‌‏‎]/g, ' ').replace(/\s+/g, ' ').trim();
@@ -19,6 +12,15 @@ function matches(haystack: string[], needle?: string): boolean {
   const terms = normalize(needle).split(' ').filter(Boolean);
   const hay = normalize(haystack.filter(Boolean).join(' '));
   return terms.every((term) => hay.includes(term));
+}
+
+function paginate<T>(items: T[], page = 1, limit = 12): PagedList<T> {
+  const total = items.length;
+  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const current = Math.min(Math.max(1, page), totalPages);
+  const start = (current - 1) * limit;
+  const pagination: Pagination = { total, page: current, limit, totalPages, hasNext: current < totalPages, hasPrev: current > 1 };
+  return { items: items.slice(start, start + limit), pagination };
 }
 
 function sortItems<T extends { createdAt: unknown; rating?: number; name: string; salesCount?: number }>(items: T[], price: (item: T) => number, sortBy = 'createdAt', sortOrder: 'asc' | 'desc' = 'desc'): T[] {
@@ -32,38 +34,6 @@ function sortItems<T extends { createdAt: unknown; rating?: number; name: string
       default: return (new Date(a.createdAt as string).getTime() - new Date(b.createdAt as string).getTime()) * direction;
     }
   });
-}
-
-/** Applies the complete storefront query to bundled products without I/O. */
-export function filterProducts(source: Product[], q: ProductListQuery = {}): Product[] {
-  let items = source.filter((product) => product.isActive !== false);
-  if (q.category) items = items.filter((product) => product.category === q.category);
-  if (q.brands?.length) {
-    const brands = q.brands.map((brand) => brand.toLowerCase());
-    items = items.filter((product) => product.brand && brands.includes(product.brand.toLowerCase()));
-  } else if (q.brand) {
-    items = items.filter((product) => product.brand?.toLowerCase() === q.brand?.toLowerCase());
-  }
-  if (q.features?.length) {
-    items = items.filter((product) => q.features!.every((feature) => matches([...(product.features ?? []), ...(product.tags ?? [])], feature)));
-  }
-  if (q.featured !== undefined) items = items.filter((product) => product.featured === q.featured);
-  if (q.inStock) items = items.filter((product) => product.stock > 0);
-  if (q.minPrice !== undefined) items = items.filter((product) => effectivePrice(product) >= q.minPrice!);
-  if (q.maxPrice !== undefined) items = items.filter((product) => effectivePrice(product) <= q.maxPrice!);
-  if (q.search) {
-    items = items.filter((product) => matches([
-      product.name,
-      product.nameEn,
-      product.brand ?? '',
-      product.shortDescription ?? '',
-      product.description,
-      ...(product.tags ?? []),
-      ...(product.features ?? []),
-      ...(product.specifications ?? []).flatMap((specification) => [specification.label, specification.value]),
-    ], q.search));
-  }
-  return sortItems(items, effectivePrice, q.sortBy, q.sortOrder);
 }
 
 /** Local equivalent of the Fastify list endpoint, including pagination. */

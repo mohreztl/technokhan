@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Mail, MailOpen, MessageSquare, Phone } from 'lucide-react';
-import type { ContactMessage } from '@autolounge/shared';
+import type { ContactMessage } from '@technokhan/shared';
 import { formatJalaliDateTime } from '@/lib/jalali';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';
 import { Avatar } from '@/components/ui/avatar';

@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import { Expand } from 'lucide-react';
-import type { Product, ProductColor } from '@autolounge/shared';
+import type { Product, ProductColor } from '@technokhan/shared';
 import { PRODUCT_MEDIA } from '@/content/media-assets';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';

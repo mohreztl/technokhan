@@ -4,7 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import useEmblaCarousel from 'embla-carousel-react';
 import { ChevronLeft, ChevronRight, Maximize2, X } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { IconButton } from '@/components/ui/icon-button';
 import { ResponsiveDialog } from '@/components/ui/responsive-dialog';

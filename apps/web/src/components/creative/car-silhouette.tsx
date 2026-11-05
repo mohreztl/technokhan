@@ -2,7 +2,7 @@
 
 import { useId } from 'react';
 import { motion } from 'framer-motion';
-import type { WrapFinish } from '@autolounge/shared';
+import type { WrapFinish } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 export const CAR_VIEWBOX = '0 0 640 260';

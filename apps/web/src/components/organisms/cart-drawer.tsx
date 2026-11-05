@@ -21,7 +21,7 @@ import {
   formatToman,
   toEnglishDigits,
   toPersianDigits,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { useCart, type CartItem } from '@/lib/store/cart-store';
 import { useValidateCoupon } from '@/lib/hooks/use-orders';

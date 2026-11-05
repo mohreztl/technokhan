@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CreditCard, Lock, ShieldCheck, XCircle } from 'lucide-react';
-import { formatToman, toPersianDigits } from '@autolounge/shared';
+import { formatToman, toPersianDigits } from '@technokhan/shared';
 import { Button } from '@/components/ui/button';
 
 /**

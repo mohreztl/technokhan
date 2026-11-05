@@ -1,4 +1,4 @@
-import { discountPercent, formatToman, toPersianDigits } from '@autolounge/shared';
+import { discountPercent, formatToman, toPersianDigits } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
 export interface PriceTagProps {

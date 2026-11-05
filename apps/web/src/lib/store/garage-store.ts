@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { Vehicle } from '@autolounge/shared';
+import type { Vehicle } from '@technokhan/shared';
 
 export interface GarageState {
   vehicles: Vehicle[];

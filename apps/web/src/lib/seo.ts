@@ -12,7 +12,7 @@ import {
   type FaqItem,
   type Product,
   type Service,
-} from '@autolounge/shared';
+} from '@technokhan/shared';
 import { absoluteUrl } from '@/lib/site';
 
 export type JsonLdData = Record<string, unknown>;
@@ -42,7 +42,7 @@ function ratingOf(entity: Pick<Product, 'rating' | 'reviewCount'>) {
 export function organizationJsonLd(): JsonLdData {
   return {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
+    '@type': 'OnlineStore',
     '@id': ORGANIZATION_ID(),
     name: APP_NAME,
     alternateName: APP_NAME_EN,
@@ -50,17 +50,34 @@ export function organizationJsonLd(): JsonLdData {
     logo: absoluteUrl('/images/logo.svg'),
     description: APP_DESCRIPTION,
     email: CONTACT.email,
-    telephone: CONTACT.phoneEn,
     sameAs: Object.values(SOCIAL_MEDIA),
     contactPoint: [
       {
         '@type': 'ContactPoint',
-        telephone: CONTACT.phoneEn,
+        email: CONTACT.email,
         contactType: 'customer service',
         areaServed: 'IR',
         availableLanguage: ['fa'],
       },
     ],
+  };
+}
+
+/** WebSite graph with the storefront's canonical search endpoint. */
+export function websiteJsonLd(): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: APP_NAME,
+    alternateName: APP_NAME_EN,
+    url: absoluteUrl('/'),
+    inLanguage: 'fa-IR',
+    publisher: { '@id': ORGANIZATION_ID() },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${absoluteUrl('/shop')}?search={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
   };
 }
 

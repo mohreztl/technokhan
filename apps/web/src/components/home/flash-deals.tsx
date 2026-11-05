@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { Clock3 } from 'lucide-react';
-import { toPersianDigits, type Product } from '@autolounge/shared';
+import { toPersianDigits, type Product } from '@technokhan/shared';
 import { getCountdown } from '@/lib/countdown';
 import { ProductCard } from '@/components/storefront/product-card';
 

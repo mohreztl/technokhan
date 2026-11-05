@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { CATEGORIES } from '@autolounge/shared';
+import { CATEGORIES } from '@technokhan/shared';
 import { CATEGORY_MEDIA } from '@/content/media-assets';
 import { cn } from '@/lib/utils';
 

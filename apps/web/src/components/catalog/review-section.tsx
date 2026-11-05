@@ -5,7 +5,7 @@ import { Controller, useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { MessageSquare, Send } from 'lucide-react';
-import { reviewSchema, toPersianDigits, type Review } from '@autolounge/shared';
+import { reviewSchema, toPersianDigits, type Review } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { formatJalali } from '@/lib/jalali';
 import { productsApi, servicesApi } from '@/lib/api/endpoints';

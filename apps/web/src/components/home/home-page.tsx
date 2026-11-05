@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { Award, ShieldCheck, Truck } from 'lucide-react';
-import { BRANDS, type Article, type Product } from '@autolounge/shared';
+import { BRANDS, type Article, type Product } from '@technokhan/shared';
 import { HeroShowcase } from './hero-showcase';
 import { BentoCategories } from './bento-categories';
 import { FlashDeals } from './flash-deals';

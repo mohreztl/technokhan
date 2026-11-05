@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
-import { normalizePhoneNumber, trackingCodeKind } from '@autolounge/shared';
-import type { TrackResult } from '@autolounge/shared';
+import { normalizePhoneNumber, trackingCodeKind } from '@technokhan/shared';
+import type { TrackResult } from '@technokhan/shared';
 
 import { prisma } from '../lib/prisma';
 import { config as appConfig } from '../config';

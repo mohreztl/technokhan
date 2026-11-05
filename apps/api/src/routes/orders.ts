@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Prisma, OrderStatus } from '@prisma/client';
-import { applyCoupon, computeOrderTotals, effectivePrice, trackingCodeFromId } from '@autolounge/shared';
+import { applyCoupon, computeOrderTotals, effectivePrice, trackingCodeFromId } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import { activeCoupons } from '../lib/coupons';
 import {

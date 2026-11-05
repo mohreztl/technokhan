@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Heart, Home, Search, ShoppingBag, Store } from 'lucide-react';
-import { toPersianDigits } from '@autolounge/shared';
+import { toPersianDigits } from '@technokhan/shared';
 import { useCart } from '@/lib/store/cart-store';
 import { useUIStore } from '@/lib/store/ui-store';
 import { cn } from '@/lib/utils';
