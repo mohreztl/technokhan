@@ -7,6 +7,7 @@ const groups = {
   hero: [1600, 1000],
   categories: [1200, 900],
   products: [1200, 1200],
+  'hero-shelf': [1200, 1200],
   blog: [1200, 800],
 };
 const clean = process.argv.includes('--clean');

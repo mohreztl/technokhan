@@ -25,6 +25,15 @@ export const CATEGORY_MEDIA = {
   cables: { src: '/images/categories/cables.webp', alt: 'کابل کنفی، هاب و مبدل حرفه‌ای روی سطح مات', width: 1200, height: 900, kind: 'category', generator },
 } satisfies Record<string, MediaAsset>;
 
+export const HERO_SHELF_MEDIA = {
+  chargers: { src: '/images/hero-shelf/chargers.webp', alt: 'شارژر GaN شفاف روی پس‌زمینه استودیویی خنثی برای قفسه Hero', width: 1200, height: 1200, kind: 'hero', generator },
+  headphones: { src: '/images/hero-shelf/headphones.webp', alt: 'هدفون نویزکنسلینگ گرافیتی با نور لبه سبز برای قفسه Hero', width: 1200, height: 1200, kind: 'hero', generator },
+  powerbanks: { src: '/images/hero-shelf/powerbanks.webp', alt: 'پاوربانک مگ‌سیف آلومینیومی با نور لبه سبز برای قفسه Hero', width: 1200, height: 1200, kind: 'hero', generator },
+  gaming: { src: '/images/hero-shelf/gaming.webp', alt: 'کیبورد و ماوس گیمینگ فلزی با نور لبه سبز برای قفسه Hero', width: 1200, height: 1200, kind: 'hero', generator },
+  wearables: { src: '/images/hero-shelf/wearables.webp', alt: 'ساعت هوشمند تیتانیومی با نور لبه سبز برای قفسه Hero', width: 1200, height: 1200, kind: 'hero', generator },
+  cables: { src: '/images/hero-shelf/cables.webp', alt: 'کابل کنفی و هاب آلومینیومی با نور لبه سبز برای قفسه Hero', width: 1200, height: 1200, kind: 'hero', generator },
+} satisfies Record<string, MediaAsset>;
+
 export const PRODUCT_MEDIA = {
   'anc-headphones': { src: '/images/products/anc-headphones.webp', alt: 'هدفون بی‌سیم نویزکنسلینگ گرافیتی در استودیو', width: 1200, height: 1200, kind: 'product', generator },
   earbuds: { src: '/images/products/earbuds.webp', alt: 'ایرباد بی‌سیم نویزکنسلینگ با کیس شارژ باز', width: 1200, height: 1200, kind: 'product', generator },
@@ -50,6 +59,7 @@ export const ARTICLE_MEDIA = {
 export const ALL_MEDIA: MediaAsset[] = [
   ...HERO_MEDIA,
   ...Object.values(CATEGORY_MEDIA),
+  ...Object.values(HERO_SHELF_MEDIA),
   ...Object.values(PRODUCT_MEDIA),
   ...Object.values(ARTICLE_MEDIA),
 ];

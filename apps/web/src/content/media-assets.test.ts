@@ -6,9 +6,9 @@ import crypto from 'node:crypto';
 import { ALL_MEDIA } from './media-assets';
 
 describe('TechnoKhan AI media manifest', () => {
-  it('registers exactly 24 unique local WebP assets', () => {
-    assert.equal(ALL_MEDIA.length, 24);
-    assert.equal(new Set(ALL_MEDIA.map((asset) => asset.src)).size, 24);
+  it('registers exactly 30 unique local WebP assets', () => {
+    assert.equal(ALL_MEDIA.length, 30);
+    assert.equal(new Set(ALL_MEDIA.map((asset) => asset.src)).size, 30);
     for (const asset of ALL_MEDIA) {
       assert.match(asset.src, /^\/images\/.+\.webp$/);
       assert.ok(asset.width >= 1000 && asset.height >= 768);
