@@ -10,4 +10,9 @@ describe('productQuerySchema', () => {
     assert.equal(query.sortBy, 'popular');
     assert.equal(query.inStock, true);
   });
+
+  it('parses the public deals flag', () => {
+    assert.equal(productQuerySchema.parse({ deals: 'true' }).deals, true);
+    assert.equal(productQuerySchema.parse({}).deals, undefined);
+  });
 });

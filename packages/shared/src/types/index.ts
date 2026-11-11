@@ -665,6 +665,8 @@ export interface ProductListQuery {
   brands?: string[];
   features?: string[];
   featured?: boolean;
+  /** Only products whose current price is genuinely below the list price. */
+  deals?: boolean;
   search?: string;
   minPrice?: number;
   maxPrice?: number;

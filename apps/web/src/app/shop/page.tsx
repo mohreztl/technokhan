@@ -6,6 +6,7 @@ import { parseShopQuery, type ShopSearchParams } from '@/lib/shop-query';
 export const metadata: Metadata = {
   title: 'فروشگاه گجت و لوازم جانبی',
   description: 'خرید گجت هوشمند، شارژر، هدفون، پاوربانک و تجهیزات دیجیتال با فیلتر برند، قیمت و مشخصات.',
+  alternates: { canonical: '/shop' },
 };
 
 /** Filterable product index with URL-derived query and parallel metadata loading. */

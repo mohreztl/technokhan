@@ -26,4 +26,10 @@ describe('queryLocalProducts', () => {
     assert.equal(empty.pagination.total, 0);
     assert.equal(empty.pagination.page, 1);
   });
+
+  it('returns only genuinely discounted products for deal links', () => {
+    const result = queryLocalProducts({ deals: true, limit: 50 });
+    assert.ok(result.items.length > 0);
+    assert.ok(result.items.every((product) => product.discountPrice !== undefined && product.discountPrice < product.price));
+  });
 });

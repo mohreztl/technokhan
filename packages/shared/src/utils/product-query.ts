@@ -1,14 +1,16 @@
 import type { Product, ProductListQuery } from '../types';
 import { effectivePrice } from './pricing';
 
-function normalize(value: string): string {
+/** Normalizes Arabic/Persian letter variants and whitespace for catalog search. */
+export function normalizeSearchText(value: string): string {
   return value.toLowerCase().replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[‌‏‎]/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-function matches(haystack: string[], needle?: string): boolean {
+/** Requires every search term to occur in the normalized haystack. */
+export function matchesSearchText(haystack: string[], needle?: string): boolean {
   if (!needle) return true;
-  const terms = normalize(needle).split(' ').filter(Boolean);
-  const hay = normalize(haystack.filter(Boolean).join(' '));
+  const terms = normalizeSearchText(needle).split(' ').filter(Boolean);
+  const hay = normalizeSearchText(haystack.filter(Boolean).join(' '));
   return terms.every((term) => hay.includes(term));
 }
 
@@ -36,14 +38,15 @@ export function filterProducts(source: Product[], q: ProductListQuery = {}): Pro
     items = items.filter((product) => product.brand?.toLowerCase() === q.brand?.toLowerCase());
   }
   if (q.features?.length) {
-    items = items.filter((product) => q.features!.every((feature) => matches([...(product.features ?? []), ...(product.tags ?? [])], feature)));
+    items = items.filter((product) => q.features!.every((feature) => matchesSearchText([...(product.features ?? []), ...(product.tags ?? [])], feature)));
   }
   if (q.featured !== undefined) items = items.filter((product) => product.featured === q.featured);
+  if (q.deals) items = items.filter((product) => product.discountPrice !== undefined && product.discountPrice < product.price);
   if (q.inStock) items = items.filter((product) => product.stock > 0);
   if (q.minPrice !== undefined) items = items.filter((product) => effectivePrice(product) >= q.minPrice!);
   if (q.maxPrice !== undefined) items = items.filter((product) => effectivePrice(product) <= q.maxPrice!);
   if (q.search) {
-    items = items.filter((product) => matches([
+    items = items.filter((product) => matchesSearchText([
       product.name,
       product.nameEn,
       product.brand ?? '',

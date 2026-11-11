@@ -4,12 +4,13 @@ import { parseShopQuery } from './shop-query';
 
 describe('parseShopQuery', () => {
   it('parses filters, multiple brands and sort aliases from the URL', () => {
-    const query = parseShopQuery({ search: 'شارژر', brands: 'Anker,Baseus', minPrice: '1000000', maxPrice: '5000000', inStock: 'true', sort: 'priceAsc', page: '2' });
+    const query = parseShopQuery({ search: 'شارژر', brands: 'Anker,Baseus', minPrice: '1000000', maxPrice: '5000000', inStock: 'true', deals: 'true', sort: 'priceAsc', page: '2' });
     assert.equal(query.search, 'شارژر');
     assert.deepEqual(query.brands, ['Anker', 'Baseus']);
     assert.equal(query.minPrice, 1_000_000);
     assert.equal(query.maxPrice, 5_000_000);
     assert.equal(query.inStock, true);
+    assert.equal(query.deals, true);
     assert.equal(query.sortBy, 'price');
     assert.equal(query.sortOrder, 'asc');
     assert.equal(query.page, 2);

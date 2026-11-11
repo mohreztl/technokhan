@@ -2,9 +2,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { ChevronLeft, Filter, Grid2X2, List, RotateCcw, X } from 'lucide-react';
 import { toPersianDigits, type Brand, type Category, type PagedList, type Product, type ProductListQuery } from '@technokhan/shared';
 import { useProducts } from '@/lib/hooks/use-products';
+import { parseShopQuery, shopQueryToSearchParams, SHOP_PRICE_LIMIT } from '@/lib/shop-query';
 import { cn } from '@/lib/utils';
 import { ProductGrid } from './product-grid';
 import { Button } from '@/components/ui/button';
@@ -27,16 +29,44 @@ export interface ShopClientProps {
 
 /** URL-seeded catalog with composable filters, sorting, grid/list views and mobile filter sheet. */
 export function ShopClient({ initialProducts, categories, brands, initialQuery, lockedCategory }: ShopClientProps) {
+  const pathname = usePathname();
   const [query, setQuery] = React.useState(initialQuery);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
   const [layout, setLayout] = React.useState<'grid' | 'list'>('grid');
   const initialSignature = React.useRef(JSON.stringify(initialQuery));
+  const firstUrlSync = React.useRef(true);
   const signature = JSON.stringify(query);
   const result = useProducts(query, { initialData: signature === initialSignature.current ? initialProducts : undefined });
-  const update = React.useCallback((patch: Partial<ProductListQuery>) => setQuery((current) => ({ ...current, ...patch, page: patch.page ?? 1 })), []);
+  const update = React.useCallback((patch: Partial<ProductListQuery>) => setQuery((current) => {
+    const next = { ...current, ...patch, page: patch.page ?? 1 };
+    if (next.minPrice === 0) next.minPrice = undefined;
+    if (next.maxPrice === SHOP_PRICE_LIMIT) next.maxPrice = undefined;
+    return next;
+  }), []);
   const clear = () => setQuery({ category: lockedCategory?.id, sortBy: 'popular', sortOrder: 'desc', page: 1, limit: 12 });
   const filterPanel = <FilterPanel categories={categories} brands={brands} query={query} lockedCategory={lockedCategory} update={update} clear={clear} />;
-  const activeCount = [query.search, query.brands?.length, query.inStock, query.minPrice !== undefined || query.maxPrice !== undefined, query.features?.length, !lockedCategory && query.category].filter(Boolean).length;
+  const activeCount = [query.search, query.brands?.length, query.inStock, query.deals, query.minPrice !== undefined || query.maxPrice !== undefined, query.features?.length, !lockedCategory && query.category].filter(Boolean).length;
+
+  React.useEffect(() => {
+    if (firstUrlSync.current) {
+      firstUrlSync.current = false;
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      const nextUrl = `${pathname}${shopQueryToSearchParams(query, { skipCategory: Boolean(lockedCategory) })}`;
+      if (`${window.location.pathname}${window.location.search}` !== nextUrl) window.history.pushState(window.history.state, '', nextUrl);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [lockedCategory, pathname, query]);
+
+  React.useEffect(() => {
+    const onPopState = () => {
+      const params = Object.fromEntries(new URLSearchParams(window.location.search));
+      setQuery({ ...parseShopQuery(params), category: lockedCategory?.id });
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [lockedCategory?.id]);
 
   return (
     <div className="container-custom py-6 sm:py-10">
@@ -100,12 +130,13 @@ function FilterPanel({ categories, brands, query, lockedCategory, update, clear 
         const current = query.brands ?? [];
         update({ brands: event.target.checked ? [...current, brand.name] : current.filter((item) => item !== brand.name) });
       }} />)}</div></fieldset>
-      <RangeSlider min={0} max={100_000_000} step={500_000} minGap={500_000} value={[query.minPrice ?? 0, query.maxPrice ?? 100_000_000]} onValueChange={([minPrice, maxPrice]) => update({ minPrice, maxPrice })} />
+      <RangeSlider min={0} max={SHOP_PRICE_LIMIT} step={500_000} minGap={500_000} value={[query.minPrice ?? 0, query.maxPrice ?? SHOP_PRICE_LIMIT]} onValueChange={([minPrice, maxPrice]) => update({ minPrice, maxPrice })} />
       <fieldset><legend className="mb-2 text-sm font-semibold">ویژگی فنی</legend><div className="space-y-1">{featureOptions.map((feature) => <Checkbox key={feature} label={feature} checked={query.features?.includes(feature) ?? false} onChange={(event) => {
         const current = query.features ?? [];
         update({ features: event.target.checked ? [...current, feature] : current.filter((item) => item !== feature) });
       }} />)}</div></fieldset>
       <div className="flex min-h-11 items-center justify-between border-t border-border pt-4"><span className="text-sm font-semibold">فقط کالاهای موجود</span><Switch checked={query.inStock ?? false} onCheckedChange={(inStock) => update({ inStock: inStock || undefined })} label="فقط کالاهای موجود" /></div>
+      <div className="flex min-h-11 items-center justify-between"><span className="text-sm font-semibold">فقط تخفیف‌دار</span><Switch checked={query.deals ?? false} onCheckedChange={(deals) => update({ deals: deals || undefined })} label="فقط تخفیف‌دار" /></div>
     </div>
   );
 }
@@ -119,13 +150,14 @@ function ActiveChips({ query, update, lockedCategory }: Pick<FilterPanelProps, '
       {query.brands?.map((brand) => <Chip key={brand} label={brand} onRemove={() => update({ brands: query.brands?.filter((item) => item !== brand) })} />)}
       {(query.minPrice !== undefined || query.maxPrice !== undefined) && <Chip label="بازه قیمت" onRemove={() => update({ minPrice: undefined, maxPrice: undefined })} />}
       {query.inStock && <Chip label="فقط موجود" onRemove={() => update({ inStock: undefined })} />}
+      {query.deals && <Chip label="فقط تخفیف‌دار" onRemove={() => update({ deals: undefined })} />}
       {query.features?.map((feature) => <Chip key={feature} label={feature} onRemove={() => update({ features: query.features?.filter((item) => item !== feature) })} />)}
     </div>
   );
 }
 
 function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
-  return <Badge variant="outline" className="gap-1 py-1.5">{label}<button type="button" onClick={onRemove} className="flex size-5 items-center justify-center rounded-full hover:bg-muted" aria-label={`حذف فیلتر ${label}`}><X className="size-3" aria-hidden="true" /></button></Badge>;
+  return <Badge variant="outline" className="gap-1 py-1.5">{label}<button type="button" onClick={onRemove} className="-m-2 flex size-11 items-center justify-center rounded-full hover:bg-muted" aria-label={`حذف فیلتر ${label}`}><X className="size-3" aria-hidden="true" /></button></Badge>;
 }
 
 function ProductSkeletons() {

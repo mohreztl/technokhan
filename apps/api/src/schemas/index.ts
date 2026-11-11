@@ -91,6 +91,7 @@ export const productQuerySchema = pageQuery(12).extend({
   brands: queryStringList,
   features: queryStringList,
   featured: queryBool,
+  deals: queryBool,
   search: z.string().trim().min(1).max(100).optional(),
   minPrice: queryNumber,
   maxPrice: queryNumber,

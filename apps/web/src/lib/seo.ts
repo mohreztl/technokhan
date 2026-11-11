@@ -4,6 +4,7 @@ import {
   APP_NAME,
   APP_NAME_EN,
   CONTACT,
+  findCategory,
   PRODUCT_CATEGORY_LABELS,
   SERVICE_TYPE_LABELS,
   SOCIAL_MEDIA,
@@ -143,6 +144,21 @@ export function productJsonLd(product: Product, url: string): JsonLdData {
       seller: { '@id': ORGANIZATION_ID() },
     },
   };
+}
+
+/** Product graph plus the visible Home → Shop → Category → Product breadcrumb. */
+export function productPageJsonLd(product: Product): JsonLdData[] {
+  const path = `/product/${product.id}`;
+  const category = findCategory(product.category);
+  return [
+    productJsonLd(product, absoluteUrl(path)),
+    breadcrumbJsonLd([
+      { name: 'خانه', href: '/' },
+      { name: 'فروشگاه', href: '/shop' },
+      { name: category?.name ?? product.category, href: `/category/${product.category}` },
+      { name: product.name, href: path },
+    ]),
+  ];
 }
 
 export function serviceJsonLd(service: Service, url: string): JsonLdData {

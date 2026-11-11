@@ -33,5 +33,5 @@ export function Footer() {
 
 interface FooterLinksProps { title: string; links: [string, string][] }
 function FooterLinks({ title, links }: FooterLinksProps) {
-  return <nav aria-label={title}><h2 className="mb-4 text-sm font-bold">{title}</h2><ul className="space-y-3 text-sm text-muted-foreground">{links.map(([label, href]) => <li key={href}><Link href={href} className="inline-flex min-h-8 items-center transition-colors hover:text-foreground">{label}</Link></li>)}</ul></nav>;
+  return <nav aria-label={title}><h2 className="mb-4 text-sm font-bold">{title}</h2><ul className="space-y-3 text-sm text-muted-foreground">{links.map(([label, href]) => <li key={href}><Link href={href} className="inline-flex min-h-11 items-center transition-colors hover:text-foreground">{label}</Link></li>)}</ul></nav>;
 }

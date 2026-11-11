@@ -67,7 +67,7 @@ export function SearchModal() {
             {results.length > 0 && <Link href={`/shop?search=${encodeURIComponent(query)}`} onClick={() => go(`/shop?search=${encodeURIComponent(query)}`)} className="mt-4 flex min-h-11 items-center justify-center gap-2 rounded-xl bg-muted text-sm font-semibold">مشاهده همه نتایج <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" /></Link>}
           </div>
         ) : (
-          <div className="mt-5"><p className="mb-3 text-xs font-semibold text-muted-foreground">جستجوهای پیشنهادی</p><div className="flex flex-wrap gap-2">{popular.map((term) => <button key={term} type="button" onClick={() => setQuery(term)} className="min-h-10 rounded-full border border-border px-4 text-sm hover:bg-muted">{term}</button>)}</div></div>
+          <div className="mt-5"><p className="mb-3 text-xs font-semibold text-muted-foreground">جستجوهای پیشنهادی</p><div className="flex flex-wrap gap-2">{popular.map((term) => <button key={term} type="button" onClick={() => setQuery(term)} className="min-h-11 rounded-full border border-border px-4 text-sm hover:bg-muted">{term}</button>)}</div></div>
         )}
       </DialogContent>
     </Dialog>

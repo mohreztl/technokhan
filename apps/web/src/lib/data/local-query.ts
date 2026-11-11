@@ -1,18 +1,7 @@
 import type { GalleryItem, PagedList, Pagination, Product, ProductListQuery, Service, ServiceListQuery } from '@technokhan/shared';
-import { PRODUCTS, SERVICES, GALLERY, effectivePrice, filterProducts } from '@technokhan/shared';
+import { PRODUCTS, SERVICES, GALLERY, effectivePrice, filterProducts, matchesSearchText } from '@technokhan/shared';
 
 export { filterProducts } from '@technokhan/shared';
-
-function normalize(value: string): string {
-  return value.toLowerCase().replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[‌‏‎]/g, ' ').replace(/\s+/g, ' ').trim();
-}
-
-function matches(haystack: string[], needle?: string): boolean {
-  if (!needle) return true;
-  const terms = normalize(needle).split(' ').filter(Boolean);
-  const hay = normalize(haystack.filter(Boolean).join(' '));
-  return terms.every((term) => hay.includes(term));
-}
 
 function paginate<T>(items: T[], page = 1, limit = 12): PagedList<T> {
   const total = items.length;
@@ -45,7 +34,7 @@ export function queryLocalServices(q: ServiceListQuery = {}, source: Service[] =
   let items = source.filter((service) => service.isActive !== false);
   if (q.type) items = items.filter((service) => service.type === q.type);
   if (q.featured !== undefined) items = items.filter((service) => service.featured === q.featured);
-  if (q.search) items = items.filter((service) => matches([service.name, service.nameEn, service.description, ...(service.tags ?? [])], q.search));
+  if (q.search) items = items.filter((service) => matchesSearchText([service.name, service.nameEn, service.description, ...(service.tags ?? [])], q.search));
   items = sortItems(items, (service) => service.price, q.sortBy, q.sortOrder);
   return paginate(items, q.page, q.limit);
 }

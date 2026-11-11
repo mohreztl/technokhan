@@ -74,7 +74,7 @@ export function DemoBanner({ className }: { className?: string }) {
                   retryLiveApi();
                   dismiss();
                 }}
-                className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-secondary/15 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-secondary transition-colors hover:bg-secondary/15 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
                 aria-label="تلاش مجدد برای اتصال به سرور"
                 title="تلاش مجدد"
               >
@@ -84,7 +84,7 @@ export function DemoBanner({ className }: { className?: string }) {
             <button
               type="button"
               onClick={dismiss}
-              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
               aria-label="بستن اعلان حالت نمایشی"
             >
               <X className="h-4 w-4" />

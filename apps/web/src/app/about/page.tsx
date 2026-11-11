@@ -10,6 +10,7 @@ import { SectionHeader } from '@/components/storefront/section-header';
 export const metadata: Metadata = {
   title: 'درباره تکنو خان',
   description: 'تکنو خان فروشگاه مستقل گجت و لوازم جانبی دیجیتال است؛ انتخاب محدود، اطلاعات روشن و ضمانت اصالت.',
+  alternates: { canonical: '/about' },
 };
 
 /** Brand story, operating principles and direct paths to catalog and magazine. */
