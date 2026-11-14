@@ -49,9 +49,10 @@ export function Navbar() {
               </div>
             </div>
           </div>
+          <Link href="/categories" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">دسته‌ها</Link>
+          <Link href="/brands" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">برندها</Link>
           <Link href="/compare" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">مقایسه</Link>
           <Link href="/blog" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">مجله تکنو</Link>
-          <Link href="/about" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">درباره ما</Link>
         </nav>
 
         <div className="ms-auto flex items-center gap-1 lg:ms-0">
@@ -66,6 +67,8 @@ export function Navbar() {
 
       <BottomSheet open={menuOpen} onOpenChange={setMenuOpen} title="دسته‌بندی تکنو خان" description="گجت موردنظر را از یک مسیر کوتاه پیدا کنید">
         <nav className="grid gap-2 py-3" aria-label="دسته‌بندی موبایل">
+          <Link href="/categories" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">همه دسته‌بندی‌ها</Link>
+          <Link href="/brands" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">برندها</Link>
           {CATEGORIES.map((category) => <Link key={category.id} href={`/category/${category.id}`} onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">{category.name}</Link>)}
           <Link href="/blog" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">مجله تکنو</Link>
           <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">علاقه‌مندی‌ها</Link>

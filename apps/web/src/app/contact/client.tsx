@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import { SupportContactLinks } from '@/components/support/support-contact-links';
 
 /** Validated contact form that uses the live API or the local demo transport. */
 export function ContactForm() {
@@ -19,7 +20,7 @@ export function ContactForm() {
     setStatus(null);
     const result = await contactApi.send(values);
     if (result.ok) {
-      setStatus('پیام شما ثبت شد. در نسخه دمو، پیام فقط در همین مرورگر نگه داشته می‌شود.');
+      setStatus(`${result.data.message}. کد پیگیری: ${result.data.id}`);
       reset();
     } else {
       setStatus(result.error || 'ارسال پیام انجام نشد. اتصال را بررسی و دوباره تلاش کنید.');
@@ -30,15 +31,18 @@ export function ContactForm() {
       <section>
         <Badge variant="original">تماس با تکنو خان</Badge>
         <h1 className="mt-5 text-4xl font-black leading-tight sm:text-5xl">قبل از خرید، سؤال بپرسید.</h1>
-        <p className="mt-4 text-sm leading-8 text-muted-foreground">درباره سازگاری دستگاه، اصالت، گارانتی یا وضعیت سفارش بنویسید. فرم در حالت دمو پاسخ ثبت‌شده را نشان می‌دهد و هیچ پیامی به سرور خارجی ارسال نمی‌شود.</p>
+        <p className="mt-4 text-sm leading-8 text-muted-foreground">درباره سازگاری دستگاه، اصالت، گارانتی یا وضعیت سفارش بنویسید. تیکت شما ثبت می‌شود و کارشناسان برای پاسخ با شما تماس می‌گیرند.</p>
         <div className="mt-8 space-y-4">
           <SupportItem icon={Mail} title="ایمیل پشتیبانی" text="support@technokhan.com" />
           <SupportItem icon={Headphones} title="راهنمای انتخاب" text="دستگاه و بودجه را در پیام مشخص کنید تا پیشنهاد دقیق‌تر باشد." />
           <SupportItem icon={ShieldCheck} title="بازبینی اصالت" text="مدل و شماره سریال را بنویسید تا مسیر بررسی روشن شود." />
         </div>
+        <h2 className="mb-3 mt-8 text-sm font-bold">ارتباط مستقیم</h2>
+        <SupportContactLinks />
       </section>
-      <form onSubmit={handleSubmit(submit)} noValidate className="rounded-3xl border border-border bg-card p-5 sm:p-7">
+      <form onSubmit={handleSubmit(submit)} noValidate aria-labelledby="contact-form-title" className="rounded-3xl border border-border bg-card p-5 sm:p-7">
         <MessageSquareText className="mb-5 size-7 text-secondary" aria-hidden="true" />
+        <h2 id="contact-form-title" className="sr-only">فرم ثبت تیکت پشتیبانی</h2>
         <div className="grid gap-5 sm:grid-cols-2">
           <Input label="نام و نام خانوادگی" required autoComplete="name" error={errors.name?.message} {...register('name')} />
           <Input label="شماره موبایل" required type="tel" inputMode="tel" dir="ltr" autoComplete="tel" error={errors.phone?.message} {...register('phone')} />
@@ -48,7 +52,7 @@ export function ContactForm() {
           <Input label="موضوع" required error={errors.subject?.message} {...register('subject')} />
         </div>
         <Textarea className="mt-5" label="پیام" required rows={5} placeholder="مدل دستگاه، بودجه یا شماره سفارش را بنویسید." error={errors.message?.message} {...register('message')} />
-        <Button type="submit" size="lg" className="mt-6 w-full" loading={isSubmitting} loadingText="در حال ثبت پیام…">ثبت پیام</Button>
+        <Button type="submit" size="lg" className="mt-6 w-full" loading={isSubmitting} loadingText="در حال ثبت پیام…">ثبت تیکت</Button>
         {status && <p role="status" className="mt-4 rounded-xl bg-muted p-3 text-sm leading-7 text-foreground">{status}</p>}
       </form>
     </div>

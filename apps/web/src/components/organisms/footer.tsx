@@ -55,7 +55,7 @@ export function Footer({ licenses = {} }: { licenses?: FooterLicenses }) {
           <p className="mt-4 max-w-sm text-sm leading-7 text-muted-foreground">فروشگاه مستقل گجت و لوازم جانبی دیجیتال با انتخاب محدود، مشخصات روشن و راهنمای خرید فارسی.</p>
           <p className="mt-4 text-xs leading-6 text-muted-foreground">این نسخه نمایشی است؛ سفارش و پرداخت در حالت دمو انجام می‌شود.</p>
         </div>
-        <FooterLinks title="فروشگاه" links={[['همه محصولات', '/shop'], ['پیشنهادهای تخفیف‌دار', '/shop?deals=true'], ['مقایسه محصولات', '/compare'], ['علاقه‌مندی‌ها', '/wishlist']]} />
+        <FooterLinks title="فروشگاه" links={[['همه محصولات', '/shop'], ['دسته‌بندی‌ها', '/categories'], ['برندها', '/brands'], ['پیشنهادهای تخفیف‌دار', '/shop?deals=true'], ['مقایسه محصولات', '/compare'], ['علاقه‌مندی‌ها', '/wishlist']]} />
         <FooterLinks title="راهنما" links={[['مجله تکنو', '/blog'], ['سوالات متداول', '/faq'], ['پیگیری سفارش', '/track'], ['تماس با ما', '/contact']]} />
         <FooterLinks title="تکنو خان" links={[['درباره ما', '/about'], ['دیزاین سیستم', '/design-system'], ['حریم خصوصی', '/privacy'], ['شرایط استفاده', '/terms']]} />
       </div>

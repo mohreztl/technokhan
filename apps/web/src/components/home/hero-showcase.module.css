@@ -275,14 +275,44 @@
   left: calc(clamp(1rem, 3vw, 3rem) + 3.4rem);
 }
 
-.controls {
+.controlBar {
   position: relative;
   z-index: 8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.controls {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.45rem;
   padding: 0.65rem 1rem 0.35rem;
+}
+
+.playback {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 44px;
+  min-height: 44px;
+  margin-inline-end: 0.75rem;
+  border: 1px solid rgba(243, 245, 238, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(243, 245, 238, 0.74);
+  padding: 0 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.playback:hover {
+  border-color: rgba(200, 244, 90, 0.45);
+  color: #f3f5ee;
 }
 
 .control {

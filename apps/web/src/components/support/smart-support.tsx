@@ -2,9 +2,11 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Bot, Headphones, Send, Sparkles, UserRound, X } from 'lucide-react';
+import { ArrowLeft, Bot, Headphones, MessageSquareText, MessagesSquare, Send, Sparkles, UserRound, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getSupportReply } from './support-replies';
+import { SupportContactLinks } from './support-contact-links';
+import { SupportTicketForm } from './support-ticket-form';
 
 interface Message {
   id: number;
@@ -24,6 +26,7 @@ const QUICK_PROMPTS = ['پیشنهاد شارژر', 'شرایط ارسال', 'پ
 
 export function SmartSupport() {
   const [open, setOpen] = React.useState(false);
+  const [view, setView] = React.useState<'chat' | 'ticket'>('chat');
   const [messages, setMessages] = React.useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = React.useState('');
   const dialogRef = React.useRef<HTMLDialogElement>(null);
@@ -36,10 +39,10 @@ export function SmartSupport() {
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.show();
-      inputRef.current?.focus();
+      if (view === 'chat') inputRef.current?.focus();
     }
     if (!open && dialog.open) dialog.close();
-  }, [open]);
+  }, [open, view]);
 
   React.useEffect(() => {
     const feed = feedRef.current;
@@ -73,7 +76,7 @@ export function SmartSupport() {
       <dialog
         ref={dialogRef}
         aria-labelledby="smart-support-title"
-        className="fixed bottom-40 left-3 z-50 m-0 max-h-[min(680px,72dvh)] w-[calc(100%-1.5rem)] max-w-[390px] flex-col overflow-hidden rounded-3xl border border-border bg-popover p-0 text-popover-foreground shadow-panel [&:not([open])]:hidden open:flex sm:left-6 lg:bottom-24"
+        className="fixed bottom-40 left-3 z-50 m-0 max-h-[min(760px,80dvh)] w-[calc(100%-1.5rem)] max-w-[390px] flex-col overflow-hidden rounded-3xl border border-border bg-popover p-0 text-popover-foreground shadow-panel [&:not([open])]:hidden open:flex sm:left-6 lg:bottom-24"
         onClose={() => setOpen(false)}
         onKeyDown={(event) => {
           if (event.key === 'Escape') setOpen(false);
@@ -85,42 +88,56 @@ export function SmartSupport() {
           <button type="button" aria-label="بستن" onClick={() => setOpen(false)} className="flex size-11 cursor-pointer items-center justify-center rounded-xl hover:bg-white/10"><X className="size-5" aria-hidden="true" /></button>
         </header>
 
-        <div ref={feedRef} className="min-h-56 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite" aria-label="گفت‌وگوی پشتیبانی">
-          {messages.map((message) => (
-            <div key={message.id} className={message.role === 'user' ? 'flex justify-start' : 'flex justify-end'}>
-              <div className={message.role === 'user' ? 'max-w-[88%] rounded-2xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-7 text-primary-foreground' : 'max-w-[92%] rounded-2xl rounded-tl-md bg-muted px-4 py-3 text-sm leading-7'}>
-                <div className="mb-1 flex items-center gap-1.5 text-[10px] opacity-65">{message.role === 'assistant' ? <Bot className="size-3" aria-hidden="true" /> : <UserRound className="size-3" aria-hidden="true" />}{message.role === 'assistant' ? 'راهنمای تکنو' : 'شما'}</div>
-                <p>{message.text}</p>
-                {message.href && <Link href={message.href} onClick={() => setOpen(false)} className="mt-2 inline-flex min-h-11 items-center gap-1.5 font-bold text-secondary">{message.linkLabel}<ArrowLeft className="size-3.5" aria-hidden="true" /></Link>}
-              </div>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 gap-2 border-b border-border p-3" role="group" aria-label="بخش‌های پشتیبانی">
+          <button type="button" aria-pressed={view === 'chat'} onClick={() => setView('chat')} className={view === 'chat' ? 'flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground' : 'flex min-h-11 items-center justify-center gap-2 rounded-xl bg-muted px-3 text-xs font-bold'}><MessagesSquare className="size-4" aria-hidden="true" />گفت‌وگوی هوشمند</button>
+          <button type="button" aria-pressed={view === 'ticket'} onClick={() => setView('ticket')} className={view === 'ticket' ? 'flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-3 text-xs font-bold text-primary-foreground' : 'flex min-h-11 items-center justify-center gap-2 rounded-xl bg-muted px-3 text-xs font-bold'}><MessageSquareText className="size-4" aria-hidden="true" />ثبت تیکت</button>
         </div>
 
+        {view === 'chat' ? (
+          <>
+            <div ref={feedRef} className="min-h-48 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite" aria-label="گفت‌وگوی پشتیبانی">
+              {messages.map((message) => (
+                <div key={message.id} className={message.role === 'user' ? 'flex justify-start' : 'flex justify-end'}>
+                  <div className={message.role === 'user' ? 'max-w-[88%] rounded-2xl rounded-tr-md bg-primary px-4 py-3 text-sm leading-7 text-primary-foreground' : 'max-w-[92%] rounded-2xl rounded-tl-md bg-muted px-4 py-3 text-sm leading-7'}>
+                    <div className="mb-1 flex items-center gap-1.5 text-[10px] opacity-65">{message.role === 'assistant' ? <Bot className="size-3" aria-hidden="true" /> : <UserRound className="size-3" aria-hidden="true" />}{message.role === 'assistant' ? 'راهنمای تکنو' : 'شما'}</div>
+                    <p>{message.text}</p>
+                    {message.href && <Link href={message.href} onClick={() => setOpen(false)} className="mt-2 inline-flex min-h-11 items-center gap-1.5 font-bold text-secondary">{message.linkLabel}<ArrowLeft className="size-3.5" aria-hidden="true" /></Link>}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="border-t border-border p-3">
+              <div className="hide-scrollbar mb-2 flex gap-2 overflow-x-auto" aria-label="پرسش‌های پیشنهادی">
+                {QUICK_PROMPTS.map((prompt) => <button key={prompt} type="button" onClick={() => send(prompt)} className="min-h-11 shrink-0 cursor-pointer rounded-full border border-border px-3 text-xs hover:border-secondary">{prompt}</button>)}
+              </div>
+              <form onSubmit={(event) => { event.preventDefault(); send(input); }} className="flex items-end gap-2">
+                <label htmlFor="smart-support-input" className="sr-only">پیام برای پشتیبانی</label>
+                <textarea
+                  ref={inputRef}
+                  id="smart-support-input"
+                  rows={1}
+                  value={input}
+                  onChange={(event) => setInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' || event.shiftKey) return;
+                    event.preventDefault();
+                    if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+                    event.currentTarget.form?.requestSubmit();
+                  }}
+                  placeholder="پیام خود را بنویسید…"
+                  className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground focus:border-secondary"
+                />
+                <Button type="submit" size="icon" aria-label="ارسال پیام" disabled={!input.trim()}><Send className="size-4" aria-hidden="true" /></Button>
+              </form>
+            </div>
+          </>
+        ) : (
+          <div className="min-h-0 flex-1 overflow-y-auto p-4"><SupportTicketForm /></div>
+        )}
+
         <div className="border-t border-border p-3">
-          <div className="hide-scrollbar mb-2 flex gap-2 overflow-x-auto" aria-label="پرسش‌های پیشنهادی">
-            {QUICK_PROMPTS.map((prompt) => <button key={prompt} type="button" onClick={() => send(prompt)} className="min-h-11 shrink-0 cursor-pointer rounded-full border border-border px-3 text-xs hover:border-secondary">{prompt}</button>)}
-          </div>
-          <form onSubmit={(event) => { event.preventDefault(); send(input); }} className="flex items-end gap-2">
-            <label htmlFor="smart-support-input" className="sr-only">پیام برای پشتیبانی</label>
-            <textarea
-              ref={inputRef}
-              id="smart-support-input"
-              rows={1}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={(event) => {
-                if (event.key !== 'Enter' || event.shiftKey) return;
-                event.preventDefault();
-                if (event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
-                event.currentTarget.form?.requestSubmit();
-              }}
-              placeholder="پیام خود را بنویسید…"
-              className="max-h-28 min-h-11 flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none placeholder:text-muted-foreground focus:border-secondary"
-            />
-            <Button type="submit" size="icon" aria-label="ارسال پیام" disabled={!input.trim()}><Send className="size-4" aria-hidden="true" /></Button>
-          </form>
-          <Link href="/contact" onClick={() => setOpen(false)} className="mt-2 flex min-h-11 items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><Headphones className="size-3.5" aria-hidden="true" />ارتباط با کارشناس پشتیبانی</Link>
+          <SupportContactLinks compact />
+          <Link href="/contact" onClick={() => setOpen(false)} className="mt-2 flex min-h-11 items-center justify-center gap-2 text-xs text-muted-foreground hover:text-foreground"><Headphones className="size-3.5" aria-hidden="true" />صفحه کامل تماس و پشتیبانی</Link>
         </div>
       </dialog>
     </>

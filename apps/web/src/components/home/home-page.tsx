@@ -33,7 +33,7 @@ export function HomePage({ products, articles }: HomePageProps) {
           <span className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"><Award className="size-4 text-secondary" aria-hidden="true" /> ارزیابی تخصصی پیش از عرضه</span>
         </div>
       </div>
-      <section className="container-custom py-10"><SectionHeader title="دنیای گجت، دسته‌بندی‌شده برای انتخاب سریع" description="از شارژ و صدا تا میز کار؛ هر دسته با محصولات منتخب و مشخصات روشن." href="/shop" /><BentoCategories /></section>
+      <section className="container-custom py-10"><SectionHeader title="دنیای گجت، دسته‌بندی‌شده برای انتخاب سریع" description="از شارژ و صدا تا میز کار؛ هر دسته با محصولات منتخب و مشخصات روشن." href="/categories" /><BentoCategories /></section>
       <section className="container-custom py-10"><FlashDeals products={products} /></section>
       <section className="container-custom py-10">
         <SectionHeader title="محصولاتی که انتخاب کاربران و سردبیرند" description="ویترین زنده فروشگاه؛ بدون رفرش صفحه بین فهرست‌ها جابه‌جا شوید." href="/shop" />
@@ -45,7 +45,7 @@ export function HomePage({ products, articles }: HomePageProps) {
         </Tabs>
       </section>
       <section className="container-custom py-10">
-        <SectionHeader title="برندهای اورجینال، انتخاب بدون حدس" description="محصولات با منشأ مشخص، گارانتی قابل بررسی و تجهیزات سازگار." />
+        <SectionHeader title="برندهای اورجینال، انتخاب بدون حدس" description="محصولات با منشأ مشخص، گارانتی قابل بررسی و تجهیزات سازگار." href="/brands" />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {BRANDS.map((brand) => <Link key={brand.id} href={`/shop?brands=${brand.name}`} className="flex min-h-28 flex-col items-center justify-center rounded-2xl border border-border bg-card p-4 text-center transition-colors hover:border-secondary/60"><span className="text-lg font-black" dir="ltr">{brand.name}</span><span className="mt-1 text-xs text-muted-foreground">{brand.nameFa}</span></Link>)}
         </div>

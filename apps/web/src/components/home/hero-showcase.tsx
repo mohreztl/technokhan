@@ -3,13 +3,13 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ChevronLeft, ChevronRight, ShieldCheck, Truck, Zap } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Pause, Play, ShieldCheck, Truck, Zap } from 'lucide-react';
 import { CATEGORIES } from '@technokhan/shared';
 import { HERO_SHELF_MEDIA } from '@/content/media-assets';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { getShelfOffset } from './hero-shelf-utils';
+import { getShelfOffset, shouldAutoplay } from './hero-shelf-utils';
 import styles from './hero-showcase.module.css';
 
 const CATEGORY_TAGS: Record<string, string> = {
@@ -26,12 +26,50 @@ export function HeroShowcase() {
   const reducedMotion = useReducedMotion();
   const [active, setActive] = React.useState(0);
   const [tilt, setTilt] = React.useState({ x: 0, y: 0 });
+  const [paused, setPaused] = React.useState(false);
+  const [interacting, setInteracting] = React.useState(false);
+  const [inView, setInView] = React.useState(true);
+  const [documentHidden, setDocumentHidden] = React.useState(false);
+  const heroRef = React.useRef<HTMLElement>(null);
+  const shelfRef = React.useRef<HTMLDivElement>(null);
   const activeCategory = CATEGORIES[active] ?? CATEGORIES[0]!;
   const activeMedia = HERO_SHELF_MEDIA[activeCategory.id as keyof typeof HERO_SHELF_MEDIA];
 
   const selectCategory = React.useCallback((index: number) => {
     setActive(((index % CATEGORIES.length) + CATEGORIES.length) % CATEGORIES.length);
   }, []);
+
+  React.useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero || typeof IntersectionObserver === 'undefined') return;
+    const observer = new IntersectionObserver(([entry]) => setInView(entry?.isIntersecting ?? false), { threshold: 0.2 });
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
+  React.useEffect(() => {
+    const updateVisibility = () => setDocumentHidden(document.hidden);
+    updateVisibility();
+    document.addEventListener('visibilitychange', updateVisibility);
+    return () => document.removeEventListener('visibilitychange', updateVisibility);
+  }, []);
+
+  React.useEffect(() => {
+    if (!shouldAutoplay({ reducedMotion, paused, interacting, inView, documentHidden })) return;
+    const timer = window.setInterval(() => selectCategory(active + 1), 5000);
+    return () => window.clearInterval(timer);
+  }, [active, documentHidden, inView, interacting, paused, reducedMotion, selectCategory]);
+
+  React.useEffect(() => {
+    const shelf = shelfRef.current;
+    if (!shelf || !window.matchMedia('(max-width: 767px)').matches) return;
+    const item = shelf.querySelector<HTMLElement>(`[data-shelf-index="${active}"]`);
+    if (!item) return;
+    const shelfRect = shelf.getBoundingClientRect();
+    const itemRect = item.getBoundingClientRect();
+    const offset = itemRect.left - shelfRect.left - (shelfRect.width - itemRect.width) / 2;
+    shelf.scrollBy({ left: offset, behavior: reducedMotion ? 'instant' : 'smooth' });
+  }, [active, reducedMotion]);
 
   const rotateX = reducedMotion ? 12 : 12 + tilt.y * 4;
   const rotateY = reducedMotion ? 0 : tilt.x * 7;
@@ -56,7 +94,18 @@ export function HeroShowcase() {
   };
 
   return (
-    <section className={styles.hero} aria-label="ویترین قفسه تکنو خان">
+    <section
+      ref={heroRef}
+      className={styles.hero}
+      aria-label="ویترین قفسه تکنو خان"
+      aria-roledescription="carousel"
+      onMouseEnter={() => setInteracting(true)}
+      onMouseLeave={() => setInteracting(false)}
+      onFocusCapture={() => setInteracting(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setInteracting(false);
+      }}
+    >
       <div className={styles.backdropWord} aria-hidden="true">TECHNOKHAN</div>
 
       <header className={styles.header}>
@@ -69,7 +118,7 @@ export function HeroShowcase() {
 
       <div className={styles.scene} onPointerMove={handlePointerMove} onPointerLeave={() => setTilt({ x: 0, y: 0 })}>
         <div className={styles.floor} aria-hidden="true" />
-        <div className={styles.shelf} style={{ '--rx': `${rotateX}deg`, '--ry': `${rotateY}deg` } as React.CSSProperties}>
+        <div ref={shelfRef} className={styles.shelf} style={{ '--rx': `${rotateX}deg`, '--ry': `${rotateY}deg` } as React.CSSProperties}>
           <div className={`${styles.rail} ${styles.railTop}`} aria-hidden="true" />
           <div className={`${styles.rail} ${styles.railBottom}`} aria-hidden="true" />
           <div className={`${styles.support} ${styles.supportStart}`} aria-hidden="true" />
@@ -94,6 +143,7 @@ export function HeroShowcase() {
               <Link
                 key={category.id}
                 href={`/category/${category.id}`}
+                data-shelf-index={index}
                 aria-label={`مشاهده دسته ${category.name}`}
                 aria-current={offset === 0 ? 'true' : undefined}
                 className={`${styles.item} ${offset === 0 ? styles.itemActive : ''}`}
@@ -137,19 +187,27 @@ export function HeroShowcase() {
 
       <p className={styles.activeSummary}>روی صحنه: <strong>{activeCategory.name}</strong></p>
 
-      <div className={styles.controls} role="tablist" aria-label="دسته‌های روی قفسه" onKeyDown={handleTabKeyDown}>
-        {CATEGORIES.map((category, index) => (
-          <button
-            key={category.id}
-            type="button"
-            role="tab"
-            aria-selected={index === active}
-            className={`${styles.control} ${index === active ? styles.controlActive : ''}`}
-            onClick={() => selectCategory(index)}
-          >
-            {category.name}
+      <div className={styles.controlBar}>
+        <div className={styles.controls} role="tablist" aria-label="دسته‌های روی قفسه" onKeyDown={handleTabKeyDown}>
+          {CATEGORIES.map((category, index) => (
+            <button
+              key={category.id}
+              type="button"
+              role="tab"
+              aria-selected={index === active}
+              className={`${styles.control} ${index === active ? styles.controlActive : ''}`}
+              onClick={() => selectCategory(index)}
+            >
+              {category.name}
+            </button>
+          ))}
+        </div>
+        {!reducedMotion && (
+          <button type="button" className={styles.playback} aria-label={paused ? 'ادامه حرکت خودکار اسلایدر' : 'توقف حرکت خودکار اسلایدر'} onClick={() => setPaused((value) => !value)}>
+            {paused ? <Play className="size-4" aria-hidden="true" /> : <Pause className="size-4" aria-hidden="true" />}
+            <span>{paused ? 'ادامه' : 'توقف'}</span>
           </button>
-        ))}
+        )}
       </div>
 
       <div className={styles.trust}>
