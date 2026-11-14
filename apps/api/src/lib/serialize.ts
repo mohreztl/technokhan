@@ -6,6 +6,7 @@ export function serializeUser(user: DbUser): User {
   return {
     id: user.id,
     phoneNumber: user.phoneNumber,
+    username: user.username ?? undefined,
     name: user.name ?? undefined,
     email: user.email ?? undefined,
     role: user.role,

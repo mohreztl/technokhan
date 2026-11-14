@@ -12,7 +12,6 @@ import { SectionHeader } from '@/components/storefront/section-header';
 import { ProductGrid } from '@/components/storefront/product-grid';
 import { ArticleCard } from '@/components/blog/article-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 
 export interface HomePageProps {
   products: Product[];
@@ -26,11 +25,13 @@ export function HomePage({ products, articles }: HomePageProps) {
   const editors = products.filter((product) => product.editorChoice).slice(0, 4);
   return (
     <>
-      <div className="container-custom pt-5 sm:pt-8"><HeroShowcase /></div>
-      <div className="container-custom grid gap-3 py-6 sm:grid-cols-3">
-        <Badge variant="outline" className="justify-center rounded-xl px-4 py-3"><ShieldCheck className="size-4 text-secondary" aria-hidden="true" /> اورجینال با فاکتور رسمی</Badge>
-        <Badge variant="outline" className="justify-center rounded-xl px-4 py-3"><Truck className="size-4 text-secondary" aria-hidden="true" /> ارسال سریع و بسته‌بندی امن</Badge>
-        <Badge variant="outline" className="justify-center rounded-xl px-4 py-3"><Award className="size-4 text-secondary" aria-hidden="true" /> ارزیابی تخصصی پیش از عرضه</Badge>
+      <HeroShowcase />
+      <div className="border-b border-border bg-card/60">
+        <div className="container-custom grid gap-1 py-3 sm:grid-cols-3 sm:divide-x sm:divide-x-reverse sm:divide-border">
+          <span className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"><ShieldCheck className="size-4 text-secondary" aria-hidden="true" /> اورجینال با فاکتور رسمی</span>
+          <span className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"><Truck className="size-4 text-secondary" aria-hidden="true" /> ارسال سریع و بسته‌بندی امن</span>
+          <span className="flex min-h-11 items-center justify-center gap-2 text-sm font-semibold"><Award className="size-4 text-secondary" aria-hidden="true" /> ارزیابی تخصصی پیش از عرضه</span>
+        </div>
       </div>
       <section className="container-custom py-10"><SectionHeader title="دنیای گجت، دسته‌بندی‌شده برای انتخاب سریع" description="از شارژ و صدا تا میز کار؛ هر دسته با محصولات منتخب و مشخصات روشن." href="/shop" /><BentoCategories /></section>
       <section className="container-custom py-10"><FlashDeals products={products} /></section>

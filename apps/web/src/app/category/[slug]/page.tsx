@@ -4,6 +4,7 @@ import { CATEGORIES, findCategory } from '@technokhan/shared';
 import { ShopClient } from '@/components/storefront/shop-client';
 import { getBrands, getCategories, getProducts } from '@/lib/data/repository';
 import { parseShopQuery, type ShopSearchParams } from '@/lib/shop-query';
+import { JsonLd, categoryPageJsonLd } from '@/lib/seo';
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>;
@@ -17,8 +18,16 @@ export function generateStaticParams() {
 /** Category-specific metadata resolved from the shared catalog. */
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const category = findCategory((await params).slug);
-  if (!category) return { title: 'دسته‌بندی پیدا نشد' };
-  return { title: category.name, description: category.description, alternates: { canonical: `/category/${category.id}` } };
+  if (!category) return { title: 'دسته‌بندی پیدا نشد', robots: { index: false, follow: false } };
+  const description = `خرید ${category.name} اورجینال از تکنو خان؛ ${category.description} با امکان فیلتر برند، قیمت، امتیاز و ویژگی فنی.`;
+  return {
+    title: `خرید ${category.name}`,
+    description,
+    keywords: [category.name, `خرید ${category.name}`, 'گجت اورجینال', 'تکنو خان'],
+    alternates: { canonical: `/category/${category.id}` },
+    openGraph: { title: `خرید ${category.name} | تکنو خان`, description, url: `/category/${category.id}`, images: [{ url: category.image, alt: category.name }] },
+    twitter: { card: 'summary_large_image', title: `خرید ${category.name}`, description, images: [category.image] },
+  };
 }
 
 /** Product category route using the same complete filter engine as the main shop. */
@@ -28,5 +37,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   if (!category) notFound();
   const query = { ...parseShopQuery(rawQuery), category: category.id };
   const [products, categories, brands] = await Promise.all([getProducts(query), getCategories(), getBrands()]);
-  return <ShopClient initialProducts={products.data} categories={categories} brands={brands} initialQuery={query} lockedCategory={category} />;
+  return (
+    <>
+      <ShopClient initialProducts={products.data} categories={categories} brands={brands} initialQuery={query} lockedCategory={category} />
+      <JsonLd data={categoryPageJsonLd(category, products.data.items)} />
+    </>
+  );
 }

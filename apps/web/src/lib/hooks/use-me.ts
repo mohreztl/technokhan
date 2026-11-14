@@ -50,6 +50,29 @@ export function useVerifyOtp() {
   });
 }
 
+export function usePasswordLogin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { username: string; password: string }) => unwrap(authApi.login(input)),
+    onSuccess: ({ user, token }) => {
+      useAuthStore.getState().login(user, token);
+      qc.setQueryData(qk.me(), user);
+    },
+  });
+}
+
+export function usePasswordRegister() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (input: { username: string; password: string; phoneNumber: string; name?: string }) =>
+      unwrap(authApi.register(input)),
+    onSuccess: ({ user, token }) => {
+      useAuthStore.getState().login(user, token);
+      qc.setQueryData(qk.me(), user);
+    },
+  });
+}
+
 export function useLogout() {
   const qc = useQueryClient();
   return async () => {

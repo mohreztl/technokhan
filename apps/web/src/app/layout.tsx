@@ -4,7 +4,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { Navbar } from '@/components/organisms/navbar';
-import { Footer } from '@/components/organisms/footer';
+import { FooterWithLicenses } from '@/components/organisms/footer';
 import { GoogleAnalytics } from '@/components/analytics/google-analytics';
 import { ScrollProgress } from '@/components/ui/interactive-effects';
 import { JsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo';
@@ -88,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main id="content" tabIndex={-1} className="flex-1 pt-[calc(5rem+env(safe-area-inset-top))] pb-tabbar lg:pb-0">
               {children}
             </main>
-            <Footer />
+            <FooterWithLicenses />
           </div>
         </Providers>
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />

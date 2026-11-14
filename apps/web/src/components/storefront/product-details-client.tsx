@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { Check, ChevronLeft, GitCompareArrows, Heart, Minus, Plus, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
+import { Check, ChevronLeft, GitCompareArrows, Headphones, Heart, Minus, PackageCheck, Plus, RotateCcw, ShieldCheck, ShoppingBag, Truck } from 'lucide-react';
 import { toast } from 'sonner';
 import { PRODUCTS, effectivePrice, toPersianDigits, type Product } from '@technokhan/shared';
 import { useCart } from '@/lib/store/cart-store';
@@ -32,9 +32,9 @@ export function ProductDetailsClient({ product, related }: ProductDetailsClientP
   const { addItem, openCart } = useCart();
   const wishlist = useWishlist();
   const compare = useCompare();
-  const recent = useRecentlyViewed();
-  const recentlyViewed = recentProducts(recent.ids, product.id, PRODUCTS);
-  React.useEffect(() => { recent.add(product.id); }, [product.id, recent.add]);
+  const { ids: recentIds, add: addRecent } = useRecentlyViewed();
+  const recentlyViewed = recentProducts(recentIds, product.id, PRODUCTS);
+  React.useEffect(() => { addRecent(product.id); }, [product.id, addRecent]);
   const color = product.colors?.find((item) => item.id === colorId);
   const warranty = product.warranties?.find((item) => item.id === warrantyId);
   const unitPrice = effectivePrice(product) + (warranty?.priceDelta ?? 0);
@@ -57,8 +57,14 @@ export function ProductDetailsClient({ product, related }: ProductDetailsClientP
           <h1 id="product-title" className="mt-2 text-balance text-3xl font-black leading-tight sm:text-4xl">{product.name}</h1>
           <p className="mt-2 text-sm text-muted-foreground" dir="ltr">{product.nameEn}</p>
           <div className="mt-4"><RatingStars value={product.rating ?? 0} count={product.reviewCount} /></div>
-          <p className="mt-5 text-sm leading-8 text-muted-foreground">{product.description}</p>
-          <div className="mt-6 border-y border-border py-5"><PriceTag price={unitPrice} originalPrice={originalPrice} size="lg" /></div>
+          <p className="mt-5 max-w-xl text-sm leading-8 text-muted-foreground">{product.shortDescription ?? product.description}</p>
+          {product.features && product.features.length > 0 && <ul className="mt-5 grid gap-2 sm:grid-cols-2">{product.features.slice(0, 4).map((feature) => <li key={feature} className="flex items-start gap-2 text-xs leading-6"><Check className="mt-1 size-3.5 shrink-0 text-secondary" aria-hidden="true" />{feature}</li>)}</ul>}
+          <div className="mt-6 rounded-2xl border border-secondary/25 bg-secondary/[0.06] p-5"><p className="mb-2 text-xs text-muted-foreground">قیمت با انتخاب گارانتی</p><PriceTag price={unitPrice} originalPrice={originalPrice} size="lg" /></div>
+          <div className="mt-4 grid grid-cols-3 gap-2 text-center text-[11px] text-muted-foreground">
+            <span className="flex min-h-16 flex-col items-center justify-center gap-1 border-x border-border px-1"><PackageCheck className="size-4 text-secondary" aria-hidden="true" />بسته‌بندی امن</span>
+            <span className="flex min-h-16 flex-col items-center justify-center gap-1 border-x border-border px-1"><RotateCcw className="size-4 text-secondary" aria-hidden="true" />۷ روز فرصت بازگشت</span>
+            <span className="flex min-h-16 flex-col items-center justify-center gap-1 px-1"><Headphones className="size-4 text-secondary" aria-hidden="true" />مشاوره تخصصی</span>
+          </div>
 
           {product.colors && <fieldset className="mt-5"><legend className="mb-3 text-sm font-bold">رنگ: <span className="font-normal text-muted-foreground">{color?.name}</span></legend><div className="flex gap-2">{product.colors.map((item) => <button key={item.id} type="button" aria-label={`رنگ ${item.name}`} aria-pressed={colorId === item.id} onClick={() => setColorId(item.id)} className={cn('flex min-h-11 items-center gap-2 rounded-xl border px-3 text-xs', colorId === item.id ? 'border-secondary bg-secondary/10' : 'border-border')}><span className="size-5 rounded-full border border-foreground/15" style={{ backgroundColor: item.hex }} aria-hidden="true" />{item.name}</button>)}</div></fieldset>}
 

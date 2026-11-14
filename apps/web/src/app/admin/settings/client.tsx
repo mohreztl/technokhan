@@ -4,7 +4,7 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { CalendarDays, CalendarX2, Clock, Phone, Plus, Save, Share2, X } from 'lucide-react';
+import { CalendarDays, CalendarX2, Clock, Phone, Plus, Save, Share2, ShieldCheck, X } from 'lucide-react';
 import { siteSettingsSchema, toPersianDigits } from '@technokhan/shared';
 import type { SiteSettings } from '@technokhan/shared';
 import { useAdminMutations, useAdminSettings } from '@/lib/hooks/use-admin';
@@ -31,6 +31,9 @@ const contactFormSchema = siteSettingsSchema.pick({
   instagram: true,
   telegram: true,
   whatsapp: true,
+  enamadHtml: true,
+  samandehiHtml: true,
+  asnafHtml: true,
 }).extend({
   timeSlots: linesField(siteSettingsSchema.shape.timeSlots),
 });
@@ -46,6 +49,9 @@ interface ContactFormValues {
   instagram: string;
   telegram: string;
   whatsapp: string;
+  enamadHtml: string;
+  samandehiHtml: string;
+  asnafHtml: string;
   timeSlots: string;
 }
 
@@ -62,6 +68,9 @@ function toValues(s: SiteSettings): ContactFormValues {
     instagram: s.instagram,
     telegram: s.telegram,
     whatsapp: s.whatsapp,
+    enamadHtml: s.enamadHtml ?? '',
+    samandehiHtml: s.samandehiHtml ?? '',
+    asnafHtml: s.asnafHtml ?? '',
     timeSlots: joinLines(s.timeSlots),
   };
 }
@@ -242,6 +251,37 @@ function SettingsForm({ settings }: { settings: SiteSettings }) {
             <Input label="اینستاگرام" dir="ltr" className="text-start" placeholder="https://instagram.com/…" error={errors.instagram?.message} {...register('instagram')} />
             <Input label="تلگرام" dir="ltr" className="text-start" placeholder="https://t.me/…" error={errors.telegram?.message} {...register('telegram')} />
             <Input label="واتس‌اپ" dir="ltr" className="text-start" placeholder="https://wa.me/…" error={errors.whatsapp?.message} {...register('whatsapp')} />
+          </div>
+        </DetailCard>
+
+        <DetailCard title="مجوزهای فوتر" icon={<ShieldCheck />} className="lg:col-span-2">
+          <p className="mb-3 text-xs leading-5 text-muted-foreground">
+            کدِ HTML که سامانه‌های اینماد، ساماندهی و اتاق اصناف برای نمایش نشان صادر کرده‌اند.
+            خالی گذاشتن یعنی آن نشان در فوتر نمایش داده نشود.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {(
+              [
+                ['enamadHtml', 'نماد اعتماد (اینماد)'],
+                ['samandehiHtml', 'ساماندهی'],
+                ['asnafHtml', 'اتحادیه / اصناف'],
+              ] as const
+            ).map(([field, label]) => (
+              <div key={field}>
+                <label htmlFor={`license-${field}`} className="mb-1.5 block text-sm font-semibold text-foreground">
+                  {label}
+                </label>
+                <textarea
+                  id={`license-${field}`}
+                  dir="ltr"
+                  rows={5}
+                  spellCheck={false}
+                  placeholder='<a href="https://trustseal.enamad.ir/…">…</a>'
+                  className="w-full rounded-xl border border-input bg-background/70 p-3 text-start font-mono text-xs text-foreground focus:border-transparent focus:outline-hidden focus:ring-2 focus:ring-ring"
+                  {...register(field)}
+                />
+              </div>
+            ))}
           </div>
         </DetailCard>
       </div>

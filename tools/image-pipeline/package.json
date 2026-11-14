@@ -1,0 +1,13 @@
+{
+  "name": "image-pipeline",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Raw product photo → AI-edited template images (main / lifestyle / banner) → optimized WebP",
+  "scripts": {
+    "generate": "node generate.mjs"
+  },
+  "dependencies": {
+    "sharp": "^0.35.4"
+  }
+}

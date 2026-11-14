@@ -10,6 +10,7 @@ import type {
   CouponResult,
   CreateBookingInput,
   CreateOrderInput,
+  LoginPasswordInput,
   Order,
   OrderStatus,
   PaymentRequestResult,
@@ -18,6 +19,7 @@ import type {
   PaymentVerifyResult,
   Product,
   ProductListQuery,
+  RegisterInput,
   Review,
   Service,
   ServiceListQuery,
@@ -232,6 +234,16 @@ export const authApi = {
     withDemoFallback<AuthResponse>(
       () => apiPost('/auth/verify-otp', { phoneNumber, code }, pub),
       () => demoAuth.verifyOtp(phoneNumber, code)
+    ),
+  login: (input: LoginPasswordInput) =>
+    withDemoFallback<AuthResponse>(
+      () => apiPost('/auth/login', input, pub),
+      () => demoAuth.login(input)
+    ),
+  register: (input: RegisterInput) =>
+    withDemoFallback<AuthResponse>(
+      () => apiPost('/auth/register', input, pub),
+      () => demoAuth.register(input)
     ),
   me: () => withDemoFallback<User>(() => apiGet('/auth/me'), () => demoAuth.me()),
   updateProfile: (patch: { name?: string; email?: string }) =>

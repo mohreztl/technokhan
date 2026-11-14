@@ -1,10 +1,12 @@
 import { FastifyPluginAsync } from 'fastify';
+import bcrypt from 'bcryptjs';
 import { prisma } from '../lib/prisma';
 import { config as appConfig } from '../config';
 import { canRequestOTP, createOTP, sendOTP, verifyOTP } from '../services/sms.service';
-import { sendOTPSchema, verifyOTPSchema, updateProfileSchema } from '../schemas';
+import { sendOTPSchema, verifyOTPSchema, updateProfileSchema, loginPasswordSchema, registerSchema } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
-import { ApiError, badRequest, forbidden, notFound, rateLimited } from '../lib/errors';
+import { ApiError, badRequest, conflict, forbidden, notFound, rateLimited } from '../lib/errors';
+import { verifyWpPassword } from '../lib/phpass';
 import { serializeUser } from '../lib/serialize';
 import type { JWTPayload } from '../types/fastify.d';
 
@@ -69,6 +71,66 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     const payload: JWTPayload = { id: user.id, phoneNumber: user.phoneNumber, role: user.role };
     const token = fastify.jwt.sign(payload);
 
+    return apiResponse.success(reply, { token, user: serializeUser(user) });
+  });
+
+  // POST /auth/register — username + password account (alongside OTP login)
+  fastify.post('/register', { config: { rateLimit: appConfig.rateLimit.otp } }, async (request, reply) => {
+    const input = parse(registerSchema, request.body);
+
+    const [usernameTaken, phoneTaken] = await Promise.all([
+      prisma.user.findUnique({ where: { username: input.username }, select: { id: true } }),
+      prisma.user.findUnique({ where: { phoneNumber: input.phoneNumber }, select: { id: true } }),
+    ]);
+    if (usernameTaken) throw conflict('این نام کاربری قبلاً ثبت شده است');
+    if (phoneTaken) throw conflict('این شماره موبایل قبلاً ثبت شده است');
+
+    const passwordHash = await bcrypt.hash(input.password, 10);
+    const user = await prisma.user.create({
+      data: {
+        username: input.username,
+        passwordHash,
+        phoneNumber: input.phoneNumber,
+        name: input.name ?? null,
+        role: input.phoneNumber === appConfig.adminPhone ? 'admin' : 'customer',
+      },
+    });
+
+    const payload: JWTPayload = { id: user.id, phoneNumber: user.phoneNumber, role: user.role };
+    const token = fastify.jwt.sign(payload);
+    return apiResponse.success(reply, { token, user: serializeUser(user) }, 201);
+  });
+
+  // POST /auth/login — username (or phone) + password. Migrated WordPress users
+  // log in with their old password via wpPassHash and are upgraded to bcrypt.
+  fastify.post('/login', { config: { rateLimit: appConfig.rateLimit.otp } }, async (request, reply) => {
+    const { username, password } = parse(loginPasswordSchema, request.body);
+
+    const user = await prisma.user.findFirst({
+      where: { OR: [{ username }, { phoneNumber: username }] },
+    });
+    if (!user) throw badRequest('نام کاربری یا رمز عبور اشتباه است');
+
+    let valid = false;
+    let upgradedFromWp = false;
+    if (user.passwordHash) {
+      valid = await bcrypt.compare(password, user.passwordHash);
+    } else if (user.wpPassHash) {
+      valid = verifyWpPassword(password, user.wpPassHash);
+      if (valid) upgradedFromWp = true;
+    }
+    if (!valid) throw badRequest('نام کاربری یا رمز عبور اشتباه است');
+    if (!user.isActive) throw forbidden('حساب کاربری شما غیرفعال شده است');
+
+    if (upgradedFromWp) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { passwordHash: await bcrypt.hash(password, 10), wpPassHash: null },
+      });
+    }
+
+    const payload: JWTPayload = { id: user.id, phoneNumber: user.phoneNumber, role: user.role };
+    const token = fastify.jwt.sign(payload);
     return apiResponse.success(reply, { token, user: serializeUser(user) });
   });
 

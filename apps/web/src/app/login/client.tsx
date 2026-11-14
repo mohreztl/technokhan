@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Gift, History, MapPin, PackageSearch, Sparkles } from 'lucide-react';
+import { Gift, History, MapPin, MessageSquareText, PackageSearch, KeyRound, Sparkles } from 'lucide-react';
 import { APP_NAME, ROUTES } from '@technokhan/shared';
 import { OtpForm } from '@/components/auth/otp-form';
+import { PasswordForm } from '@/components/auth/password-form';
 import { useAuth } from '@/lib/store/auth-store';
+import { cn } from '@/lib/utils';
 
 const FEATURES = [
   { icon: PackageSearch, text: 'پیگیری سفارش و ارسال گجت‌ها' },
@@ -26,10 +28,16 @@ export function LoginClient() {
   const params = useSearchParams();
   const redirect = safeRedirect(params.get('redirect'));
   const { status } = useAuth();
+  const [method, setMethod] = useState<'otp' | 'password'>('otp');
 
   useEffect(() => {
     if (status === 'authenticated') router.replace(redirect);
   }, [status, redirect, router]);
+
+  const methodTabs = [
+    { id: 'otp', label: 'ورود با پیامک', icon: MessageSquareText },
+    { id: 'password', label: 'نام کاربری و رمز', icon: KeyRound },
+  ] as const;
 
   return (
     <div className="container-custom py-6 lg:py-14">
@@ -90,10 +98,34 @@ export function LoginClient() {
             ورود یا ثبت‌نام
           </h1>
           <p className="mt-2 text-sm leading-7 text-muted-foreground">
-            شماره موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود.
+            {method === 'otp'
+              ? 'شماره موبایل خود را وارد کنید تا کد تأیید برایتان پیامک شود.'
+              : 'با نام کاربری و رمز عبور وارد شوید؛ حساب‌های منتقل‌شده از فروشگاه قبلی با همان رمز کار می‌کنند.'}
           </p>
-          <div className="mt-8">
-            <OtpForm onSuccess={() => router.replace(redirect)} />
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-background-secondary/60 p-1.5" role="tablist" aria-label="روش ورود">
+            {methodTabs.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={method === id}
+                onClick={() => setMethod(id)}
+                className={cn(
+                  'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl text-sm font-semibold transition-colors',
+                  method === id ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                <Icon className="h-4 w-4" aria-hidden />
+                {label}
+              </button>
+            ))}
+          </div>
+          <div className="mt-6">
+            {method === 'otp' ? (
+              <OtpForm onSuccess={() => router.replace(redirect)} />
+            ) : (
+              <PasswordForm onSuccess={() => router.replace(redirect)} />
+            )}
           </div>
           <p className="mt-8 text-center text-xs text-muted-foreground">
             مشکلی در ورود دارید؟{' '}

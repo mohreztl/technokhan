@@ -25,8 +25,10 @@ export function parseShopQuery(params: ShopSearchParams): ProductListQuery {
     features: first(params.features)?.split(',').filter(Boolean),
     minPrice: positiveNumber(first(params.minPrice)),
     maxPrice: positiveNumber(first(params.maxPrice)),
+    minRating: positiveNumber(first(params.minRating)),
     inStock: first(params.inStock) === 'true' ? true : undefined,
     deals: first(params.deals) === 'true' ? true : undefined,
+    featured: first(params.featured) === 'true' ? true : undefined,
     sortBy: !sort || sort === 'popular' ? 'popular' : sort === 'newest' ? 'newest' : sort === 'rating' ? 'rating' : 'price',
     sortOrder: !sort ? 'desc' : sort === 'priceDesc' ? 'desc' : sort === 'priceAsc' ? 'asc' : 'desc',
     page: positiveNumber(first(params.page), 1),
@@ -43,8 +45,10 @@ export function shopQueryToSearchParams(query: ProductListQuery, options: { skip
   if (query.features?.length) params.set('features', query.features.join(','));
   if (query.minPrice) params.set('minPrice', String(query.minPrice));
   if (query.maxPrice && query.maxPrice < SHOP_PRICE_LIMIT) params.set('maxPrice', String(query.maxPrice));
+  if (query.minRating) params.set('minRating', String(query.minRating));
   if (query.inStock) params.set('inStock', 'true');
   if (query.deals) params.set('deals', 'true');
+  if (query.featured) params.set('featured', 'true');
   if (query.sortBy === 'price') params.set('sort', query.sortOrder === 'asc' ? 'priceAsc' : 'priceDesc');
   else if (query.sortBy && query.sortBy !== 'popular') params.set('sort', query.sortBy);
   if ((query.page ?? 1) > 1) params.set('page', String(query.page));

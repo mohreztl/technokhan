@@ -47,6 +47,35 @@ export const updateProfileSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Username + password auth (alongside OTP; WordPress migration fills these)
+// ---------------------------------------------------------------------------
+
+export const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, 'نام کاربری باید حداقل ۳ کاراکتر باشد')
+  .max(32, 'نام کاربری نمی‌تواند بیشتر از ۳۲ کاراکتر باشد')
+  .regex(/^[A-Za-z0-9_.-]+$/, 'نام کاربری فقط می‌تواند شامل حروف انگلیسی، عدد، نقطه، خط تیره و زیرخط باشد')
+  .transform((v) => v.toLowerCase());
+
+export const passwordSchema = z
+  .string()
+  .min(8, 'رمز عبور باید حداقل ۸ کاراکتر باشد')
+  .max(72, 'رمز عبور نمی‌تواند بیشتر از ۷۲ کاراکتر باشد');
+
+export const loginPasswordSchema = z.object({
+  username: z.string().trim().min(1, 'نام کاربری را وارد کنید'),
+  password: z.string().min(1, 'رمز عبور را وارد کنید'),
+});
+
+export const registerSchema = z.object({
+  username: usernameSchema,
+  password: passwordSchema,
+  phoneNumber: phoneSchema,
+  name: z.string().trim().min(2, 'نام باید حداقل ۲ حرف باشد').max(60).optional(),
+});
+
+// ---------------------------------------------------------------------------
 // Addresses / orders
 // ---------------------------------------------------------------------------
 
@@ -217,6 +246,10 @@ export const siteSettingsSchema = z.object({
   instagram: z.string().trim().max(200).default(''),
   telegram: z.string().trim().max(200).default(''),
   whatsapp: z.string().trim().max(200).default(''),
+  /** Footer trust-license embed snippets; empty hides the badge */
+  enamadHtml: z.string().trim().max(4000).default(''),
+  samandehiHtml: z.string().trim().max(4000).default(''),
+  asnafHtml: z.string().trim().max(4000).default(''),
 });
 
 export const reviewSchema = z.object({
@@ -294,6 +327,8 @@ export const paginationQuerySchema = z.object({
 export type SendOTPInput = z.infer<typeof sendOTPSchema>;
 export type VerifyOTPInput = z.infer<typeof verifyOTPSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type LoginPasswordInput = z.infer<typeof loginPasswordSchema>;
+export type RegisterInput = z.infer<typeof registerSchema>;
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>;
 export type CreateOrderSchemaInput = z.infer<typeof createOrderSchema>;
 export type CreateBookingSchemaInput = z.infer<typeof createBookingSchema>;

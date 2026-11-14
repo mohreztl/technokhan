@@ -10,5 +10,5 @@
     "moduleResolution": "bundler",
     "types": ["node"]
   },
-  "include": ["prisma.config.ts", "prisma/**/*.ts"]
+  "include": ["prisma.config.ts", "prisma/**/*.ts", "tools/**/*.ts"]
 }

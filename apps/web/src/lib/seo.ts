@@ -10,6 +10,7 @@ import {
   SOCIAL_MEDIA,
   effectivePrice,
   type Article,
+  type Category,
   type FaqItem,
   type Product,
   type Service,
@@ -138,17 +139,27 @@ export function productJsonLd(product: Product, url: string): JsonLdData {
       url,
       priceCurrency: 'IRR',
       price: tomanToRial(price),
-      availability:
-        product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+      availability: product.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
       itemCondition: 'https://schema.org/NewCondition',
       seller: { '@id': ORGANIZATION_ID() },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'IR' },
+      },
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        applicableCountry: 'IR',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+        merchantReturnDays: 7,
+        returnMethod: 'https://schema.org/ReturnByMail',
+      },
     },
   };
 }
 
 /** Product graph plus the visible Home → Shop → Category → Product breadcrumb. */
 export function productPageJsonLd(product: Product): JsonLdData[] {
-  const path = `/product/${product.id}`;
+  const path = `/product/${product.slug ?? product.id}`;
   const category = findCategory(product.category);
   return [
     productJsonLd(product, absoluteUrl(path)),
@@ -157,6 +168,41 @@ export function productPageJsonLd(product: Product): JsonLdData[] {
       { name: 'فروشگاه', href: '/shop' },
       { name: category?.name ?? product.category, href: `/category/${product.category}` },
       { name: product.name, href: path },
+    ]),
+  ];
+}
+
+export function productListJsonLd(products: Product[], path: string, name: string): JsonLdData {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name,
+    url: absoluteUrl(path),
+    numberOfItems: products.length,
+    itemListElement: products.map((product, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      url: absoluteUrl(`/product/${product.slug ?? product.id}`),
+      name: product.name,
+      image: product.images[0] ? toAbsolute(product.images[0]) : undefined,
+    })),
+  };
+}
+
+export function categoryPageJsonLd(category: Category, products: Product[]): JsonLdData[] {
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      name: category.name,
+      description: category.description,
+      url: absoluteUrl(`/category/${category.id}`),
+      mainEntity: productListJsonLd(products, `/category/${category.id}`, category.name),
+    },
+    breadcrumbJsonLd([
+      { name: 'خانه', href: '/' },
+      { name: 'فروشگاه', href: '/shop' },
+      { name: category.name, href: `/category/${category.id}` },
     ]),
   ];
 }

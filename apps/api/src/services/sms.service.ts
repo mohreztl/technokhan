@@ -5,11 +5,42 @@ import { config, hasSmsCredentials } from '../config';
 import { logger } from '../lib/logger';
 
 const KAVENEGAR_API = 'https://api.kavenegar.com/v1';
+const MELLIPAYAMAK_API = 'https://restful.payamakapi.ir/api/SendSMS';
 
 // OTP configuration
 const OTP_EXPIRY_MINUTES = 2;
 const OTP_MAX_ATTEMPTS = 5;
 const OTP_COOLDOWN_SECONDS = 60;
+
+/** Melli Payamak RESTful send. Returns true when the gateway accepted the message. */
+async function sendSmsMelliPayamak(to: string, text: string): Promise<boolean> {
+  const mp = config.sms.mellipayamak;
+  const response = await axios.post(
+    `${MELLIPAYAMAK_API}/SendSMS`,
+    { username: mp.username, password: mp.password, to, text, from: mp.from },
+    { timeout: 15_000 }
+  );
+  const result = response.data;
+  if (Number(result?.RetStatus) !== 1) {
+    throw new Error(`MelliPayamak error: ${result?.StrRetStatus ?? 'unknown'}`);
+  }
+  return true;
+}
+
+/** Melli Payamak pattern (خدماتی) send — required for OTP once the number is restricted. */
+async function sendPatternMelliPayamak(to: string, text: string, bodyId: number): Promise<boolean> {
+  const mp = config.sms.mellipayamak;
+  const response = await axios.post(
+    `${MELLIPAYAMAK_API}/BaseServiceNumber`,
+    { username: mp.username, password: mp.password, to, text, bodyId },
+    { timeout: 15_000 }
+  );
+  const result = response.data;
+  if (Number(result?.RetStatus) !== 1) {
+    throw new Error(`MelliPayamak pattern error: ${result?.StrRetStatus ?? 'unknown'}`);
+  }
+  return true;
+}
 
 export type OTPFailureReason = 'expired' | 'invalid' | 'max_attempts';
 
@@ -103,34 +134,41 @@ export async function verifyOTP(
 }
 
 /**
- * Send an SMS through Kavenegar's REST API. The API key is never logged.
+ * Send an SMS through the configured provider (Melli Payamak by default,
+ * Kavenegar when SMS_PROVIDER=kavenegar). Credentials are never logged.
  * In development, missing credentials keep the existing console fallback.
  */
 export async function sendSms(to: string, text: string): Promise<boolean> {
   if (!hasSmsCredentials()) {
-    logger.info({ to, text }, 'SMS not sent (KAVENEGAR_* credentials are empty) — logged instead');
+    logger.info({ to, text }, 'SMS not sent (provider credentials are empty) — logged instead');
     return false;
   }
 
   try {
-    const response = await axios.post(
-      `${KAVENEGAR_API}/${encodeURIComponent(config.kavenegar.apiKey)}/sms/send.json`,
-      null,
-      {
-        params: { receptor: to, sender: config.kavenegar.sender, message: text },
-        timeout: 10_000,
-      }
-    );
+    if (config.sms.provider === 'kavenegar') {
+      const response = await axios.post(
+        `${KAVENEGAR_API}/${encodeURIComponent(config.sms.kavenegar.apiKey)}/sms/send.json`,
+        null,
+        {
+          params: { receptor: to, sender: config.sms.kavenegar.sender, message: text },
+          timeout: 10_000,
+        }
+      );
 
-    const result = response.data?.entries?.[0];
-    if (!result || ![200, 4].includes(Number(result.status))) {
-      throw new Error(`Kavenegar error: ${result?.message ?? 'unknown'}`);
+      const result = response.data?.entries?.[0];
+      if (!result || ![200, 4].includes(Number(result.status))) {
+        throw new Error(`Kavenegar error: ${result?.message ?? 'unknown'}`);
+      }
+
+      logger.info({ to }, 'SMS sent through Kavenegar');
+      return true;
     }
 
-    logger.info({ to }, 'SMS sent through Kavenegar');
+    await sendSmsMelliPayamak(to, text);
+    logger.info({ to }, 'SMS sent through Melli Payamak');
     return true;
   } catch (error) {
-    logger.error({ err: error, to }, 'Failed to send SMS through Kavenegar');
+    logger.error({ err: error, to }, `Failed to send SMS through ${config.sms.provider}`);
     if (config.isProduction) throw error;
     logger.warn({ to, text }, 'DEV MODE — SMS content');
     return false;
@@ -140,10 +178,15 @@ export async function sendSms(to: string, text: string): Promise<boolean> {
 /** Send the OTP code (logged instead of sent when no credentials are configured) */
 export async function sendOTP(phoneNumber: string, code: string): Promise<void> {
   if (!hasSmsCredentials()) {
-    logger.info(`OTP for ${phoneNumber}: ${code} (Kavenegar not configured)`);
+    logger.info(`OTP for ${phoneNumber}: ${code} (SMS provider not configured)`);
     return;
   }
-  const message = `کد تایید شما در اتولانژ: ${code}\nاین کد به مدت ۲ دقیقه معتبر است.`;
+  const mp = config.sms.mellipayamak;
+  if (config.sms.provider === 'mellipayamak' && mp.otpBodyId > 0) {
+    await sendPatternMelliPayamak(phoneNumber, code, mp.otpBodyId);
+    return;
+  }
+  const message = `کد تایید شما در ${config.brandName}: ${code}\nاین کد به مدت ۲ دقیقه معتبر است.`;
   await sendSms(phoneNumber, message);
 }
 
@@ -163,7 +206,7 @@ export async function sendBookingConfirmation(
   timeSlot: string,
   trackingCode?: string | null
 ): Promise<void> {
-  const message = `رزرو شما در اتولانژ ثبت شد
+  const message = `رزرو شما در ${config.brandName} ثبت شد
 خدمت: ${serviceName}
 تاریخ: ${date}
 ساعت: ${timeSlot}${trackingCode ? `\nکد پیگیری: ${trackingCode}` : ''}
@@ -177,7 +220,7 @@ export async function sendOrderConfirmation(
   trackingCode: string,
   totalPrice: number
 ): Promise<void> {
-  const message = `سفارش شما در اتولانژ ثبت شد
+  const message = `سفارش شما در ${config.brandName} ثبت شد
 کد پیگیری: ${trackingCode}
 مبلغ کل: ${totalPrice.toLocaleString('fa-IR')} تومان
 برای پیگیری سفارش به پروفایل خود مراجعه کنید`;
@@ -192,7 +235,7 @@ export async function sendPaymentConfirmation(
   refId: string
 ): Promise<void> {
   const typeText = kind === 'order' ? 'سفارش' : 'رزرو';
-  const message = `پرداخت ${typeText} ${trackingCode} در اتولانژ با موفقیت انجام شد
+  const message = `پرداخت ${typeText} ${trackingCode} در ${config.brandName} با موفقیت انجام شد
 شماره پیگیری بانکی: ${refId}`;
   await sendNotification(phoneNumber, message);
 }
@@ -219,5 +262,5 @@ export async function sendStatusUpdate(
 
   const statusText = statusMessages[type][status] || status;
   const typeText = type === 'order' ? 'سفارش' : 'رزرو';
-  await sendNotification(phoneNumber, `وضعیت ${typeText} شما در اتولانژ: ${statusText}`);
+  await sendNotification(phoneNumber, `وضعیت ${typeText} شما در ${config.brandName}: ${statusText}`);
 }

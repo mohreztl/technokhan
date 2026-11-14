@@ -4,7 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Heart, Menu, Search, ShoppingBag } from 'lucide-react';
+import { Heart, Menu, Search, ShoppingBag, UserRound } from 'lucide-react';
 import { CATEGORIES, toPersianDigits } from '@technokhan/shared';
 import { CATEGORY_MEDIA } from '@/content/media-assets';
 import { useCart } from '@/lib/store/cart-store';
@@ -57,6 +57,7 @@ export function Navbar() {
         <div className="ms-auto flex items-center gap-1 lg:ms-0">
           <Button size="icon" variant="ghost" aria-label="جستجو (Ctrl+K)" onClick={() => setSearchOpen(true)}><Search className="size-5" aria-hidden="true" /></Button>
           <span className="hidden sm:inline-flex"><ThemeSwitcher /></span>
+          <Button asChild size="icon" variant="ghost"><Link href="/profile" aria-label="پنل کاربری"><UserRound className="size-5" aria-hidden="true" /></Link></Button>
           <Button asChild size="icon" variant="ghost" className="relative hidden sm:inline-flex"><Link href="/wishlist" aria-label={`علاقه‌مندی‌ها، ${toPersianDigits(wishlist.count)} مورد`}><Heart className="size-5" aria-hidden="true" />{wishlist.count > 0 && <span className="absolute -top-1 -end-1 flex size-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-accent-foreground tabular-nums">{toPersianDigits(wishlist.count)}</span>}</Link></Button>
           <Button size="icon" variant="ghost" className="relative" aria-label={`سبد خرید، ${toPersianDigits(totalItems)} کالا`} onClick={openCart}><ShoppingBag className="size-5" aria-hidden="true" />{totalItems > 0 && <span className="absolute -top-1 -end-1 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground tabular-nums">{toPersianDigits(totalItems)}</span>}</Button>
           <Button size="icon" variant="ghost" className="lg:hidden" aria-label="باز کردن دسته‌بندی‌ها" onClick={() => setMenuOpen(true)}><Menu className="size-5" aria-hidden="true" /></Button>
@@ -68,6 +69,7 @@ export function Navbar() {
           {CATEGORIES.map((category) => <Link key={category.id} href={`/category/${category.id}`} onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">{category.name}</Link>)}
           <Link href="/blog" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">مجله تکنو</Link>
           <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">علاقه‌مندی‌ها</Link>
+          <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">پنل کاربری</Link>
         </nav>
       </BottomSheet>
     </header>

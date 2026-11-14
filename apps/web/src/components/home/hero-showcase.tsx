@@ -63,28 +63,8 @@ export function HeroShowcase() {
         <Badge variant="original" className="border-white/20 bg-white/10 text-white">
           <ShieldCheck className="size-3.5" aria-hidden="true" /> ضمانت اصالت و بررسی سریال
         </Badge>
-        <p className={styles.kicker}>قفسه‌ی انتخاب دقیق</p>
-        <h1 className={styles.title}>دسته‌ی درست، جلوی چشم.</h1>
-        <p className={styles.lead}>
-          به‌جای شلوغی ویترین، شش مسیر روشن روی یک قفسه: شارژ، صدا، انرژی همراه، میز کار، پوشیدنی و اتصال. هر دسته فقط با محصولاتی که ارزش بررسی دارند.
-        </p>
-        <div className={styles.actions}>
-          <Button asChild size="lg">
-            <Link href={`/category/${activeCategory.id}`}>ورود به {activeCategory.name} <ArrowLeft className="size-4 rtl:rotate-180" aria-hidden="true" /></Link>
-          </Button>
-          <Button asChild size="lg" variant="glass" className="border-white/20 bg-white/10 text-white hover:bg-white/15">
-            <Link href="/shop">مشاهده همه محصولات</Link>
-          </Button>
-        </div>
-        <p className={styles.activeSummary}>
-          روی صحنه: <strong>{activeCategory.name}</strong>
-          <span aria-hidden="true">/</span>
-          {activeCategory.description}
-        </p>
-        <div className={styles.trust}>
-          <span><Truck className="size-4 text-[#c8f45a]" aria-hidden="true" /> ارسال سریع با رهگیری</span>
-          <span><Zap className="size-4 text-[#c8f45a]" aria-hidden="true" /> ۷ روز فرصت بازگشت</span>
-        </div>
+        <h1 className={styles.title}>گجت درست، انتخاب دقیق.</h1>
+        <p className={styles.lead}>منتخب گجت‌های اورجینال؛ با گارانتی معتبر و ارسال سریع.</p>
       </header>
 
       <div className={styles.scene} onPointerMove={handlePointerMove} onPointerLeave={() => setTilt({ x: 0, y: 0 })}>
@@ -128,7 +108,7 @@ export function HeroShowcase() {
                     height={media.height}
                     priority={offset === 0}
                     fetchPriority={offset === 0 ? 'high' : 'low'}
-                    sizes="(max-width: 767px) 78vw, 225px"
+                    sizes="(max-width: 767px) 61vw, 205px"
                   />
                   <span className={styles.tag}>{CATEGORY_TAGS[category.id] ?? 'TECH'}</span>
                   <span className={styles.name}>{category.name}</span>
@@ -146,6 +126,17 @@ export function HeroShowcase() {
         </button>
       </div>
 
+      <div className={styles.actions}>
+        <Button asChild size="lg">
+          <Link href={`/category/${activeCategory.id}`}>مشاهده {activeCategory.name} <ArrowLeft className="size-4" aria-hidden="true" /></Link>
+        </Button>
+        <Button asChild size="lg" variant="glass" className="border-white/20 bg-white/10 text-white hover:bg-white/15">
+          <Link href="/shop">همه محصولات</Link>
+        </Button>
+      </div>
+
+      <p className={styles.activeSummary}>روی صحنه: <strong>{activeCategory.name}</strong></p>
+
       <div className={styles.controls} role="tablist" aria-label="دسته‌های روی قفسه" onKeyDown={handleTabKeyDown}>
         {CATEGORIES.map((category, index) => (
           <button
@@ -161,9 +152,12 @@ export function HeroShowcase() {
         ))}
       </div>
 
-      <div className="sr-only">
-        تصویر فعال: {activeMedia.alt}
+      <div className={styles.trust}>
+        <span><Truck className="size-4 text-[#c8f45a]" aria-hidden="true" /> ارسال سریع با رهگیری</span>
+        <span><Zap className="size-4 text-[#c8f45a]" aria-hidden="true" /> ۷ روز فرصت بازگشت</span>
       </div>
+
+      <div className="sr-only">تصویر فعال: {activeMedia.alt}</div>
     </section>
   );
 }

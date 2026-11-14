@@ -14,3 +14,15 @@ test('builds product and breadcrumb graphs for a product page', async () => {
   const items = graphs[1]?.itemListElement as { name: string }[];
   assert.deepEqual(items.map((item) => item.name), ['خانه', 'فروشگاه', findCategory(product.category)?.name ?? product.category, product.name]);
 });
+
+test('builds a category collection and item list from visible products', async () => {
+  const seo = await import('./seo');
+  const category = findCategory(PRODUCTS[0]!.category)!;
+  const products = PRODUCTS.filter((product) => product.category === category.id);
+  const graphs = seo.categoryPageJsonLd(category, products);
+  assert.equal(graphs[0]?.['@type'], 'CollectionPage');
+  const list = graphs[0]?.mainEntity as { numberOfItems: number; itemListElement: unknown[] };
+  assert.equal(list.numberOfItems, products.length);
+  assert.equal(list.itemListElement.length, products.length);
+  assert.equal(graphs[1]?.['@type'], 'BreadcrumbList');
+});

@@ -185,7 +185,7 @@ export function OtpForm({ onSuccess, compact, initialPhone = '', className }: Ot
             <p className="flex items-start gap-2 text-xs leading-6 text-muted-foreground">
               <ShieldCheck className="mt-1 h-4 w-4 shrink-0 text-secondary" aria-hidden />
               با ورود، <a href="/terms" className="mx-1 text-secondary hover:underline">قوانین</a> و{' '}
-              <a href="/privacy" className="mx-1 text-secondary hover:underline">حریم خصوصی</a> اتولانژ را می‌پذیرید.
+              <a href="/privacy" className="mx-1 text-secondary hover:underline">حریم خصوصی</a> تکنو خان را می‌پذیرید.
             </p>
           </motion.form>
         ) : (

@@ -45,6 +45,9 @@ function withDefaults(row: Partial<SiteSettings> | null): SiteSettings {
     instagram: row.instagram ?? DEFAULT_SETTINGS.instagram,
     telegram: row.telegram ?? DEFAULT_SETTINGS.telegram,
     whatsapp: row.whatsapp ?? DEFAULT_SETTINGS.whatsapp,
+    enamadHtml: row.enamadHtml ?? '',
+    samandehiHtml: row.samandehiHtml ?? '',
+    asnafHtml: row.asnafHtml ?? '',
     updatedAt: row.updatedAt,
   };
 }
@@ -70,6 +73,9 @@ export async function saveSettings(input: SiteSettings): Promise<SiteSettings> {
     instagram: input.instagram,
     telegram: input.telegram,
     whatsapp: input.whatsapp,
+    enamadHtml: input.enamadHtml ?? '',
+    samandehiHtml: input.samandehiHtml ?? '',
+    asnafHtml: input.asnafHtml ?? '',
   };
   const row = await prisma.siteSettings.upsert({
     where: { id: 'default' },

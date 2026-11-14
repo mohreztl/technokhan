@@ -4,7 +4,7 @@ import { LoginClient } from './client';
 
 export const metadata: Metadata = {
   title: 'ورود',
-  description: 'ورود به حساب کاربری اتولانژ با شماره موبایل و کد تأیید پیامکی',
+  description: 'ورود به حساب کاربری تکنو خان با شماره موبایل و کد تأیید پیامکی یا نام کاربری و رمز عبور',
   robots: { index: false, follow: false },
 };
 

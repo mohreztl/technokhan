@@ -12,7 +12,13 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "prisma:deploy": "prisma migrate deploy"
+    "prisma:deploy": "prisma migrate deploy",
+    "sync:accounting": "tsx src/jobs/accounting-sync.ts",
+    "migrate:export-wp": "tsx tools/export-wp.ts",
+    "migrate:users": "tsx tools/import-users.ts",
+    "migrate:products": "tsx tools/import-products.ts",
+    "migrate:articles": "tsx tools/import-articles.ts",
+    "migrate:redirects": "tsx tools/build-redirects.ts"
   },
   "dependencies": {
     "@technokhan/shared": "workspace:*",

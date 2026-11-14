@@ -45,6 +45,7 @@ export function filterProducts(source: Product[], q: ProductListQuery = {}): Pro
   if (q.inStock) items = items.filter((product) => product.stock > 0);
   if (q.minPrice !== undefined) items = items.filter((product) => effectivePrice(product) >= q.minPrice!);
   if (q.maxPrice !== undefined) items = items.filter((product) => effectivePrice(product) <= q.maxPrice!);
+  if (q.minRating !== undefined) items = items.filter((product) => (product.rating ?? 0) >= q.minRating!);
   if (q.search) {
     items = items.filter((product) => matchesSearchText([
       product.name,

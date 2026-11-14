@@ -17,10 +17,12 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   if (!result) return { title: 'محصول پیدا نشد' };
   const product = result.data;
   return {
-    title: product.name,
+    title: `خرید ${product.name}`,
     description: product.shortDescription ?? product.description.slice(0, 160),
-    alternates: { canonical: `/product/${product.id}` },
-    openGraph: { title: product.name, description: product.shortDescription, images: [{ url: product.images[0]!, width: 1200, height: 1200, alt: product.name }] },
+    keywords: [product.name, product.nameEn, product.brand ?? '', 'خرید گجت اورجینال', 'تکنو خان'].filter(Boolean),
+    alternates: { canonical: `/product/${product.slug ?? product.id}` },
+    openGraph: { title: product.name, description: product.shortDescription ?? product.description.slice(0, 160), url: `/product/${product.slug ?? product.id}`, images: [{ url: product.images[0]!, width: 1200, height: 1200, alt: product.name }] },
+    twitter: { card: 'summary_large_image', title: product.name, description: product.shortDescription ?? product.description.slice(0, 160), images: product.images[0] ? [product.images[0]] : undefined },
   };
 }
 

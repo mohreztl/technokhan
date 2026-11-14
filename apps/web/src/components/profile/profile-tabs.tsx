@@ -2,17 +2,19 @@
 
 import { motion } from 'framer-motion';
 import type { LucideIcon } from 'lucide-react';
-import { Gauge, Heart, MapPin, Package, Settings } from 'lucide-react';
+import { Bell, Gauge, Heart, History, MapPin, Package, Settings } from 'lucide-react';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { cn } from '@/lib/utils';
 
-export type ProfileTab = 'overview' | 'orders' | 'addresses' | 'wishlist' | 'settings';
+export type ProfileTab = 'overview' | 'orders' | 'addresses' | 'wishlist' | 'recent' | 'notifications' | 'settings';
 
 export const PROFILE_TABS: { key: ProfileTab; label: string; icon: LucideIcon }[] = [
   { key: 'overview', label: 'نمای کلی', icon: Gauge },
   { key: 'orders', label: 'سفارش‌ها', icon: Package },
   { key: 'addresses', label: 'آدرس‌ها', icon: MapPin },
   { key: 'wishlist', label: 'علاقه‌مندی‌ها', icon: Heart },
+  { key: 'recent', label: 'بازدیدهای اخیر', icon: History },
+  { key: 'notifications', label: 'اعلان‌ها', icon: Bell },
   { key: 'settings', label: 'تنظیمات', icon: Settings },
 ];
 

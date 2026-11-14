@@ -19,6 +19,9 @@
     "type-check": "pnpm --filter @technokhan/shared build && pnpm -r type-check",
     "test": "pnpm -r test",
     "assets": "pnpm --filter @technokhan/shared build && pnpm --filter web assets",
+    "assets:ai": "pnpm --filter @technokhan/shared build && pnpm --filter web assets:ai",
+    "images:generate": "pnpm --filter image-pipeline generate",
+    "sync:accounting": "pnpm --filter api sync:accounting",
     "db:migrate": "pnpm --filter api prisma:migrate",
     "db:seed": "pnpm --filter api db:seed",
     "db:studio": "pnpm --filter api prisma:studio"

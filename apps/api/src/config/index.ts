@@ -34,14 +34,42 @@ export const config = {
     .map((o) => o.trim())
     .filter(Boolean),
   webUrl,
+  /** Storefront brand used in SMS copy — per project (technokhan / aryatechno) */
+  brandName: env.SMS_BRAND_NAME || 'تکنو خان',
   paymentCallbackUrl: env.PAYMENT_CALLBACK_URL || `${webUrl}/checkout/callback`,
   zarinpal: {
     merchantId: env.ZARINPAL_MERCHANT_ID || '',
     sandbox: bool(env.ZARINPAL_SANDBOX, true),
   },
-  kavenegar: {
-    apiKey: env.KAVENEGAR_API_KEY || '',
-    sender: env.KAVENEGAR_SENDER || '',
+  sms: {
+    /** mellipayamak (default) or kavenegar — both stay implemented */
+    provider: (env.SMS_PROVIDER || 'mellipayamak').toLowerCase() === 'kavenegar' ? 'kavenegar' : 'mellipayamak',
+    mellipayamak: {
+      username: env.MELIPAYAMAK_USERNAME || '',
+      password: env.MELIPAYAMAK_PASSWORD || '',
+      from: env.MELIPAYAMAK_FROM || '',
+      /** Pattern-OTP body id; empty sends a plain SMS instead */
+      otpBodyId: int(env.MELIPAYAMAK_OTP_BODY_ID, 0),
+    },
+    kavenegar: {
+      apiKey: env.KAVENEGAR_API_KEY || '',
+      sender: env.KAVENEGAR_SENDER || '',
+    },
+  },
+  /** Sepidar accounting (همکاران سیستم) — the product/stock source of truth */
+  sepidar: {
+    baseUrl: (env.SEPIDAR_BASE_URL || '').replace(/\/$/, ''),
+    username: env.SEPIDAR_USERNAME || '',
+    password: env.SEPIDAR_PASSWORD || '',
+    /** Item filter: only items in this price-list are synced */
+    priceListId: int(env.SEPIDAR_PRICE_LIST_ID, 0),
+    timeoutMs: int(env.SEPIDAR_TIMEOUT_MS, 15_000),
+  },
+  /** Basalam marketplace seller account */
+  basalam: {
+    token: env.BASALAM_TOKEN || '',
+    vendorId: env.BASALAM_VENDOR_ID || '',
+    timeoutMs: int(env.BASALAM_TIMEOUT_MS, 15_000),
   },
   /** Demo OTP accepted outside production (empty = disabled) */
   otpDevBypassCode: !isProduction ? env.OTP_DEV_BYPASS_CODE || '' : '',
@@ -62,4 +90,11 @@ export const config = {
 export const isDemoGateway = (): boolean => !config.isProduction && !config.zarinpal.merchantId;
 
 export const hasSmsCredentials = (): boolean =>
-  Boolean(config.kavenegar.apiKey && config.kavenegar.sender);
+  config.sms.provider === 'kavenegar'
+    ? Boolean(config.sms.kavenegar.apiKey && config.sms.kavenegar.sender)
+    : Boolean(config.sms.mellipayamak.username && config.sms.mellipayamak.password);
+
+export const hasSepidarCredentials = (): boolean =>
+  Boolean(config.sepidar.baseUrl && config.sepidar.username && config.sepidar.password);
+
+export const hasBasalamCredentials = (): boolean => Boolean(config.basalam.token);

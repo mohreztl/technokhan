@@ -11,6 +11,8 @@ export interface User {
   phoneNumber: string;
   /** alias for phoneNumber (legacy) */
   phone?: string;
+  /** Username + password login (from the WordPress migration) */
+  username?: string;
   name?: string;
   email?: string;
   role?: UserRole;
@@ -81,6 +83,8 @@ export type ProductReview = Review;
 export interface Product {
   /** Stable URL slug shared by the catalog, API and storefront. */
   id: string;
+  /** WooCommerce/WordPress slug preserved from migration (SEO); fallback is `id` */
+  slug?: string;
   name: string;
   nameEn: string;
   description: string;
@@ -407,6 +411,10 @@ export interface SiteSettings {
   instagram: string;
   telegram: string;
   whatsapp: string;
+  /** Footer trust-license embed snippets (enamad / samandehi / اصناف); empty = hidden */
+  enamadHtml?: string;
+  samandehiHtml?: string;
+  asnafHtml?: string;
   updatedAt?: DateLike;
 }
 
@@ -670,6 +678,7 @@ export interface ProductListQuery {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  minRating?: number;
   inStock?: boolean;
   page?: number;
   limit?: number;

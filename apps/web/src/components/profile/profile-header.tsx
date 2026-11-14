@@ -24,7 +24,7 @@ export interface ProfileHeaderProps {
 export function ProfileHeader({ onEdit }: ProfileHeaderProps) {
   useMe(); // keeps the persisted user fresh
   const { user } = useAuth();
-  const name = user?.name?.trim() || 'کاربر اتولانژ';
+  const name = user?.name?.trim() || 'کاربر تکنو خان';
   const phone = user?.phoneNumber ?? user?.phone ?? '';
 
   return (

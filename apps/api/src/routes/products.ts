@@ -95,7 +95,8 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = parse(idParamSchema, request.params);
     try {
       const product = await prisma.product.findFirst({
-        where: { id, isActive: true },
+        // Migrated WooCommerce slugs are stored on `slug`; public URLs keep working.
+        where: { isActive: true, OR: [{ id }, { slug: id }] },
         include: { reviews: approvedReviews },
       });
       if (!product) throw notFound('محصول یافت نشد');

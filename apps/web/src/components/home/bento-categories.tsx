@@ -17,7 +17,7 @@ export function BentoCategories() {
             <span className="absolute inset-0 bg-gradient-to-t from-[#090b0cf2] via-[#090b0c33] to-transparent" />
             <span className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 p-5 text-white">
               <span><span className="block text-lg font-black">{category.name}</span><span className="mt-1 block text-xs leading-6 text-white/65">{category.description}</span></span>
-              <ArrowLeft className="mb-1 size-5 shrink-0 text-[#c8f45a] transition-transform group-hover:-translate-x-1 rtl:rotate-180" aria-hidden="true" />
+              <ArrowLeft className="mb-1 size-5 shrink-0 text-[#c8f45a] transition-transform group-hover:-translate-x-1" aria-hidden="true" />
             </span>
           </Link>
         );

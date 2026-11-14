@@ -352,6 +352,53 @@ export const demoAuth = {
     return ok<AuthResponse>({ token: tokenFor(user), user });
   },
 
+  login: (input: { username: string; password: string }) => {
+    const username = input.username.trim().toLowerCase();
+    if (!username || !input.password) return fail<AuthResponse>('نام کاربری و رمز عبور را وارد کنید', 400, 'VALIDATION_ERROR');
+    const user = mutate((db) => {
+      let u = db.users.find((x) => x.username === username);
+      if (!u) {
+        u = {
+          id: uid('usr'),
+          phoneNumber: `09${String(Math.floor(1e9 + Math.random() * 9e8))}`,
+          username,
+          name: username,
+          role: 'customer',
+          isActive: true,
+          createdAt: nowIso(),
+          updatedAt: nowIso(),
+        };
+        db.users.push(u);
+      }
+      return u;
+    });
+    return ok<AuthResponse>({ token: tokenFor(user), user });
+  },
+
+  register: (input: { username: string; password: string; phoneNumber: string; name?: string }) => {
+    const username = input.username.trim().toLowerCase();
+    const phone = normalizePhoneNumber(input.phoneNumber);
+    if (!/^09\d{9}$/.test(phone)) return fail<AuthResponse>('شماره موبایل معتبر نیست', 400, 'VALIDATION_ERROR');
+    if (input.password.length < 8) return fail<AuthResponse>('رمز عبور باید حداقل ۸ کاراکتر باشد', 400, 'VALIDATION_ERROR');
+    const exists = load().users.some((x) => x.username === username);
+    if (exists) return fail<AuthResponse>('این نام کاربری قبلاً ثبت شده است', 409, 'CONFLICT');
+    const user = mutate((db) => {
+      const u: User = {
+        id: uid('usr'),
+        phoneNumber: phone,
+        username,
+        name: input.name || username,
+        role: 'customer',
+        isActive: true,
+        createdAt: nowIso(),
+        updatedAt: nowIso(),
+      };
+      db.users.push(u);
+      return u;
+    });
+    return ok<AuthResponse>({ token: tokenFor(user), user });
+  },
+
   me: () => {
     const auth = requireUser();
     if ('error' in auth) return Promise.resolve(auth.error);

@@ -43,6 +43,13 @@ enum BookingStatus {
 model User {
   id          String   @id @default(cuid())
   phoneNumber String   @unique
+  /// Username + password login (WordPress migration registers these)
+  username    String?  @unique
+  /// bcrypt hash of the user's own password; null = OTP-only account
+  passwordHash String?
+  /// WordPress phpass hash kept from migration; on first successful login it
+  /// is rehashed to bcrypt and cleared, so old passwords keep working once.
+  wpPassHash  String?
   name        String?
   email       String?
   role        UserRole @default(customer)
@@ -92,6 +99,9 @@ model OTP {
 
 model Product {
   id               String   @id @default(cuid())
+  /// WordPress/WooCommerce slug — kept identical so old /product/<slug> URLs
+  /// resolve unchanged (SEO). Public lookup accepts either id or slug.
+  slug             String?  @unique
   name             String
   nameEn           String
   description      String   @db.Text
@@ -125,6 +135,28 @@ model Product {
   @@index([category])
   @@index([featured])
   @@index([isActive])
+}
+
+/// Magazine article migrated from WordPress posts. Slugs are preserved so old
+/// post URLs can be 301-mapped to /blog/<slug>.
+model Article {
+  id           String    @id @default(cuid())
+  slug         String    @unique
+  title        String
+  excerpt      String?
+  content      String    @db.Text
+  category     String    @default("general")
+  coverImage   String?
+  tags         String[]  @default([])
+  author       String?
+  publishedAt  DateTime  @default(now())
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@index([publishedAt])
 }
 
 model Service {
@@ -341,5 +373,10 @@ model SiteSettings {
   instagram      String   @default("")
   telegram       String   @default("")
   whatsapp       String   @default("")
+  /// Trust-license widgets rendered in the footer: the embed snippets issued
+  /// by enamad.ir / samandehi.ir / ec_union (اتاق اصناف). Empty = hidden.
+  enamadHtml     String   @default("")
+  samandehiHtml  String   @default("")
+  asnafHtml      String   @default("")
   updatedAt      DateTime @updatedAt
 }

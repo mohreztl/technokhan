@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ShieldCheck, Truck, RotateCcw, Headphones } from 'lucide-react';
-import { APP_NAME } from '@technokhan/shared';
+import { APP_NAME, type SiteSettings } from '@technokhan/shared';
+import { apiFetch } from '@/lib/api/client';
 
 const guarantees = [
   { icon: ShieldCheck, title: 'ضمانت اصالت', text: 'سریال و منشأ کالا بررسی می‌شود' },
@@ -9,8 +10,40 @@ const guarantees = [
   { icon: Headphones, title: 'مشاوره انتخاب', text: 'راهنمایی پیش از خرید، نه فقط فروش' },
 ];
 
+export interface FooterLicenses {
+  enamadHtml?: string;
+  samandehiHtml?: string;
+  asnafHtml?: string;
+}
+
+/** Trust-license badges (اینماد / ساماندهی / اصناف) rendered from the admin-provided embed snippets. */
+function LicenseBadges({ licenses }: { licenses: FooterLicenses }) {
+  const badges = [
+    { key: 'enamad', html: licenses.enamadHtml, label: 'نماد اعتماد الکترونیکی (اینماد)' },
+    { key: 'samandehi', html: licenses.samandehiHtml, label: 'نشان ثبت رسانه‌های دیجیتال (ساماندهی)' },
+    { key: 'asnaf', html: licenses.asnafHtml, label: 'عضو اتحادیه کسب‌وکارهای مجازی' },
+  ].filter((badge) => badge.html && badge.html.trim());
+
+  if (!badges.length) return null;
+  return (
+    <div className="flex flex-wrap items-center justify-center gap-4 border-t border-border py-5">
+      {badges.map((badge) => (
+        <span
+          key={badge.key}
+          role="img"
+          aria-label={badge.label}
+          title={badge.label}
+          className="inline-flex items-center [&_img]:max-h-24 [&_img]:w-auto"
+          // Admin-controlled embed snippets from the license issuers.
+          dangerouslySetInnerHTML={{ __html: badge.html!.trim() }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Storefront assurances, useful navigation and honest demo contact information. */
-export function Footer() {
+export function Footer({ licenses = {} }: { licenses?: FooterLicenses }) {
   return (
     <footer className="border-t border-border bg-background-secondary pb-24 lg:pb-0">
       <div className="container-custom grid gap-6 border-b border-border py-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -26,9 +59,38 @@ export function Footer() {
         <FooterLinks title="راهنما" links={[['مجله تکنو', '/blog'], ['سوالات متداول', '/faq'], ['پیگیری سفارش', '/track'], ['تماس با ما', '/contact']]} />
         <FooterLinks title="تکنو خان" links={[['درباره ما', '/about'], ['دیزاین سیستم', '/design-system'], ['حریم خصوصی', '/privacy'], ['شرایط استفاده', '/terms']]} />
       </div>
+      <div className="container-custom">
+        <LicenseBadges licenses={licenses} />
+      </div>
       <div className="container-custom flex flex-wrap items-center justify-between gap-3 border-t border-border py-5 text-xs text-muted-foreground"><span>© ۱۴۰۵ تکنو خان</span><span dir="ltr">technokhan.com</span></div>
     </footer>
   );
+}
+
+/**
+ * Server-side footer: pulls the license snippets from the settings endpoint so
+ * the badges appear without a client round-trip. Falls back to the plain
+ * footer when the API is unreachable (demo builds, cold start).
+ */
+export async function FooterWithLicenses() {
+  let licenses: FooterLicenses = {};
+  try {
+    const r = await apiFetch<SiteSettings>('/settings', {
+      auth: false,
+      timeoutMs: 2500,
+      next: { revalidate: 300, tags: ['settings'] },
+    });
+    if (r.ok && r.data) {
+      licenses = {
+        enamadHtml: r.data.enamadHtml,
+        samandehiHtml: r.data.samandehiHtml,
+        asnafHtml: r.data.asnafHtml,
+      };
+    }
+  } catch {
+    // no badges rather than a broken footer
+  }
+  return <Footer licenses={licenses} />;
 }
 
 interface FooterLinksProps { title: string; links: [string, string][] }

@@ -1,5 +1,5 @@
 // config must be imported first: it loads .env before other modules read process.env
-import { config } from './config';
+import { config, hasSmsCredentials } from './config';
 
 import Fastify, { FastifyError, FastifyReply, FastifyRequest } from 'fastify';
 import cors from '@fastify/cors';
@@ -220,7 +220,7 @@ async function start() {
         env: config.env,
         demoGateway: !config.zarinpal.merchantId && !config.isProduction,
         otpBypass: Boolean(config.otpDevBypassCode),
-        sms: Boolean(config.kavenegar.apiKey),
+        sms: hasSmsCredentials(),
       },
       'runtime flags'
     );

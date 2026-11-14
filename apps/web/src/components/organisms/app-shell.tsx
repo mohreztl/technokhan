@@ -7,6 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { DemoBanner } from '@/components/organisms/demo-banner';
 import { LoginSheet } from '@/components/auth/login-sheet';
 import { NotificationSheet, NotificationSync } from '@/components/organisms/notification-center';
+import { SmartSupport } from '@/components/support/smart-support';
 
 const SearchModal = dynamic(() => import('./search-modal').then((module) => module.SearchModal), { ssr: false });
 
@@ -20,6 +21,7 @@ export function AppShell() {
       <LoginSheet />
       <NotificationSync />
       <NotificationSheet />
+      <SmartSupport />
       <DemoBanner />
       <Toaster />
     </>

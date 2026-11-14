@@ -4,7 +4,7 @@ import { ProfileClient } from './client';
 
 export const metadata: Metadata = {
   title: 'پروفایل کاربری',
-  description: 'مدیریت حساب کاربری، مشاهده سفارشات و رزروها در اتولانژ',
+  description: 'مدیریت حساب تکنو خان، سفارش‌ها، اعلان‌ها، علاقه‌مندی‌ها، بازدیدهای اخیر و آدرس‌ها.',
   robots: {
     index: false,
     follow: false,

@@ -42,8 +42,8 @@ export const ProductCard = React.memo(function ProductCard({ product, priority =
   };
 
   return (
-    <article className={cn('group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-card transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-luxury', layout === 'list' && 'sm:grid sm:grid-cols-[220px_1fr]', className)}>
-      <div className="relative aspect-square overflow-hidden bg-[#e3e6e2]">
+    <article className={cn('group relative flex h-full flex-col overflow-hidden rounded-[1.4rem] border border-border/80 bg-card transition-[border-color,box-shadow,transform] duration-300 hover:-translate-y-1 hover:border-secondary/45 hover:shadow-luxury', layout === 'list' && 'sm:grid sm:grid-cols-[240px_1fr]', className)}>
+      <div className="relative aspect-[1/1.04] overflow-hidden bg-[#e3e6e2]">
         <Link href={`/product/${product.id}`} aria-label={`مشاهده ${product.name}`} className="relative block h-full w-full">
           <Image src={image} alt={media?.alt ?? product.name} fill priority={priority} sizes={layout === 'list' ? '(max-width: 640px) 50vw, 220px' : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw'} onError={handleImageError} className="object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
         </Link>
