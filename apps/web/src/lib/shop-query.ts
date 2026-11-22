@@ -22,14 +22,17 @@ export function parseShopQuery(params: ShopSearchParams): ProductListQuery {
     category: first(params.category) || undefined,
     search: first(params.search)?.trim() || undefined,
     brands: brandsValue ? brandsValue.split(',').map((brand) => brand.trim()).filter(Boolean) : undefined,
-    features: first(params.features)?.split(',').filter(Boolean),
+    features: first(params.features)?.split(',').map((feature) => feature.trim()).filter(Boolean),
     minPrice: positiveNumber(first(params.minPrice)),
     maxPrice: positiveNumber(first(params.maxPrice)),
     minRating: positiveNumber(first(params.minRating)),
+    minDiscount: positiveNumber(first(params.minDiscount)),
+    minReviews: positiveNumber(first(params.minReviews)),
     inStock: first(params.inStock) === 'true' ? true : undefined,
     deals: first(params.deals) === 'true' ? true : undefined,
     featured: first(params.featured) === 'true' ? true : undefined,
-    sortBy: !sort || sort === 'popular' ? 'popular' : sort === 'newest' ? 'newest' : sort === 'rating' ? 'rating' : 'price',
+    editorChoice: first(params.editorChoice) === 'true' ? true : undefined,
+    sortBy: !sort || sort === 'popular' ? 'popular' : sort === 'newest' ? 'newest' : sort === 'rating' ? 'rating' : sort === 'discount' ? 'discount' : 'price',
     sortOrder: !sort ? 'desc' : sort === 'priceDesc' ? 'desc' : sort === 'priceAsc' ? 'asc' : 'desc',
     page: positiveNumber(first(params.page), 1),
     limit: 12,
@@ -46,9 +49,12 @@ export function shopQueryToSearchParams(query: ProductListQuery, options: { skip
   if (query.minPrice) params.set('minPrice', String(query.minPrice));
   if (query.maxPrice && query.maxPrice < SHOP_PRICE_LIMIT) params.set('maxPrice', String(query.maxPrice));
   if (query.minRating) params.set('minRating', String(query.minRating));
+  if (query.minDiscount) params.set('minDiscount', String(query.minDiscount));
+  if (query.minReviews) params.set('minReviews', String(query.minReviews));
   if (query.inStock) params.set('inStock', 'true');
   if (query.deals) params.set('deals', 'true');
   if (query.featured) params.set('featured', 'true');
+  if (query.editorChoice) params.set('editorChoice', 'true');
   if (query.sortBy === 'price') params.set('sort', query.sortOrder === 'asc' ? 'priceAsc' : 'priceDesc');
   else if (query.sortBy && query.sortBy !== 'popular') params.set('sort', query.sortBy);
   if ((query.page ?? 1) > 1) params.set('page', String(query.page));

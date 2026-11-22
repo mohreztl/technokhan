@@ -15,4 +15,12 @@ describe('productQuerySchema', () => {
     assert.equal(productQuerySchema.parse({ deals: 'true' }).deals, true);
     assert.equal(productQuerySchema.parse({}).deals, undefined);
   });
+
+  it('parses discount, review and editorial filters', () => {
+    const query = productQuerySchema.parse({ minDiscount: '10', minReviews: '150', editorChoice: 'true', sortBy: 'discount' });
+    assert.equal(query.minDiscount, 10);
+    assert.equal(query.minReviews, 150);
+    assert.equal(query.editorChoice, true);
+    assert.equal(query.sortBy, 'discount');
+  });
 });

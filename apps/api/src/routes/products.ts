@@ -24,6 +24,8 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     else if (q.brand) where.brand = { equals: q.brand, mode: 'insensitive' };
     if (q.features?.length) where.tags = { hasEvery: q.features };
     if (q.featured !== undefined) where.featured = q.featured;
+    if (q.editorChoice !== undefined) where.editorChoice = q.editorChoice;
+    if (q.minReviews !== undefined) where.reviewCount = { gte: q.minReviews };
     if (q.inStock === true) where.stock = { gt: 0 };
     if (q.search) {
       where.OR = [

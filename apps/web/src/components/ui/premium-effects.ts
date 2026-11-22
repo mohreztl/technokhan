@@ -42,8 +42,8 @@ export {
   HoverReveal,
   MagneticLink,
   TiltImage,
-  ScrollProgress,
 } from './interactive-effects';
+export { ScrollProgress } from './scroll-progress';
 
 // Page Transitions
 export {

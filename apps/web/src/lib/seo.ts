@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { createElement } from 'react';
 import {
   APP_DESCRIPTION,
@@ -16,6 +17,7 @@ import {
   type Service,
 } from '@technokhan/shared';
 import { absoluteUrl } from '@/lib/site';
+import { parseShopQuery, shopQueryToSearchParams, type ShopSearchParams } from '@/lib/shop-query';
 
 export type JsonLdData = Record<string, unknown>;
 
@@ -38,6 +40,23 @@ function ratingOf(entity: Pick<Product, 'rating' | 'reviewCount'>) {
     reviewCount: entity.reviewCount,
     bestRating: 5,
     worstRating: 1,
+  };
+}
+
+export function getShopMetadata(params: ShopSearchParams): Metadata {
+  const index = shopQueryToSearchParams(parseShopQuery(params)) === '';
+  return {
+    title: 'فروشگاه گجت و لوازم جانبی',
+    description: 'خرید گجت هوشمند، شارژر، هدفون، پاوربانک و تجهیزات دیجیتال اورجینال با فیلتر برند، قیمت، تخفیف، امتیاز و مشخصات فنی.',
+    keywords: ['فروشگاه گجت', 'خرید لوازم جانبی', 'شارژر', 'هدفون', 'پاوربانک', 'تکنو خان'],
+    alternates: { canonical: '/shop' },
+    robots: {
+      index,
+      follow: true,
+      googleBot: { index, follow: true, 'max-video-preview': -1, 'max-image-preview': 'large', 'max-snippet': -1 },
+    },
+    openGraph: { title: 'فروشگاه گجت و لوازم جانبی | تکنو خان', description: 'جستجو، فیلتر و مقایسه گجت‌های اورجینال با گارانتی و ارسال قابل رهگیری.', url: '/shop' },
+    twitter: { card: 'summary_large_image', title: 'فروشگاه تکنو خان', description: 'گجت درست را با فیلترهای دقیق پیدا کنید.' },
   };
 }
 
@@ -87,13 +106,13 @@ export function localBusinessJsonLd(): JsonLdData {
   const { lat, lng } = CONTACT.location;
   return {
     '@context': 'https://schema.org',
-    '@type': ['LocalBusiness', 'AutoRepair'],
+    '@type': 'Store',
     '@id': LOCAL_BUSINESS_ID(),
     name: APP_NAME,
     alternateName: APP_NAME_EN,
     description: APP_DESCRIPTION,
     url: absoluteUrl('/'),
-    image: [absoluteUrl('/hero1.webp'), absoluteUrl('/images/workshop.webp')],
+    image: [absoluteUrl('/images/hero/hero-gadgets.webp'), absoluteUrl('/images/categories/chargers.webp')],
     logo: absoluteUrl('/images/logo.svg'),
     telephone: CONTACT.phoneEn,
     email: CONTACT.email,

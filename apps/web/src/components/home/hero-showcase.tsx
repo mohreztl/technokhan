@@ -156,7 +156,7 @@ export function HeroShowcase() {
                     alt={media.alt}
                     width={media.width}
                     height={media.height}
-                    priority={offset === 0}
+                    loading={offset === 0 ? 'eager' : 'lazy'}
                     fetchPriority={offset === 0 ? 'high' : 'low'}
                     sizes="(max-width: 767px) 61vw, 205px"
                   />

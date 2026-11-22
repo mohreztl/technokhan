@@ -261,6 +261,18 @@ dialog::backdrop { overflow: hidden; overscroll-behavior: contain; background: h
 dialog[open] { animation: dialog-enter 200ms ease-out; }
 @keyframes dialog-enter { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
+.scroll-progress { display: none; }
+@supports (animation-timeline: scroll()) {
+  .scroll-progress { display: block; }
+  .scroll-progress-bar {
+    transform: scaleX(0);
+    animation: scroll-progress-grow auto linear both;
+    animation-timeline: scroll(root);
+  }
+}
+@keyframes scroll-progress-grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (prefers-reduced-motion: reduce) { .scroll-progress { display: none; } }
+
 @keyframes page-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .page-enter { animation: page-enter 350ms ease-out both; }
 @media (prefers-reduced-motion: reduce) { .page-enter { animation: none; } }

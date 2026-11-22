@@ -16,16 +16,17 @@ export interface ProductGridProps {
   products: Product[];
   layout?: 'grid' | 'list';
   className?: string;
+  priorityCount?: number;
 }
 
 /** Responsive product collection with an accessible native quick-view dialog. */
-export function ProductGrid({ products, layout = 'grid', className }: ProductGridProps) {
+export function ProductGrid({ products, layout = 'grid', className, priorityCount = 0 }: ProductGridProps) {
   const [quickView, setQuickView] = React.useState<Product | null>(null);
   const { addItem } = useCart();
   return (
     <>
       <div className={cn(layout === 'grid' ? 'grid grid-cols-2 gap-3 sm:gap-5 md:grid-cols-3 xl:grid-cols-4' : 'grid gap-4', className)}>
-        {products.map((product, index) => <ProductCard key={product.id} product={product} layout={layout} priority={index < 2} onQuickView={setQuickView} />)}
+        {products.map((product, index) => <ProductCard key={product.id} product={product} layout={layout} priority={index < priorityCount} onQuickView={setQuickView} />)}
       </div>
       <Dialog open={quickView !== null} onOpenChange={(open) => { if (!open) setQuickView(null); }}>
         {quickView && (

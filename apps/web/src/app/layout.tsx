@@ -6,7 +6,7 @@ import { Providers } from '@/components/providers';
 import { Navbar } from '@/components/organisms/navbar';
 import { FooterWithLicenses } from '@/components/organisms/footer';
 import { GoogleAnalytics } from '@/components/analytics/google-analytics';
-import { ScrollProgress } from '@/components/ui/interactive-effects';
+import { ScrollProgress } from '@/components/ui/scroll-progress';
 import { JsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo';
 
 const vazirmatn = localFont({

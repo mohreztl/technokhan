@@ -26,3 +26,26 @@ test('builds a category collection and item list from visible products', async (
   assert.equal(list.itemListElement.length, products.length);
   assert.equal(graphs[1]?.['@type'], 'BreadcrumbList');
 });
+
+test('keeps the canonical shop indexable and marks discovery URLs noindex', async () => {
+  const seo = await import('./seo');
+  assert.equal(typeof seo.getShopMetadata, 'function');
+  if (!seo.getShopMetadata) return;
+
+  const shop = seo.getShopMetadata({});
+  const filtered = seo.getShopMetadata({ minDiscount: '10', sort: 'discount' });
+  const shopRobots = shop.robots && typeof shop.robots === 'object' ? shop.robots : undefined;
+  const filteredRobots = filtered.robots && typeof filtered.robots === 'object' ? filtered.robots : undefined;
+  assert.equal(shop.alternates?.canonical, '/shop');
+  assert.notEqual(shopRobots?.index, false);
+  assert.equal(filteredRobots?.index, false);
+  assert.equal(filteredRobots?.follow, true);
+  assert.equal(filtered.alternates?.canonical, '/shop');
+});
+
+test('describes the gadget store rather than an automotive business', async () => {
+  const seo = await import('./seo');
+  const graph = seo.localBusinessJsonLd();
+  assert.equal(graph['@type'], 'Store');
+  assert.ok((graph.image as string[]).every((image) => !image.includes('workshop')));
+});

@@ -1,5 +1,5 @@
 import type { Product, ProductListQuery } from '../types';
-import { effectivePrice } from './pricing';
+import { discountPercent, effectivePrice } from './pricing';
 
 /** Normalizes Arabic/Persian letter variants and whitespace for catalog search. */
 export function normalizeSearchText(value: string): string {
@@ -22,6 +22,7 @@ function sortProducts(items: Product[], sortBy = 'createdAt', sortOrder: 'asc' |
       case 'rating': return ((a.rating ?? 0) - (b.rating ?? 0)) * direction;
       case 'name': return a.name.localeCompare(b.name, 'fa') * direction;
       case 'popular': return ((a.salesCount ?? 0) - (b.salesCount ?? 0)) * direction;
+      case 'discount': return (discountPercent(a) - discountPercent(b)) * direction;
       default: return (new Date(a.createdAt as string).getTime() - new Date(b.createdAt as string).getTime()) * direction;
     }
   });
@@ -41,7 +42,10 @@ export function filterProducts(source: Product[], q: ProductListQuery = {}): Pro
     items = items.filter((product) => q.features!.every((feature) => matchesSearchText([...(product.features ?? []), ...(product.tags ?? [])], feature)));
   }
   if (q.featured !== undefined) items = items.filter((product) => product.featured === q.featured);
+  if (q.editorChoice !== undefined) items = items.filter((product) => (product.editorChoice ?? false) === q.editorChoice);
   if (q.deals) items = items.filter((product) => product.discountPrice !== undefined && product.discountPrice < product.price);
+  if (q.minDiscount !== undefined) items = items.filter((product) => discountPercent(product) >= q.minDiscount!);
+  if (q.minReviews !== undefined) items = items.filter((product) => (product.reviewCount ?? 0) >= q.minReviews!);
   if (q.inStock) items = items.filter((product) => product.stock > 0);
   if (q.minPrice !== undefined) items = items.filter((product) => effectivePrice(product) >= q.minPrice!);
   if (q.maxPrice !== undefined) items = items.filter((product) => effectivePrice(product) <= q.maxPrice!);

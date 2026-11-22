@@ -675,6 +675,9 @@ export interface ProductListQuery {
   featured?: boolean;
   /** Only products whose current price is genuinely below the list price. */
   deals?: boolean;
+  minDiscount?: number;
+  minReviews?: number;
+  editorChoice?: boolean;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
@@ -682,7 +685,7 @@ export interface ProductListQuery {
   inStock?: boolean;
   page?: number;
   limit?: number;
-  sortBy?: 'createdAt' | 'newest' | 'popular' | 'price' | 'rating' | 'name';
+  sortBy?: 'createdAt' | 'newest' | 'popular' | 'price' | 'rating' | 'name' | 'discount';
   sortOrder?: 'asc' | 'desc';
 }
 

@@ -63,6 +63,13 @@ describe('productRoutes offline catalog', () => {
     assert.equal(categories.json().data.length, 6);
   });
 
+  it('combines discount, review and editorial filters in the offline catalog', async () => {
+    const response = await app.inject({ method: 'GET', url: '/products?minDiscount=10&minReviews=150&editorChoice=true&sortBy=discount' });
+    assert.equal(response.statusCode, 200);
+    assert.deepEqual(response.json().data.map((product: { id: string }) => product.id), ['gan-charger']);
+    assert.equal(response.json().pagination.total, 1);
+  });
+
   it('filters and sorts live database products by their effective discounted price', async () => {
     const cheap = { ...PRODUCTS[0]!, id: 'cheap', price: 1_000, discountPrice: null };
     const discounted = { ...PRODUCTS[0]!, id: 'discounted', price: 1_500, discountPrice: 500 };

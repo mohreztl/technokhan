@@ -82,6 +82,7 @@ export const queryStringList = z.preprocess((value) => {
 
 export const sortOrderSchema = z.enum(['asc', 'desc']).default('desc');
 export const catalogSortBySchema = z.enum(['createdAt', 'newest', 'popular', 'price', 'rating', 'name']).default('createdAt');
+export const productSortBySchema = z.enum(['createdAt', 'newest', 'popular', 'price', 'rating', 'name', 'discount']).default('createdAt');
 
 export const pageQuery = (defaultLimit = 12, maxLimit = 100) =>
   z.object({
@@ -96,12 +97,15 @@ export const productQuerySchema = pageQuery(12).extend({
   features: queryStringList,
   featured: queryBool,
   deals: queryBool,
+  minDiscount: queryNumber,
+  minReviews: queryNumber,
+  editorChoice: queryBool,
   search: z.string().trim().min(1).max(100).optional(),
   minPrice: queryNumber,
   maxPrice: queryNumber,
   minRating: queryNumber,
   inStock: queryBool,
-  sortBy: catalogSortBySchema,
+  sortBy: productSortBySchema,
   sortOrder: sortOrderSchema,
 });
 
@@ -155,10 +159,15 @@ export const bookingPaymentRequestSchema = z.object({
   callbackUrl: callbackUrlSchema,
 });
 
-export const paymentVerifySchema = z.object({
-  authority: z.string().min(1, 'شناسه تراکنش الزامی است'),
-  status: z.enum(['OK', 'NOK']).default('OK'),
-});
+export const paymentVerifySchema = z
+  .object({
+    /** Zarinpal redirect param */
+    authority: z.string().min(1, 'شناسه تراکنش الزامی است').optional(),
+    /** Zibal redirect param (trackId) — accepted as an alias of authority */
+    trackId: z.string().min(1, 'شناسه تراکنش الزامی است').optional(),
+    status: z.enum(['OK', 'NOK']).default('OK'),
+  })
+  .refine((d) => d.authority || d.trackId, { message: 'شناسه تراکنش الزامی است' });
 
 // ---------------------------------------------------------------------------
 // Admin

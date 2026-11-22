@@ -1,17 +1,13 @@
-'use client';
-
-import * as React from 'react';
 import Link from 'next/link';
 import { Award, ShieldCheck, Truck } from 'lucide-react';
 import { BRANDS, type Article, type Product } from '@technokhan/shared';
 import { HeroShowcase } from './hero-showcase';
+import { HomeProductTabs } from './home-product-tabs';
 import { BentoCategories } from './bento-categories';
 import { FlashDeals } from './flash-deals';
 import { GadgetFinder } from './gadget-finder';
 import { SectionHeader } from '@/components/storefront/section-header';
-import { ProductGrid } from '@/components/storefront/product-grid';
 import { ArticleCard } from '@/components/blog/article-card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 export interface HomePageProps {
   products: Product[];
@@ -20,9 +16,6 @@ export interface HomePageProps {
 
 /** Complete TechnoKhan landing page composed from reusable storefront sections. */
 export function HomePage({ products, articles }: HomePageProps) {
-  const popular = [...products].sort((a, b) => (b.salesCount ?? 0) - (a.salesCount ?? 0)).slice(0, 4);
-  const newest = [...products].sort((a, b) => Date.parse(b.createdAt as string) - Date.parse(a.createdAt as string)).slice(0, 4);
-  const editors = products.filter((product) => product.editorChoice).slice(0, 4);
   return (
     <>
       <HeroShowcase />
@@ -37,12 +30,7 @@ export function HomePage({ products, articles }: HomePageProps) {
       <section className="container-custom py-10"><FlashDeals products={products} /></section>
       <section className="container-custom py-10">
         <SectionHeader title="محصولاتی که انتخاب کاربران و سردبیرند" description="ویترین زنده فروشگاه؛ بدون رفرش صفحه بین فهرست‌ها جابه‌جا شوید." href="/shop" />
-        <Tabs defaultValue="popular">
-          <TabsList label="ویترین محصولات منتخب"><TabsTrigger value="popular">پرفروش‌ترین‌ها</TabsTrigger><TabsTrigger value="newest">جدیدترین گجت‌ها</TabsTrigger><TabsTrigger value="editors">منتخب سردبیر</TabsTrigger></TabsList>
-          <TabsContent value="popular"><ProductGrid products={popular} /></TabsContent>
-          <TabsContent value="newest"><ProductGrid products={newest} /></TabsContent>
-          <TabsContent value="editors"><ProductGrid products={editors} /></TabsContent>
-        </Tabs>
+        <HomeProductTabs products={products} />
       </section>
       <section className="container-custom py-10">
         <SectionHeader title="برندهای اورجینال، انتخاب بدون حدس" description="محصولات با منشأ مشخص، گارانتی قابل بررسی و تجهیزات سازگار." href="/brands" />

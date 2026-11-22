@@ -5,12 +5,10 @@ import {
   motion,
   useMotionValue,
   useSpring,
-  useScroll,
   AnimatePresence,
 } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useIsCoarsePointer } from '@/lib/hooks/use-media-query';
-import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 
 const INTERACTIVE_SELECTOR = 'a, button, [role="button"], .cursor-hover';
 
@@ -306,34 +304,6 @@ export function TiltImage({
           }}
         />
       </motion.div>
-    </div>
-  );
-}
-
-/**
- * Scroll Progress - نوار پیشرفت اسکرول
- * Driven by a motion value (no React state, no re-render per scroll frame).
- */
-export function ScrollProgress({
-  className,
-  color = 'bg-secondary',
-}: {
-  className?: string;
-  color?: string;
-}) {
-  const { scrollYProgress } = useScroll();
-  const reduced = useReducedMotion();
-  const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30, mass: 0.3 });
-
-  return (
-    <div
-      className={cn('pointer-events-none fixed inset-x-0 top-0 z-60 h-1', className)}
-      aria-hidden="true"
-    >
-      <motion.div
-        className={cn('h-full origin-right', color)}
-        style={{ scaleX: reduced ? scrollYProgress : scaleX }}
-      />
     </div>
   );
 }

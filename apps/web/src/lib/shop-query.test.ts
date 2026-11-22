@@ -24,4 +24,14 @@ describe('parseShopQuery', () => {
     assert.equal(query.page, 1);
     assert.equal(query.brands, undefined);
   });
+
+  it('parses merchandising filters and trims technical features', () => {
+    const query = parseShopQuery({ minDiscount: '10', minReviews: '150', editorChoice: 'true', features: 'GaN, Qi2 ,, Power Delivery', sort: 'discount' });
+    assert.equal(query.minDiscount, 10);
+    assert.equal(query.minReviews, 150);
+    assert.equal(query.editorChoice, true);
+    assert.deepEqual(query.features, ['GaN', 'Qi2', 'Power Delivery']);
+    assert.equal(query.sortBy, 'discount');
+    assert.equal(query.sortOrder, 'desc');
+  });
 });
