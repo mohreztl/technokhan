@@ -5,7 +5,7 @@ import { config, hasSmsCredentials } from '../config';
 import { logger } from '../lib/logger';
 
 const KAVENEGAR_API = 'https://api.kavenegar.com/v1';
-const MELLIPAYAMAK_API = 'https://restful.payamakapi.ir/api/SendSMS';
+const MELLIPAYAMAK_API = 'https://rest.payamak-panel.com/api/SendSMS';
 
 // OTP configuration
 const OTP_EXPIRY_MINUTES = 2;

@@ -110,13 +110,17 @@ function VerifyingView() {
 }
 
 /**
- * Landing page for the gateway redirect (`?Authority=…&Status=OK|NOK`).
+ * Landing page for the gateway redirect. Zarinpal redirects with
+ * `?Authority=…&Status=OK|NOK`, Zibal with `?trackId=…&success=yes|no`.
  * Verifies once on mount, then shows success / failure with the next actions.
  */
 export function PaymentCallbackClient() {
   const searchParams = useSearchParams();
-  const authority = searchParams?.get('Authority') ?? '';
-  const statusParam: 'OK' | 'NOK' = searchParams?.get('Status') === 'OK' ? 'OK' : 'NOK';
+  // Zibal sends trackId/success; Zarinpal sends Authority/Status.
+  const authority = searchParams?.get('Authority') ?? searchParams?.get('trackId') ?? '';
+  const success = searchParams?.get('success');
+  const statusParam: 'OK' | 'NOK' =
+    searchParams?.get('Status') === 'OK' || success === 'yes' ? 'OK' : 'NOK';
 
   const verify = useVerifyPayment();
   const requestPayment = useRequestPayment();

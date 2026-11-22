@@ -3,6 +3,7 @@ import type { PaymentRequestResult, PaymentVerifyResult } from '@technokhan/shar
 import { prisma } from '../lib/prisma';
 import { config as appConfig, isDemoGateway } from '../config';
 import * as zarinpal from '../services/zarinpal.service';
+import * as zibal from '../services/zibal.service';
 import { sendPaymentConfirmation } from '../services/sms.service';
 import { bookingPaymentRequestSchema, paymentRequestSchema, paymentVerifySchema } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
@@ -37,7 +38,7 @@ async function startPayment(input: StartPaymentInput): Promise<PaymentRequestRes
       bookingId: input.bookingId,
       amount,
       status: 'pending',
-      gateway: demo ? 'demo' : 'zarinpal',
+      gateway: demo ? 'demo' : appConfig.payment.provider,
     },
   });
 
@@ -51,6 +52,30 @@ async function startPayment(input: StartPaymentInput): Promise<PaymentRequestRes
       amount,
       demo: true,
     };
+  }
+
+  if (appConfig.payment.provider === 'zibal') {
+    const result = await zibal.requestPayment({
+      amount,
+      callbackUrl,
+      description: input.description,
+      mobile: input.mobile,
+    });
+
+    if (!result.ok) {
+      await prisma.paymentTransaction.update({
+        where: { id: tx.id },
+        data: { status: 'failed', errorCode: String(result.code), errorMessage: result.message },
+      });
+      throw paymentError(result.message, 502, { gatewayCode: result.code });
+    }
+
+    await prisma.paymentTransaction.update({
+      where: { id: tx.id },
+      data: { authority: result.trackId },
+    });
+
+    return { authority: result.trackId, paymentUrl: result.paymentUrl, amount };
   }
 
   const result = await zarinpal.requestPayment({
@@ -139,7 +164,8 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
 
   // POST /payment/verify — gateway callback (looked up by authority; public)
   fastify.post('/verify', async (request, reply) => {
-    const { authority, status } = parse(paymentVerifySchema, request.body);
+    const { authority: authorityParam, trackId, status } = parse(paymentVerifySchema, request.body);
+    const authority = authorityParam ?? trackId ?? '';
 
     const tx = await prisma.paymentTransaction.findUnique({ where: { authority }, include: txInclude });
     if (!tx) throw notFound('تراکنش یافت نشد');
@@ -186,7 +212,10 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
       refId = `DEMO${Date.now().toString().slice(-9)}`;
       cardNumber = '6219-86**-****-0000';
     } else {
-      const result = await zarinpal.verifyPayment({ amount: tx.amount, authority });
+      const result =
+        tx.gateway === 'zibal'
+          ? await zibal.verifyPayment({ trackId: authority })
+          : await zarinpal.verifyPayment({ amount: tx.amount, authority });
       if (!result.ok) {
         await markFailed(tx.id, tx.orderId, String(result.code), result.message);
         return apiResponse.success(reply, { ...base, message: result.message });

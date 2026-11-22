@@ -2,14 +2,12 @@ services:
   # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: autolounge-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-autolounge}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-autolounge_password}
       POSTGRES_DB: ${POSTGRES_DB:-autolounge}
-    ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+    # Database stays on the internal compose network only — never published to the host.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -25,7 +23,6 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    container_name: autolounge-api
     restart: unless-stopped
     environment:
       NODE_ENV: ${NODE_ENV:-production}
@@ -37,11 +34,16 @@ services:
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000,http://web:3000}
       WEB_URL: ${WEB_URL:-http://localhost:3000}
       PAYMENT_CALLBACK_URL: ${PAYMENT_CALLBACK_URL:-http://localhost:3000/checkout/callback}
+      PAYMENT_PROVIDER: ${PAYMENT_PROVIDER:-zarinpal}
       ZARINPAL_MERCHANT_ID: ${ZARINPAL_MERCHANT_ID:-}
       ZARINPAL_SANDBOX: ${ZARINPAL_SANDBOX:-true}
+      ZIBAL_MERCHANT_ID: ${ZIBAL_MERCHANT_ID:-}
+      SMS_PROVIDER: ${SMS_PROVIDER:-mellipayamak}
+      SMS_BRAND_NAME: ${SMS_BRAND_NAME:-تکنو خان}
       MELIPAYAMAK_USERNAME: ${MELIPAYAMAK_USERNAME:-}
       MELIPAYAMAK_PASSWORD: ${MELIPAYAMAK_PASSWORD:-}
       MELIPAYAMAK_FROM: ${MELIPAYAMAK_FROM:-}
+      MELIPAYAMAK_OTP_BODY_ID: ${MELIPAYAMAK_OTP_BODY_ID:-0}
       OTP_DEV_BYPASS_CODE: ${OTP_DEV_BYPASS_CODE:-}
       ADMIN_PHONE: ${ADMIN_PHONE:-09120000000}
       SEED_ON_START: ${SEED_ON_START:-true}
@@ -65,7 +67,6 @@ services:
         NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL:-http://localhost:3000}
         NEXT_PUBLIC_DEMO_MODE: ${NEXT_PUBLIC_DEMO_MODE:-false}
         NEXT_PUBLIC_GA_MEASUREMENT_ID: ${NEXT_PUBLIC_GA_MEASUREMENT_ID:-}
-    container_name: autolounge-web
     restart: unless-stopped
     environment:
       NODE_ENV: production
@@ -86,7 +87,6 @@ services:
   # Nginx Reverse Proxy (Optional) — `docker compose --profile with-nginx up`
   nginx:
     image: nginx:alpine
-    container_name: autolounge-nginx
     restart: unless-stopped
     ports:
       - "80:80"

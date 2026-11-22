@@ -37,9 +37,16 @@ export const config = {
   /** Storefront brand used in SMS copy — per project (technokhan / aryatechno) */
   brandName: env.SMS_BRAND_NAME || 'تکنو خان',
   paymentCallbackUrl: env.PAYMENT_CALLBACK_URL || `${webUrl}/checkout/callback`,
+  payment: {
+    /** zarinpal (default) or zibal */
+    provider: (env.PAYMENT_PROVIDER || 'zarinpal').toLowerCase() === 'zibal' ? 'zibal' : 'zarinpal',
+  },
   zarinpal: {
     merchantId: env.ZARINPAL_MERCHANT_ID || '',
     sandbox: bool(env.ZARINPAL_SANDBOX, true),
+  },
+  zibal: {
+    merchantId: env.ZIBAL_MERCHANT_ID || '',
   },
   sms: {
     /** mellipayamak (default) or kavenegar — both stay implemented */
@@ -86,8 +93,13 @@ export const config = {
   },
 } as const;
 
-/** True when the Zarinpal gateway should be simulated (no merchant id outside production) */
-export const isDemoGateway = (): boolean => !config.isProduction && !config.zarinpal.merchantId;
+/** True when the gateway should be simulated (no merchant id for the active gateway outside production) */
+export const isDemoGateway = (): boolean => {
+  if (config.isProduction) return false;
+  const merchant =
+    config.payment.provider === 'zibal' ? config.zibal.merchantId : config.zarinpal.merchantId;
+  return !merchant;
+};
 
 export const hasSmsCredentials = (): boolean =>
   config.sms.provider === 'kavenegar'
