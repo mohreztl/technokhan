@@ -26,10 +26,6 @@ export {
   couponCodeSchema,
   createOrderSchema,
   updateOrderStatusSchema,
-  vehicleSizeSchema,
-  createBookingSchema,
-  updateBookingStatusSchema,
-  availableSlotsQuerySchema,
   contactSchema,
   couponSchema,
   couponUpdateSchema,
@@ -37,7 +33,6 @@ export {
   trackSchema,
   reviewSchema,
   adminProductSchema,
-  adminServiceSchema,
   idParamSchema,
   paginationQuerySchema,
 } from '@technokhan/shared';
@@ -50,13 +45,11 @@ export type {
   RegisterInput,
   ShippingAddressInput,
   CreateOrderSchemaInput,
-  CreateBookingSchemaInput,
   ContactSchemaInput,
   AdminProductInput,
-  AdminServiceInput,
 } from '@technokhan/shared';
 
-import { adminProductSchema, adminServiceSchema } from '@technokhan/shared';
+import { adminProductSchema } from '@technokhan/shared';
 
 // ---------------------------------------------------------------------------
 // Query-string helpers
@@ -109,16 +102,6 @@ export const productQuerySchema = pageQuery(12).extend({
   sortOrder: sortOrderSchema,
 });
 
-export const serviceQuerySchema = pageQuery(12).extend({
-  type: z.string().trim().min(1).optional(),
-  featured: queryBool,
-  search: z.string().trim().min(1).max(100).optional(),
-  minPrice: queryNumber,
-  maxPrice: queryNumber,
-  sortBy: catalogSortBySchema,
-  sortOrder: sortOrderSchema,
-});
-
 export const limitQuerySchema = (defaultLimit: number) =>
   z.object({ limit: z.coerce.number().int().min(1).max(50).default(defaultLimit) });
 
@@ -154,11 +137,6 @@ export const paymentRequestSchema = z.object({
   callbackUrl: callbackUrlSchema,
 });
 
-export const bookingPaymentRequestSchema = z.object({
-  bookingId: z.string().min(1, 'شناسه رزرو الزامی است'),
-  callbackUrl: callbackUrlSchema,
-});
-
 export const paymentVerifySchema = z
   .object({
     /** Zarinpal redirect param */
@@ -174,7 +152,6 @@ export const paymentVerifySchema = z
 // ---------------------------------------------------------------------------
 
 export const adminProductUpdateSchema = adminProductSchema.partial();
-export const adminServiceUpdateSchema = adminServiceSchema.partial();
 
 export const adminProductQuerySchema = pageQuery(20).extend({
   search: z.string().trim().min(1).max(100).optional(),
@@ -182,20 +159,9 @@ export const adminProductQuerySchema = pageQuery(20).extend({
   isActive: queryBool,
 });
 
-export const adminServiceQuerySchema = pageQuery(20).extend({
-  search: z.string().trim().min(1).max(100).optional(),
-  type: z.string().trim().min(1).optional(),
-  isActive: queryBool,
-});
-
 export const adminOrderQuerySchema = pageQuery(20).extend({
   status: z.enum(['pending', 'processing', 'shipped', 'delivered', 'cancelled']).optional(),
   search: z.string().trim().min(1).max(100).optional(),
-});
-
-export const adminBookingQuerySchema = pageQuery(20).extend({
-  status: z.enum(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled']).optional(),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'تاریخ نامعتبر است').optional(),
 });
 
 export const adminUserQuerySchema = pageQuery(20).extend({
@@ -211,6 +177,5 @@ export const adminReviewQuerySchema = pageQuery(20).extend({
 });
 
 export type ProductQueryInput = z.infer<typeof productQuerySchema>;
-export type ServiceQueryInput = z.infer<typeof serviceQuerySchema>;
 export type PaymentRequestInput = z.infer<typeof paymentRequestSchema>;
 export type PaymentVerifyInput = z.infer<typeof paymentVerifySchema>;

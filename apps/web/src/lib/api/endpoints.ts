@@ -2,13 +2,10 @@ import type {
   Address,
   AdminDashboardStats,
   AuthResponse,
-  Booking,
-  BookingStatus,
   ContactInput,
   ContactMessage,
   Coupon,
   CouponResult,
-  CreateBookingInput,
   CreateOrderInput,
   LoginPasswordInput,
   Order,
@@ -21,8 +18,6 @@ import type {
   ProductListQuery,
   RegisterInput,
   Review,
-  Service,
-  ServiceListQuery,
   SiteSettings,
   TrackInput,
   TrackResult,
@@ -34,12 +29,10 @@ import {
   demoAddresses,
   demoAdmin,
   demoAuth,
-  demoBookings,
   demoContact,
   demoOrders,
   demoPayment,
   demoProducts,
-  demoServices,
   demoSettings,
   demoTrack,
 } from './demo';
@@ -61,13 +54,6 @@ export interface OtpSendResult {
   demoCode?: string;
 }
 
-export interface AvailableSlots {
-  date: string;
-  serviceId: string;
-  availableSlots: string[];
-  bookedSlots: string[];
-}
-
 export interface PaymentStatusResult {
   paymentStatus: PaymentStatus;
   transactions: PaymentTransaction[];
@@ -77,7 +63,7 @@ export type AdminQuery = Record<string, unknown>;
 
 const isBrowser = typeof window !== 'undefined';
 
-const DEMO_SESSION_KEY = 'autolounge_demo_active';
+const DEMO_SESSION_KEY = 'technokhan_demo_active';
 
 /** Survives full reloads within the tab so we do not re-probe a dead API on every page. */
 export function demoSessionFlag(): boolean {
@@ -163,39 +149,6 @@ export const productsApi = {
     ),
 };
 
-export const servicesApi = {
-  list: (q: ServiceListQuery = {}) =>
-    withDemoFallback<Service[]>(
-      () => apiGet(`/services${buildQuery(q as Record<string, unknown>)}`, pub),
-      () => demoServices.list(q)
-    ),
-  get: (id: string) =>
-    withDemoFallback<Service>(
-      () => apiGet(`/services/${encodeURIComponent(id)}`, pub),
-      () => demoServices.get(id)
-    ),
-  featured: (limit = 6) =>
-    withDemoFallback<Service[]>(
-      () => apiGet(`/services/featured/list?limit=${limit}`, pub),
-      () => demoServices.featured(limit)
-    ),
-  related: (id: string, limit = 3) =>
-    withDemoFallback<Service[]>(
-      () => apiGet(`/services/${encodeURIComponent(id)}/related?limit=${limit}`, pub),
-      () => demoServices.related(id, limit)
-    ),
-  categories: () =>
-    withDemoFallback<string[]>(
-      () => apiGet('/services/categories/list', pub),
-      () => demoServices.categories()
-    ),
-  addReview: (id: string, input: { rating: number; comment: string }) =>
-    withDemoFallback<Review>(
-      () => apiPost(`/services/${encodeURIComponent(id)}/reviews`, input),
-      () => demoServices.addReview(id, input)
-    ),
-};
-
 // ---------------------------------------------------------------------------
 // public tracking
 // ---------------------------------------------------------------------------
@@ -262,34 +215,6 @@ export const authApi = {
 // bookings
 // ---------------------------------------------------------------------------
 
-export const bookingsApi = {
-  availableSlots: (serviceId: string, date: string) =>
-    withDemoFallback<AvailableSlots>(
-      () => apiGet(`/bookings/available-slots${buildQuery({ serviceId, date })}`, pub),
-      () => demoBookings.availableSlots(serviceId, date)
-    ),
-  create: (input: CreateBookingInput) =>
-    withDemoFallback<Booking>(
-      () => apiPost('/bookings', input),
-      () => demoBookings.create(input)
-    ),
-  mine: (status?: string) =>
-    withDemoFallback<Booking[]>(
-      () => apiGet(`/bookings/my-bookings${buildQuery({ status })}`),
-      () => demoBookings.mine(status)
-    ),
-  get: (id: string) =>
-    withDemoFallback<Booking>(
-      () => apiGet(`/bookings/${encodeURIComponent(id)}`),
-      () => demoBookings.get(id)
-    ),
-  cancel: (id: string) =>
-    withDemoFallback<Booking>(
-      () => apiDelete(`/bookings/${encodeURIComponent(id)}`),
-      () => demoBookings.cancel(id)
-    ),
-};
-
 // ---------------------------------------------------------------------------
 // orders
 // ---------------------------------------------------------------------------
@@ -336,11 +261,6 @@ export const paymentApi = {
     withDemoFallback<PaymentRequestResult>(
       () => apiPost('/payment/request', { orderId, callbackUrl }),
       () => demoPayment.request(orderId, callbackUrl)
-    ),
-  requestBooking: (bookingId: string, callbackUrl?: string) =>
-    withDemoFallback<PaymentRequestResult>(
-      () => apiPost('/payment/booking/request', { bookingId, callbackUrl }),
-      () => demoPayment.requestBooking(bookingId, callbackUrl)
     ),
   /**
    * Verification is the call that settles money, so it deliberately does NOT use
@@ -406,17 +326,15 @@ export const contactApi = {
 // ---------------------------------------------------------------------------
 
 export interface AdminUser extends User {
-  _count?: { orders: number; bookings: number };
+  _count?: { orders: number };
   orders?: Order[];
-  bookings?: Booking[];
 }
 
 export interface AdminReview extends Review {
-  targetType?: 'product' | 'service';
+  targetType?: 'product';
   targetId?: string;
   approved?: boolean;
   productId?: string;
-  serviceId?: string;
   isApproved?: boolean;
 }
 
@@ -448,28 +366,6 @@ export const adminApi = {
         () => demoAdmin.products.remove(id)
       ),
   },
-  services: {
-    list: (q: AdminQuery = {}) =>
-      withDemoFallback<Service[]>(
-        () => apiGet(`/admin/services${buildQuery(q)}`),
-        () => demoAdmin.services.list(q)
-      ),
-    create: (input: Partial<Service>) =>
-      withDemoFallback<Service>(
-        () => apiPost('/admin/services', input),
-        () => demoAdmin.services.create(input)
-      ),
-    update: (id: string, patch: Partial<Service>) =>
-      withDemoFallback<Service>(
-        () => apiPut(`/admin/services/${encodeURIComponent(id)}`, patch),
-        () => demoAdmin.services.update(id, patch)
-      ),
-    remove: (id: string) =>
-      withDemoFallback<{ id: string }>(
-        () => apiDelete(`/admin/services/${encodeURIComponent(id)}`),
-        () => demoAdmin.services.remove(id)
-      ),
-  },
   orders: {
     list: (q: AdminQuery = {}) =>
       withDemoFallback<Order[]>(
@@ -485,23 +381,6 @@ export const adminApi = {
       withDemoFallback<Order>(
         () => apiPut(`/admin/orders/${encodeURIComponent(id)}/status`, input),
         () => demoAdmin.orders.updateStatus(id, input)
-      ),
-  },
-  bookings: {
-    list: (q: AdminQuery = {}) =>
-      withDemoFallback<Booking[]>(
-        () => apiGet(`/admin/bookings${buildQuery(q)}`),
-        () => demoAdmin.bookings.list(q)
-      ),
-    get: (id: string) =>
-      withDemoFallback<Booking>(
-        () => apiGet(`/admin/bookings/${encodeURIComponent(id)}`),
-        () => demoAdmin.bookings.get(id)
-      ),
-    updateStatus: (id: string, input: { status: BookingStatus }) =>
-      withDemoFallback<Booking>(
-        () => apiPut(`/admin/bookings/${encodeURIComponent(id)}/status`, input),
-        () => demoAdmin.bookings.updateStatus(id, input)
       ),
   },
   users: {

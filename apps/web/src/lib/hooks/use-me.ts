@@ -80,7 +80,6 @@ export function useLogout() {
     useAuthStore.getState().logout();
     qc.removeQueries({ queryKey: qk.me() });
     qc.removeQueries({ queryKey: qk.orders() });
-    qc.removeQueries({ queryKey: qk.bookings() });
     qc.removeQueries({ queryKey: qk.addresses() });
     qc.removeQueries({ queryKey: ['admin'] });
   };

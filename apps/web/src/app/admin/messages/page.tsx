@@ -5,7 +5,7 @@ import { AdminMessagesClient } from './client';
 
 export const metadata: Metadata = {
   title: 'پیام‌ها',
-  description: 'پیام‌های دریافتی از فرم تماس اتولانژ',
+  description: 'پیام‌های دریافتی از فرم تماس تکنو خان',
 };
 
 export default function AdminMessagesPage() {

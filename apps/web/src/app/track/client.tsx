@@ -194,13 +194,7 @@ function TrackResultCard({ result }: { result: TrackResult }) {
       )}
 
       <dl className="grid gap-x-6 gap-y-2.5 border-t border-border/60 pt-4 text-sm sm:grid-cols-2">
-        {result.kind === 'booking' ? (
-          <>
-            <Row label="خدمت" value={result.serviceName} />
-            <Row label="تاریخ" value={result.date ? formatJalali(result.date, true) : undefined} />
-            <Row label="بازهٔ زمانی" value={result.timeSlot ? toPersianDigits(result.timeSlot) : undefined} dir="ltr" />
-          </>
-        ) : (
+        {(
           <>
             <Row label="تعداد اقلام" value={result.itemCount ? toPersianDigits(result.itemCount) : undefined} />
             <Row label="مقصد" value={result.destination} />

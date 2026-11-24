@@ -1,6 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
 import {
-  CalendarDays,
   LayoutDashboard,
   MessageSquare,
   Package,
@@ -9,7 +8,6 @@ import {
   Star,
   Tag,
   Users,
-  Wrench,
 } from 'lucide-react';
 import type { AdminDashboardStats } from '@technokhan/shared';
 
@@ -20,15 +18,13 @@ export interface AdminNavItem {
   /** Only the exact path is active (the dashboard root). */
   exact?: boolean;
   /** Dashboard stat used for the small counter badge. */
-  badgeKey?: keyof Pick<AdminDashboardStats, 'unreadMessages' | 'pendingOrders' | 'pendingBookings'>;
+  badgeKey?: keyof Pick<AdminDashboardStats, 'unreadMessages' | 'pendingOrders'>;
 }
 
 export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin', label: 'داشبورد', icon: LayoutDashboard, exact: true },
   { href: '/admin/orders', label: 'سفارش‌ها', icon: ShoppingBag },
-  { href: '/admin/bookings', label: 'رزروها', icon: CalendarDays },
   { href: '/admin/products', label: 'محصولات', icon: Package },
-  { href: '/admin/services', label: 'خدمات', icon: Wrench },
   { href: '/admin/users', label: 'کاربران', icon: Users },
   { href: '/admin/messages', label: 'پیام‌ها', icon: MessageSquare, badgeKey: 'unreadMessages' },
   { href: '/admin/reviews', label: 'نظرات', icon: Star },

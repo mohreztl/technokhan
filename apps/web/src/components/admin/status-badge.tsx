@@ -2,8 +2,6 @@
 
 import * as React from 'react';
 import {
-  BOOKING_STATUS_LABELS,
-  BookingStatus,
   ORDER_STATUS_LABELS,
   OrderStatus,
   PAYMENT_STATUS_LABELS,
@@ -11,7 +9,7 @@ import {
 } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 
-export type StatusKind = 'order' | 'booking' | 'payment';
+export type StatusKind = 'order' | 'payment';
 
 export interface StatusMeta {
   label: string;
@@ -62,14 +60,6 @@ const ORDER_TONES: Record<string, Tone> = {
   [OrderStatus.CANCELLED]: 'destructive',
 };
 
-const BOOKING_TONES: Record<string, Tone> = {
-  [BookingStatus.PENDING]: 'warning',
-  [BookingStatus.CONFIRMED]: 'navy',
-  [BookingStatus.IN_PROGRESS]: 'gold',
-  [BookingStatus.COMPLETED]: 'success',
-  [BookingStatus.CANCELLED]: 'destructive',
-};
-
 const PAYMENT_TONES: Record<string, Tone> = {
   [PaymentStatus.PENDING]: 'warning',
   [PaymentStatus.PAID]: 'success',
@@ -85,28 +75,6 @@ export const ORDER_STATUSES: OrderStatus[] = [
   OrderStatus.DELIVERED,
   OrderStatus.CANCELLED,
 ];
-
-export const BOOKING_STATUSES: BookingStatus[] = [
-  BookingStatus.PENDING,
-  BookingStatus.CONFIRMED,
-  BookingStatus.IN_PROGRESS,
-  BookingStatus.COMPLETED,
-  BookingStatus.CANCELLED,
-];
-
-/** The natural next step of a booking (pending → confirmed → in_progress → completed). */
-export function nextBookingStatus(status: BookingStatus): BookingStatus | null {
-  switch (status) {
-    case BookingStatus.PENDING:
-      return BookingStatus.CONFIRMED;
-    case BookingStatus.CONFIRMED:
-      return BookingStatus.IN_PROGRESS;
-    case BookingStatus.IN_PROGRESS:
-      return BookingStatus.COMPLETED;
-    default:
-      return null;
-  }
-}
 
 /** The natural next step of an order (pending → processing → shipped → delivered). */
 export function nextOrderStatus(status: OrderStatus): OrderStatus | null {
@@ -124,12 +92,12 @@ export function nextOrderStatus(status: OrderStatus): OrderStatus | null {
 
 export function statusLabel(kind: StatusKind, status: string): string {
   const labels =
-    kind === 'order' ? ORDER_STATUS_LABELS : kind === 'booking' ? BOOKING_STATUS_LABELS : PAYMENT_STATUS_LABELS;
+    kind === 'order' ? ORDER_STATUS_LABELS : PAYMENT_STATUS_LABELS;
   return labels[status] ?? status;
 }
 
 export function statusMeta(kind: StatusKind, status: string): StatusMeta {
-  const tones = kind === 'order' ? ORDER_TONES : kind === 'booking' ? BOOKING_TONES : PAYMENT_TONES;
+  const tones = kind === 'order' ? ORDER_TONES : PAYMENT_TONES;
   const tone = TONES[tones[status] ?? 'muted'];
   return { label: statusLabel(kind, status), ...tone };
 }
@@ -141,7 +109,7 @@ export interface StatusBadgeProps extends React.HTMLAttributes<HTMLSpanElement> 
   withDot?: boolean;
 }
 
-/** Tinted pill for order / booking / payment statuses with the shared Persian labels. */
+/** Tinted pill for order and payment statuses with the shared Persian labels. */
 export function StatusBadge({ kind, status, size = 'md', withDot = true, className, ...props }: StatusBadgeProps) {
   const meta = statusMeta(kind, status);
   return (

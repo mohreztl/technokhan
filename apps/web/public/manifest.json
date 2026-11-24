@@ -32,7 +32,7 @@
   ],
   "shortcuts": [
     { "name": "فروشگاه", "short_name": "فروشگاه", "description": "مشاهده همه گجت‌ها", "url": "/shop?source=pwa", "icons": [{ "src": "/icons/shortcut-products.png", "sizes": "96x96", "type": "image/png" }] },
-    { "name": "جستجو", "short_name": "جستجو", "description": "جستجوی محصول", "url": "/shop?focus=search&source=pwa", "icons": [{ "src": "/icons/shortcut-services.png", "sizes": "96x96", "type": "image/png" }] },
+    { "name": "جستجو", "short_name": "جستجو", "description": "جستجوی محصول", "url": "/shop?focus=search&source=pwa", "icons": [{ "src": "/icons/shortcut-products.png", "sizes": "96x96", "type": "image/png" }] },
     { "name": "سبد خرید", "short_name": "سبد", "description": "مشاهده سبد خرید", "url": "/cart?source=pwa", "icons": [{ "src": "/icons/shortcut-cart.png", "sizes": "96x96", "type": "image/png" }] }
   ],
   "share_target": {

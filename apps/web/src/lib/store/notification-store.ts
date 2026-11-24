@@ -1,14 +1,13 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import {
-  BOOKING_STATUS_LABELS,
   ORDER_STATUS_LABELS,
   ROUTES,
   formatToman,
 } from '@technokhan/shared';
-import type { Booking, Order } from '@technokhan/shared';
+import type { Order } from '@technokhan/shared';
 
-export type NotificationKind = 'order' | 'booking' | 'payment';
+export type NotificationKind = 'order' | 'payment';
 
 export interface AppNotification {
   /** Stable and status-scoped, so a re-sync never duplicates an event. */
@@ -22,7 +21,7 @@ export interface AppNotification {
   read: boolean;
 }
 
-export const NOTIFICATIONS_STORAGE_KEY = 'autolounge_notifications';
+export const NOTIFICATIONS_STORAGE_KEY = 'technokhan_notifications';
 /** Older entries fall off the end; this is a feed, not an archive. */
 const MAX_NOTIFICATIONS = 50;
 
@@ -101,7 +100,7 @@ export function useNotifications() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Deriving the feed from the customer's own orders and bookings       */
+/* Deriving the feed from the customer's own orders                    */
 /* ------------------------------------------------------------------ */
 
 const iso = (value: unknown): string => {
@@ -113,16 +112,8 @@ const ORDER_BODY: Record<string, string> = {
   pending: 'سفارش شما ثبت شد و در انتظار پرداخت است.',
   processing: 'سفارش شما در حال آماده‌سازی است.',
   shipped: 'سفارش شما ارسال شد.',
-  delivered: 'سفارش شما تحویل داده شد. ممنون که اتولانژ را انتخاب کردید.',
+  delivered: 'سفارش شما تحویل داده شد. ممنون که تکنو خان را انتخاب کردید.',
   cancelled: 'سفارش شما لغو شد.',
-};
-
-const BOOKING_BODY: Record<string, string> = {
-  pending: 'نوبت شما ثبت شد و در انتظار تأیید است.',
-  confirmed: 'نوبت شما تأیید شد؛ منتظر دیدنتان هستیم.',
-  in_progress: 'کار روی خودروی شما شروع شد.',
-  completed: 'خدمت شما انجام شد. خوشحال می‌شویم نظرتان را بدانیم.',
-  cancelled: 'نوبت شما لغو شد.',
 };
 
 /** One entry per order status the customer has reached, plus its payment. */
@@ -154,17 +145,4 @@ export function orderNotifications(orders: Order[]): AppNotification[] {
     }
     return seeds;
   });
-}
-
-/** One entry per booking status the customer has reached. */
-export function bookingNotifications(bookings: Booking[]): AppNotification[] {
-  return bookings.map((b) => ({
-    id: `booking:${b.id}:status:${b.status}`,
-    kind: 'booking' as const,
-    title: `${b.service?.name ?? 'نوبت شما'} — ${BOOKING_STATUS_LABELS[b.status] ?? b.status}`,
-    body: BOOKING_BODY[b.status] ?? 'وضعیت نوبت شما به‌روزرسانی شد.',
-    href: `${ROUTES.PROFILE}?tab=bookings`,
-    createdAt: iso(b.updatedAt ?? b.createdAt),
-    read: false,
-  }));
 }

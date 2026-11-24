@@ -2,7 +2,7 @@
  * Centralized Animation Variants Library
  *
  * Reusable Framer Motion animation variants for consistent motion design
- * across the entire application. Follows AutoLounge's luxury brand aesthetic.
+ * across the entire application. Follows TechnoKhan's industrial, precise aesthetic.
  */
 
 import { Variants, Transition, TargetAndTransition } from 'framer-motion';

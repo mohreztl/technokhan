@@ -59,7 +59,7 @@ export function buildQuery(params?: Record<string, unknown>): string {
 }
 
 /**
- * Isomorphic fetch wrapper for the AutoLounge API. Never throws.
+ * Isomorphic fetch wrapper for the TechnoKhan API. Never throws.
  * Parses the `{ success, data, pagination, error, code }` envelope.
  */
 export async function apiFetch<T>(path: string, opts: ApiFetchOptions = {}): Promise<ApiResult<T>> {

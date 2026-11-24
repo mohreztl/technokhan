@@ -145,12 +145,12 @@ export function ProductList({
               : []),
           ]}
         />
-        <p className="mt-2 text-xs font-bold tracking-[0.2em] text-secondary">فروشگاه اتولانژ</p>
+        <p className="mt-2 text-xs font-bold tracking-[0.2em] text-secondary">فروشگاه تکنو خان</p>
         <h1 className="mt-1 text-balance text-2xl font-black text-foreground sm:text-3xl lg:text-4xl">
           {title}
         </h1>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground sm:text-base">
-          محصولات اورجینال دیتیلینگ با ضمانت اصالت؛ همان‌هایی که تیم اتولانژ در سالن استفاده می‌کند.
+          گجت‌های اورجینال با ضمانت اصالت و مشخصات روشن؛ انتخاب‌هایی که تیم تکنو خان بررسی و استفاده می‌کند.
         </p>
       </header>
 

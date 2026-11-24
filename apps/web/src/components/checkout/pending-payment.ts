@@ -1,13 +1,12 @@
 /**
- * The order/booking we sent to the gateway, kept in `sessionStorage` so the
+ * The order we sent to the gateway, kept in `sessionStorage` so the
  * callback page can offer «پرداخت مجدد» even when the gateway drops the ids.
  */
 
-export const PENDING_PAYMENT_KEY = 'autolounge_pending_payment';
+export const PENDING_PAYMENT_KEY = 'technokhan_pending_payment';
 
 export interface PendingPayment {
   orderId?: string;
-  bookingId?: string;
   authority: string;
   amount?: number;
   createdAt: number;

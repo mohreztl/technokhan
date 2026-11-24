@@ -73,7 +73,6 @@ export function AdminUsersClient() {
     },
     { key: 'role', header: 'نقش', cell: (u) => <RoleBadge role={u.role} /> },
     { key: 'orders', header: 'سفارش‌ها', className: 'text-center', cell: (u) => <span className="tabular-nums">{toPersianDigits(u._count?.orders ?? 0)}</span> },
-    { key: 'bookings', header: 'رزروها', className: 'text-center', cell: (u) => <span className="tabular-nums">{toPersianDigits(u._count?.bookings ?? 0)}</span> },
     {
       key: 'joined',
       header: 'تاریخ عضویت',
@@ -147,7 +146,7 @@ export function AdminUsersClient() {
                 {phoneFa(u.phoneNumber)}
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {toPersianDigits(u._count?.orders ?? 0)} سفارش · {toPersianDigits(u._count?.bookings ?? 0)} رزرو · عضو از {formatJalali(u.createdAt)}
+                {toPersianDigits(u._count?.orders ?? 0)} سفارش · عضو از {formatJalali(u.createdAt)}
               </p>
             </div>
           </div>

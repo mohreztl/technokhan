@@ -3,7 +3,7 @@ import { AdminCouponsClient } from './client';
 
 export const metadata: Metadata = {
   title: 'کدهای تخفیف',
-  description: 'ساخت و مدیریت کدهای تخفیف اتولانژ',
+  description: 'ساخت و مدیریت کدهای تخفیف تکنو خان',
 };
 
 export default function AdminCouponsPage() {

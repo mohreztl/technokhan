@@ -5,7 +5,7 @@ import { config as appConfig, isDemoGateway } from '../config';
 import * as zarinpal from '../services/zarinpal.service';
 import * as zibal from '../services/zibal.service';
 import { sendPaymentConfirmation } from '../services/sms.service';
-import { bookingPaymentRequestSchema, paymentRequestSchema, paymentVerifySchema } from '../schemas';
+import { paymentRequestSchema, paymentVerifySchema } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
 import { forbidden, notFound, paymentError } from '../lib/errors';
 
@@ -13,7 +13,6 @@ const DEMO_PREFIX = 'DEMO-';
 
 interface StartPaymentInput {
   orderId?: string;
-  bookingId?: string;
   amount: number;
   callbackUrl?: string;
   description: string;
@@ -35,7 +34,6 @@ async function startPayment(input: StartPaymentInput): Promise<PaymentRequestRes
   const tx = await prisma.paymentTransaction.create({
     data: {
       orderId: input.orderId,
-      bookingId: input.bookingId,
       amount,
       status: 'pending',
       gateway: demo ? 'demo' : appConfig.payment.provider,
@@ -104,7 +102,6 @@ async function startPayment(input: StartPaymentInput): Promise<PaymentRequestRes
 
 const txInclude = {
   order: { include: { user: { select: { phoneNumber: true } } } },
-  booking: { include: { user: { select: { phoneNumber: true } } } },
 } as const;
 
 export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
@@ -127,36 +124,9 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
       orderId: order.id,
       amount: order.totalPrice,
       callbackUrl,
-      description: `پرداخت سفارش ${order.trackingCode ?? order.id} — اتولانژ`,
+      description: `پرداخت سفارش ${order.trackingCode ?? order.id} — تکنو خان`,
       mobile: order.user.phoneNumber,
       email: order.user.email,
-    });
-
-    return apiResponse.success(reply, result);
-  });
-
-  // POST /payment/booking/request — booking
-  fastify.post('/booking/request', { preHandler: [fastify.authenticate] }, async (request, reply) => {
-    const { bookingId, callbackUrl } = parse(bookingPaymentRequestSchema, request.body);
-
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { user: true, service: { select: { name: true } } },
-    });
-    if (!booking) throw notFound('رزرو یافت نشد');
-    if (booking.userId !== request.user.id && request.user.role !== 'admin') {
-      throw forbidden('شما به این رزرو دسترسی ندارید');
-    }
-    if (booking.status === 'cancelled') throw paymentError('رزرو لغو شده قابل پرداخت نیست', 400);
-    if (booking.status !== 'pending') throw paymentError('این رزرو قبلاً پرداخت/تأیید شده است', 400);
-
-    const result = await startPayment({
-      bookingId: booking.id,
-      amount: booking.totalPrice,
-      callbackUrl,
-      description: `پرداخت رزرو ${booking.service.name} (${booking.trackingCode ?? booking.id}) — اتولانژ`,
-      mobile: booking.user.phoneNumber,
-      email: booking.user.email,
     });
 
     return apiResponse.success(reply, result);
@@ -174,7 +144,6 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
       success: false,
       amount: tx.amount,
       orderId: tx.orderId ?? undefined,
-      bookingId: tx.bookingId ?? undefined,
     };
 
     if (tx.status === 'success') {
@@ -189,8 +158,8 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
 
     // Refuse before capturing: an unverified Zarinpal transaction is reversed automatically,
     // so bailing out here is what keeps a cancelled order from being charged.
-    if (tx.order?.status === 'cancelled' || tx.booking?.status === 'cancelled') {
-      await markFailed(tx.id, tx.orderId, 'CANCELLED', 'سفارش یا رزرو پیش از پرداخت لغو شده بود');
+    if (tx.order?.status === 'cancelled') {
+      await markFailed(tx.id, tx.orderId, 'CANCELLED', 'سفارش پیش از پرداخت لغو شده بود');
       return apiResponse.success(reply, {
         ...base,
         message: 'این سفارش پیش از تکمیل پرداخت لغو شده بود و مبلغی کسر نشد',
@@ -238,17 +207,11 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
           },
         });
       }
-      if (tx.bookingId) {
-        await db.booking.update({
-          where: { id: tx.bookingId },
-          data: { ...(tx.booking?.status === 'pending' ? { status: 'confirmed' } : {}) },
-        });
-      }
     });
 
-    const phone = tx.order?.user.phoneNumber ?? tx.booking?.user.phoneNumber;
-    const code = tx.order?.trackingCode ?? tx.booking?.trackingCode ?? tx.orderId ?? tx.bookingId ?? '';
-    if (phone) void sendPaymentConfirmation(phone, tx.orderId ? 'order' : 'booking', code, refId);
+    const phone = tx.order?.user.phoneNumber;
+    const code = tx.order?.trackingCode ?? tx.orderId ?? '';
+    if (phone) void sendPaymentConfirmation(phone, 'order', code, refId);
 
     return apiResponse.success(reply, {
       ...base,
@@ -294,7 +257,7 @@ export const paymentRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get('/history', { preHandler: [fastify.authenticate] }, async (request, reply) => {
     const transactions = await prisma.paymentTransaction.findMany({
       where: {
-        OR: [{ order: { userId: request.user.id } }, { booking: { userId: request.user.id } }],
+        order: { userId: request.user.id },
       },
       orderBy: { createdAt: 'desc' },
       take: 50,

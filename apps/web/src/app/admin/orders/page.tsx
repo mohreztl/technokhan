@@ -5,7 +5,7 @@ import { AdminOrdersClient } from './client';
 
 export const metadata: Metadata = {
   title: 'سفارش‌ها',
-  description: 'مدیریت سفارش‌های فروشگاه اتولانژ',
+  description: 'مدیریت سفارش‌های فروشگاه تکنو خان',
 };
 
 export default function AdminOrdersPage() {

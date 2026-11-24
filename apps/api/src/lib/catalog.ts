@@ -13,7 +13,7 @@ export const reviewSelect = {
   createdAt: true,
 } satisfies Prisma.ReviewSelect;
 
-/** `include: { reviews: approvedReviews }` on Product / Service reads */
+/** `include: { reviews: approvedReviews }` on product reads */
 export const approvedReviews = {
   where: { isApproved: true },
   orderBy: { createdAt: 'desc' as const },
@@ -28,15 +28,6 @@ export const productSummarySelect = {
   brand: true,
 } satisfies Prisma.ProductSelect;
 
-export const serviceSummarySelect = {
-  id: true,
-  name: true,
-  nameEn: true,
-  images: true,
-  duration: true,
-  type: true,
-} satisfies Prisma.ServiceSelect;
-
 export const userSummarySelect = {
   id: true,
   phoneNumber: true,
@@ -48,10 +39,6 @@ export const orderInclude = {
   items: { include: { product: { select: productSummarySelect } } },
   transactions: { orderBy: { createdAt: 'desc' as const } },
 } satisfies Prisma.OrderInclude;
-
-export const bookingInclude = {
-  service: { select: serviceSummarySelect },
-} satisfies Prisma.BookingInclude;
 
 /** case-insensitive `contains` across several text columns */
 export function searchFilter(search: string, fields: string[]): Record<string, unknown>[] {
@@ -69,7 +56,7 @@ export function displayName(user: { name?: string | null; phoneNumber: string })
 /** Recompute `rating` / `reviewCount` from approved reviews */
 export async function recomputeRating(
   db: Db,
-  target: { productId?: string | null; serviceId?: string | null }
+  target: { productId?: string | null }
 ): Promise<void> {
   if (target.productId) {
     const agg = await db.review.aggregate({
@@ -79,17 +66,6 @@ export async function recomputeRating(
     });
     await db.product.update({
       where: { id: target.productId },
-      data: { rating: round1(agg._avg.rating ?? 0), reviewCount: agg._count._all },
-    });
-  }
-  if (target.serviceId) {
-    const agg = await db.review.aggregate({
-      where: { serviceId: target.serviceId, isApproved: true },
-      _avg: { rating: true },
-      _count: { _all: true },
-    });
-    await db.service.update({
-      where: { id: target.serviceId },
       data: { rating: round1(agg._avg.rating ?? 0), reviewCount: agg._count._all },
     });
   }

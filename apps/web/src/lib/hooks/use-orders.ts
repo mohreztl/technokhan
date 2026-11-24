@@ -73,13 +73,6 @@ export function useRequestPayment() {
   });
 }
 
-export function useRequestBookingPayment() {
-  return useMutation({
-    mutationFn: ({ bookingId, callbackUrl }: { bookingId: string; callbackUrl?: string }) =>
-      unwrap(paymentApi.requestBooking(bookingId, callbackUrl)),
-  });
-}
-
 export function useVerifyPayment() {
   const qc = useQueryClient();
   return useMutation({
@@ -87,9 +80,7 @@ export function useVerifyPayment() {
       unwrap(paymentApi.verify(authority, status)),
     onSuccess: (r) => {
       qc.invalidateQueries({ queryKey: qk.orders() });
-      qc.invalidateQueries({ queryKey: qk.bookings() });
       if (r.orderId) qc.invalidateQueries({ queryKey: qk.order(r.orderId) });
-      if (r.bookingId) qc.invalidateQueries({ queryKey: qk.booking(r.bookingId) });
     },
   });
 }

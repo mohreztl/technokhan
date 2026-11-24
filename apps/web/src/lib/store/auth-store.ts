@@ -15,7 +15,7 @@ export interface AuthState {
   setStatus: (status: AuthStatus) => void;
 }
 
-export const AUTH_STORAGE_KEY = 'autolounge_auth';
+export const AUTH_STORAGE_KEY = 'technokhan_auth';
 
 export const useAuthStore = create<AuthState>()(
   persist(

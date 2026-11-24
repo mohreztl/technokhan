@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   BookOpen,
-  Camera,
   FileText,
   GitCompareArrows,
   Heart,
@@ -60,8 +59,7 @@ export function MoreSheet() {
   const links: MoreLink[] = [
     { label: 'درباره ما', href: ROUTES.ABOUT, icon: Info },
     { label: 'تماس با ما', href: ROUTES.CONTACT, icon: Phone },
-    { label: 'نمونه کارها', href: ROUTES.GALLERY, icon: Camera },
-    { label: 'مقایسهٔ خدمات', href: ROUTES.COMPARE, icon: GitCompareArrows },
+    { label: 'مقایسه محصولات', href: ROUTES.COMPARE, icon: GitCompareArrows },
     { label: 'مجله', href: ROUTES.BLOG, icon: BookOpen },
     { label: 'سؤالات متداول', href: ROUTES.FAQ, icon: HelpCircle },
     { label: 'پیگیری سفارش', href: ROUTES.TRACK, icon: PackageSearch },
@@ -94,7 +92,7 @@ export function MoreSheet() {
           {isAuthenticated ? (
             <>
               <p className="truncate text-sm font-bold text-foreground">
-                {user?.name || 'کاربر اتولانژ'}
+                {user?.name || 'کاربر تکنو خان'}
               </p>
               <p className="truncate text-xs text-muted-foreground" dir="ltr">
                 {toPersianDigits(user?.phoneNumber ?? user?.phone ?? '')}
@@ -102,7 +100,7 @@ export function MoreSheet() {
             </>
           ) : (
             <>
-              <p className="text-sm font-bold text-foreground">به اتولانژ خوش آمدید</p>
+              <p className="text-sm font-bold text-foreground">به تکنو خان خوش آمدید</p>
               <p className="text-xs text-muted-foreground">برای پیگیری سفارش‌ها وارد شوید</p>
             </>
           )}

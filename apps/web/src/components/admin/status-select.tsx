@@ -4,10 +4,10 @@ import * as React from 'react';
 import { Ban } from 'lucide-react';
 import { Select } from '@/components/ui/select';
 import { ConfirmDialog } from '@/components/admin/confirm-dialog';
-import { BOOKING_STATUSES, ORDER_STATUSES, statusLabel } from '@/components/admin/status-badge';
+import { ORDER_STATUSES, statusLabel } from '@/components/admin/status-badge';
 
 export interface StatusSelectProps {
-  kind: 'order' | 'booking';
+  kind: 'order';
   value: string;
   onChange: (next: string) => void;
   label?: string;
@@ -36,7 +36,7 @@ export function StatusSelect({
   className,
 }: StatusSelectProps) {
   const [pending, setPending] = React.useState<string | null>(null);
-  const list = options ?? (kind === 'order' ? ORDER_STATUSES : BOOKING_STATUSES);
+  const list = options ?? ORDER_STATUSES;
 
   const handle = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const next = e.target.value;

@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { normalizePhoneNumber, trackingCodeKind } from '@technokhan/shared';
+import { normalizePhoneNumber } from '@technokhan/shared';
 import type { TrackResult } from '@technokhan/shared';
 
 import { prisma } from '../lib/prisma';
@@ -9,7 +9,7 @@ import { parse, apiResponse } from '../lib/validation';
 import { notFound } from '../lib/errors';
 
 /**
- * Public order and booking tracking, for customers who never made an account.
+ * Public order tracking, for customers who never made an account.
  *
  * A tracking code is six characters and sits in an SMS, so it is treated as a
  * weak secret: the caller also has to supply the phone number on the record,
@@ -21,37 +21,7 @@ export const trackRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/', { config: { rateLimit: appConfig.rateLimit.otp } }, async (request, reply) => {
     const input = parse(trackSchema, request.body);
     const phone = normalizePhoneNumber(input.phoneNumber);
-    const missing = notFound('سفارش یا رزروی با این کد و شمارهٔ موبایل پیدا نشد');
-
-    if (trackingCodeKind(input.code) === 'booking') {
-      const booking = await prisma.booking.findUnique({
-        where: { trackingCode: input.code },
-        select: {
-          status: true,
-          totalPrice: true,
-          date: true,
-          timeSlot: true,
-          createdAt: true,
-          updatedAt: true,
-          service: { select: { name: true } },
-          user: { select: { phoneNumber: true } },
-        },
-      });
-      if (!booking || normalizePhoneNumber(booking.user.phoneNumber) !== phone) throw missing;
-
-      const result: TrackResult = {
-        kind: 'booking',
-        code: input.code,
-        status: booking.status,
-        createdAt: booking.createdAt,
-        updatedAt: booking.updatedAt,
-        totalPrice: booking.totalPrice,
-        serviceName: booking.service.name,
-        date: booking.date,
-        timeSlot: booking.timeSlot,
-      };
-      return apiResponse.success(reply, result);
-    }
+    const missing = notFound('سفارشی با این کد و شمارهٔ موبایل پیدا نشد');
 
     const order = await prisma.order.findUnique({
       where: { trackingCode: input.code },

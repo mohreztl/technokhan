@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { CalendarDays, ChevronLeft, Mail, Phone, ShoppingBag } from 'lucide-react';
+import { ChevronLeft, Mail, Phone, ShoppingBag } from 'lucide-react';
 import { formatToman, toPersianDigits } from '@technokhan/shared';
 import { adminApi, type AdminUser } from '@/lib/api/endpoints';
 import { unwrap } from '@/lib/api/client';
@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatusBadge } from './status-badge';
 import { ErrorBanner } from './error-banner';
 import { EmptyState } from './data-table';
-import { ROLE_LABELS, bookingCode, bookingDate, bookingServiceName, orderCode, phoneFa, timeSlotFa } from './format';
+import { ROLE_LABELS, orderCode, phoneFa } from './format';
 
 export interface UserDetailSheetProps {
   /** Row from the users list — shown immediately while the full record loads. */
@@ -26,7 +26,7 @@ export interface UserDetailSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
-/** Profile + the user's orders and bookings (`GET /admin/users/:id`). */
+/** Profile and the user's product orders (`GET /admin/users/:id`). */
 export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetProps) {
   const { isAdmin } = useAuth();
   const id = user?.id;
@@ -39,15 +39,13 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
 
   const u = data ?? user;
   const orders = data?.orders ?? user?.orders ?? [];
-  const bookings = data?.bookings ?? user?.bookings ?? [];
   const orderCount = u?._count?.orders ?? orders.length;
-  const bookingCount = u?._count?.bookings ?? bookings.length;
 
   return (
     <ResponsiveDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={u?.name || 'کاربر اتولانژ'}
+      title={u?.name || 'کاربر تکنو خان'}
       description={u ? `عضو از ${formatJalali(u.createdAt)}` : undefined}
       snapPoints={[0.7, 0.92]}
       desktopClassName="max-w-xl"
@@ -106,10 +104,6 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
               <p className="text-2xl font-black text-foreground">{toPersianDigits(orderCount)}</p>
               <p className="text-xs text-muted-foreground">سفارش</p>
             </div>
-            <div className="rounded-xl bg-background-secondary/70 p-3 text-center">
-              <p className="text-2xl font-black text-foreground">{toPersianDigits(bookingCount)}</p>
-              <p className="text-xs text-muted-foreground">رزرو</p>
-            </div>
           </div>
 
           {isError && <ErrorBanner message={error.message} onRetry={() => refetch()} />}
@@ -150,39 +144,6 @@ export function UserDetailSheet({ user, open, onOpenChange }: UserDetailSheetPro
             )}
           </section>
 
-          <section>
-            <h3 className="mb-2 flex items-center gap-2 text-sm font-bold text-foreground">
-              <CalendarDays className="h-4 w-4 text-secondary-800 dark:text-secondary-300" aria-hidden="true" />
-              رزروها
-            </h3>
-            {isLoading && !data ? (
-              <SheetListSkeleton />
-            ) : bookings.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-border/70 py-6">
-                <EmptyState title="رزروی ثبت نشده" />
-              </div>
-            ) : (
-              <ul className="divide-y divide-border/50 rounded-xl border border-border/60">
-                {bookings.map((b) => (
-                  <li key={b.id}>
-                    <Link
-                      href={`/admin/bookings/${b.id}`}
-                      className="flex min-h-[56px] items-center gap-3 px-3 py-2 transition-colors hover:bg-secondary/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-foreground">{bookingServiceName(b)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          <span dir="ltr">{bookingCode(b)}</span> · {formatJalali(bookingDate(b))} · {timeSlotFa(b.timeSlot)}
-                        </p>
-                      </div>
-                      <StatusBadge kind="booking" status={b.status} size="sm" />
-                      <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
         </div>
       )}
     </ResponsiveDialog>

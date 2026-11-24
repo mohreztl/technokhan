@@ -3,11 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {
-  CalendarDays,
   ChevronLeft,
   Clock,
   ExternalLink,
-  Hourglass,
   MailOpen,
   Package,
   Plus,
@@ -15,7 +13,6 @@ import {
   ShoppingBag,
   Users,
   Wallet,
-  Wrench,
 } from 'lucide-react';
 import { APP_NAME, ROUTES, formatToman, toPersianDigits } from '@technokhan/shared';
 import { useAdminDashboard } from '@/lib/hooks/use-admin';
@@ -28,12 +25,10 @@ import { StatusBadge } from '@/components/admin/status-badge';
 import { DetailCard } from '@/components/admin/detail-card';
 import { EmptyState } from '@/components/admin/data-table';
 import { ErrorBanner } from '@/components/admin/error-banner';
-import { bookingCode, bookingDate, bookingServiceName, orderCode, timeSlotFa } from '@/components/admin/format';
+import { orderCode } from '@/components/admin/format';
 
 const QUICK_ACTIONS = [
   { href: '/admin/products?new=1', label: 'محصول جدید', icon: Package },
-  { href: '/admin/services?new=1', label: 'خدمت جدید', icon: Wrench },
-  { href: '/admin/bookings?date=today', label: 'رزروهای امروز', icon: CalendarDays },
   { href: '/admin/orders?status=pending', label: 'سفارش‌های در انتظار', icon: Clock },
 ] as const;
 
@@ -57,7 +52,7 @@ export function AdminDashboardClient() {
 
       {isError && <ErrorBanner message={error.message} onRetry={() => refetch()} className="mb-5" />}
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard
           icon={<Wallet />}
           label="درآمد پرداخت‌شده"
@@ -69,7 +64,6 @@ export function AdminDashboardClient() {
         />
         <StatCard icon={<Users />} label="کاربران" value={stats?.users ?? 0} href="/admin/users" accent="navy" loading={isLoading} />
         <StatCard icon={<ShoppingBag />} label="سفارش‌ها" value={stats?.orders ?? 0} href="/admin/orders" loading={isLoading} />
-        <StatCard icon={<CalendarDays />} label="رزروها" value={stats?.bookings ?? 0} href="/admin/bookings" loading={isLoading} />
         <StatCard
           icon={<Clock />}
           label="سفارش‌های در انتظار"
@@ -77,15 +71,6 @@ export function AdminDashboardClient() {
           href="/admin/orders?status=pending"
           accent="warning"
           loading={isLoading}
-        />
-        <StatCard
-          icon={<Hourglass />}
-          label="رزروهای در انتظار"
-          value={stats?.pendingBookings ?? 0}
-          href="/admin/bookings?status=pending"
-          accent="warning"
-          loading={isLoading}
-          className="col-span-2 md:col-span-1"
         />
       </div>
 
@@ -130,7 +115,7 @@ export function AdminDashboardClient() {
         </div>
       </section>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <div className="mt-6">
         <DetailCard
           title="آخرین سفارش‌ها"
           icon={<ShoppingBag />}
@@ -180,48 +165,6 @@ export function AdminDashboardClient() {
           )}
         </DetailCard>
 
-        <DetailCard
-          title="آخرین رزروها"
-          icon={<CalendarDays />}
-          contentClassName="p-0"
-          action={
-            <Link href="/admin/bookings" className="inline-flex min-h-[44px] items-center gap-1 text-xs font-semibold text-primary hover:underline dark:text-secondary">
-              همه
-              <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            </Link>
-          }
-        >
-          {isLoading ? (
-            <ListSkeleton />
-          ) : !stats || stats.recentBookings.length === 0 ? (
-            <div className="py-8">
-              <EmptyState icon={<CalendarDays />} title="هنوز رزروی ثبت نشده" />
-            </div>
-          ) : (
-            <ul className="divide-y divide-border/50">
-              {stats.recentBookings.map((b) => (
-                <li key={b.id}>
-                  <Link
-                    href={`/admin/bookings/${b.id}`}
-                    className="flex min-h-[64px] items-center gap-3 px-4 py-3 transition-colors hover:bg-secondary/10 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="truncate text-sm font-bold text-foreground">{bookingServiceName(b)}</span>
-                        <StatusBadge kind="booking" status={b.status} size="sm" />
-                      </div>
-                      <p className="mt-1 truncate text-xs text-muted-foreground">
-                        <span dir="ltr">{bookingCode(b)}</span> · {b.carModel} · {formatJalali(bookingDate(b))} · {timeSlotFa(b.timeSlot)}
-                      </p>
-                    </div>
-                    <p className="text-sm font-bold text-foreground">{formatToman(b.totalPrice)}</p>
-                    <ChevronLeft className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          )}
-        </DetailCard>
       </div>
     </>
   );

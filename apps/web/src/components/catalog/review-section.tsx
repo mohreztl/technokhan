@@ -8,7 +8,7 @@ import { MessageSquare, Send } from 'lucide-react';
 import { reviewSchema, toPersianDigits, type Review } from '@technokhan/shared';
 import { cn } from '@/lib/utils';
 import { formatJalali } from '@/lib/jalali';
-import { productsApi, servicesApi } from '@/lib/api/endpoints';
+import { productsApi } from '@/lib/api/endpoints';
 import { useAuth } from '@/lib/store/auth-store';
 import { useRequireAuth } from '@/components/auth/login-sheet';
 import { Avatar } from '@/components/ui/avatar';
@@ -18,7 +18,7 @@ import { showToast } from '@/components/ui/toaster';
 import { RatingStars, StarPicker } from './rating-stars';
 
 export interface ReviewSectionProps {
-  kind: 'product' | 'service';
+  kind: 'product';
   targetId: string;
   reviews: Review[];
   rating?: number;
@@ -48,7 +48,7 @@ const isoDate = (value: string | Date): string =>
   typeof value === 'string' ? value : value.toISOString();
 
 /** Rating summary, approved reviews and a submit form gated by auth. */
-export function ReviewSection({ kind, targetId, reviews, rating, reviewCount, className }: ReviewSectionProps) {
+export function ReviewSection({ targetId, reviews, rating, reviewCount, className }: ReviewSectionProps) {
   const { status } = useAuth();
   const ensureAuth = useRequireAuth();
 
@@ -66,8 +66,7 @@ export function ReviewSection({ kind, targetId, reviews, rating, reviewCount, cl
 
   const onSubmit = async (values: ReviewValues) => {
     if (!ensureAuth()) return;
-    const api = kind === 'product' ? productsApi : servicesApi;
-    const result = await api.addReview(targetId, values);
+    const result = await productsApi.addReview(targetId, values);
     if (!result.ok) {
       showToast.error('ثبت نظر انجام نشد', result.error);
       return;

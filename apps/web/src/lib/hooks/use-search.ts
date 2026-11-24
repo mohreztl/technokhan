@@ -2,13 +2,12 @@
 
 import Fuse, { type IFuseOptions } from 'fuse.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { PRODUCTS, SERVICES } from '@technokhan/shared';
-import type { Product, Service } from '@technokhan/shared';
+import { PRODUCTS } from '@technokhan/shared';
+import type { Product } from '@technokhan/shared';
 
-// Search result types
 export interface SearchResult {
-  type: 'product' | 'service';
-  item: Product | Service;
+  type: 'product';
+  item: Product;
   score: number;
 }
 
@@ -17,10 +16,9 @@ export type SearchableItem = Pick<Product, 'name' | 'nameEn' | 'description'> & 
   tags?: string[];
 };
 
-// Fuse.js options for Persian-friendly fuzzy search
 const FUSE_OPTIONS: IFuseOptions<SearchableItem> = {
   includeScore: true,
-  threshold: 0.4, // Lower = more strict matching
+  threshold: 0.4,
   distance: 100,
   minMatchCharLength: 2,
   ignoreLocation: true,
@@ -35,86 +33,36 @@ const FUSE_OPTIONS: IFuseOptions<SearchableItem> = {
 
 const options = <T extends SearchableItem>() => FUSE_OPTIONS as IFuseOptions<T>;
 
-// Hook for searching products
 export function useProductSearch(products: Product[]) {
   const fuse = useMemo(() => new Fuse(products, options<Product>()), [products]);
-
-  const search = useCallback(
-    (query: string): Product[] => {
-      if (!query.trim()) return products;
-      return fuse.search(query).map((result) => result.item);
-    },
-    [fuse, products]
-  );
-
+  const search = useCallback((query: string): Product[] => {
+    if (!query.trim()) return products;
+    return fuse.search(query).map((result) => result.item);
+  }, [fuse, products]);
   return { search };
 }
 
-// Hook for searching services
-export function useServiceSearch(services: Service[]) {
-  const fuse = useMemo(() => new Fuse(services, options<Service>()), [services]);
-
-  const search = useCallback(
-    (query: string): Service[] => {
-      if (!query.trim()) return services;
-      return fuse.search(query).map((result) => result.item);
-    },
-    [fuse, services]
-  );
-
+export function useGlobalSearch(products: Product[], limit = 10) {
+  const fuse = useMemo(() => new Fuse(products, options<Product>()), [products]);
+  const search = useCallback((query: string): SearchResult[] => {
+    const q = query.trim();
+    if (!q) return [];
+    return fuse.search(q).map((result) => ({ type: 'product' as const, item: result.item, score: result.score ?? 0 })).slice(0, limit);
+  }, [fuse, limit]);
   return { search };
 }
 
-// Combined search hook for both products and services
-export function useGlobalSearch(products: Product[], services: Service[], limit = 10) {
-  const productFuse = useMemo(() => new Fuse(products, options<Product>()), [products]);
-  const serviceFuse = useMemo(() => new Fuse(services, options<Service>()), [services]);
-
-  const search = useCallback(
-    (query: string): SearchResult[] => {
-      const q = query.trim();
-      if (!q) return [];
-
-      const productResults = productFuse.search(q).map((result) => ({
-        type: 'product' as const,
-        item: result.item,
-        score: result.score ?? 0,
-      }));
-
-      const serviceResults = serviceFuse.search(q).map((result) => ({
-        type: 'service' as const,
-        item: result.item,
-        score: result.score ?? 0,
-      }));
-
-      // Combine and sort by score (lower is better)
-      return [...productResults, ...serviceResults]
-        .sort((a, b) => a.score - b.score)
-        .slice(0, limit);
-    },
-    [productFuse, serviceFuse, limit]
-  );
-
-  return { search };
-}
-
-/** Global search over the shared catalog (`PRODUCTS` + `SERVICES`). */
 export function useCatalogSearch(limit = 10) {
-  return useGlobalSearch(PRODUCTS, SERVICES, limit);
+  return useGlobalSearch(PRODUCTS, limit);
 }
 
-// Standalone search function for server-side use
-export function searchItems<T extends SearchableItem>(
-  items: T[],
-  query: string,
-  overrides?: Partial<IFuseOptions<T>>
-): T[] {
+export function searchItems<T extends SearchableItem>(items: T[], query: string, overrides?: Partial<IFuseOptions<T>>): T[] {
   if (!query.trim()) return items;
   const fuse = new Fuse(items, { ...options<T>(), ...overrides });
   return fuse.search(query).map((result) => result.item);
 }
 
-export const RECENT_SEARCHES_KEY = 'autolounge_recent_searches';
+export const RECENT_SEARCHES_KEY = 'technokhan_recent_searches';
 const RECENT_LIMIT = 6;
 
 function readRecent(): string[] {

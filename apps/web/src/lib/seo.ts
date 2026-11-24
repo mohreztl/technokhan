@@ -7,14 +7,12 @@ import {
   CONTACT,
   findCategory,
   PRODUCT_CATEGORY_LABELS,
-  SERVICE_TYPE_LABELS,
   SOCIAL_MEDIA,
   effectivePrice,
   type Article,
   type Category,
   type FaqItem,
   type Product,
-  type Service,
 } from '@technokhan/shared';
 import { absoluteUrl } from '@/lib/site';
 import { parseShopQuery, shopQueryToSearchParams, type ShopSearchParams } from '@/lib/shop-query';
@@ -224,39 +222,6 @@ export function categoryPageJsonLd(category: Category, products: Product[]): Jso
       { name: category.name, href: `/category/${category.id}` },
     ]),
   ];
-}
-
-export function serviceJsonLd(service: Service, url: string): JsonLdData {
-  const pricing = service.pricing;
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'Service',
-    '@id': `${url}#service`,
-    name: service.name,
-    alternateName: service.nameEn,
-    description: service.description,
-    serviceType: SERVICE_TYPE_LABELS[service.type] ?? service.type,
-    image: service.images.map(toAbsolute),
-    url,
-    provider: { '@id': LOCAL_BUSINESS_ID() },
-    areaServed: { '@type': 'City', name: 'Tehran' },
-    aggregateRating: ratingOf(service),
-    offers: {
-      '@type': 'Offer',
-      url,
-      priceCurrency: 'IRR',
-      price: tomanToRial(pricing?.small ?? service.price),
-      priceSpecification: pricing
-        ? {
-            '@type': 'PriceSpecification',
-            priceCurrency: 'IRR',
-            minPrice: tomanToRial(pricing.small),
-            maxPrice: tomanToRial(pricing.large),
-          }
-        : undefined,
-      availability: 'https://schema.org/InStock',
-    },
-  };
 }
 
 /**

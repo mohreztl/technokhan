@@ -1,10 +1,10 @@
 import { ROUTES } from '@technokhan/shared';
 
-export type TabKey = 'home' | 'services' | 'booking' | 'shop' | 'profile';
+export type TabKey = 'home' | 'shop' | 'profile';
 
-const DETAIL_ROUTE = /^\/(products|services)\/[^/]+\/?$/;
+const DETAIL_ROUTE = /^\/products\/[^/]+\/?$/;
 
-/** `/products/[id]` and `/services/[id]` */
+/** `/products/[id]` */
 export function isDetailRoute(pathname: string): boolean {
   return DETAIL_ROUTE.test(pathname);
 }
@@ -20,9 +20,7 @@ export function isTabBarHidden(pathname: string): boolean {
 /** Routes where the floating mobile cart pill may appear. */
 export function isCartPillRoute(pathname: string): boolean {
   if (pathname === ROUTES.HOME) return true;
-  return [ROUTES.PRODUCTS, ROUTES.SERVICES, ROUTES.GALLERY].some(
-    (base) => pathname === base || pathname.startsWith(`${base}/`)
-  );
+  return pathname === ROUTES.PRODUCTS || pathname.startsWith(`${ROUTES.PRODUCTS}/`);
 }
 
 const startsWithRoute = (pathname: string, base: string) =>
@@ -31,8 +29,6 @@ const startsWithRoute = (pathname: string, base: string) =>
 /** Which bottom tab is active for a pathname (prefix matching), or `null` for secondary pages. */
 export function activeTab(pathname: string): TabKey | null {
   if (pathname === ROUTES.HOME) return 'home';
-  if (startsWithRoute(pathname, ROUTES.SERVICES)) return 'services';
-  if (startsWithRoute(pathname, ROUTES.BOOKING)) return 'booking';
   if (
     startsWithRoute(pathname, ROUTES.PRODUCTS) ||
     startsWithRoute(pathname, ROUTES.CART) ||

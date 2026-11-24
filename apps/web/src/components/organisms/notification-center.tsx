@@ -5,7 +5,6 @@ import Link from 'next/link';
 import {
   Bell,
   BellOff,
-  CalendarCheck,
   CheckCheck,
   CreditCard,
   Package,
@@ -18,7 +17,6 @@ import { IconButton } from '@/components/ui/icon-button';
 import { useUIStore } from '@/lib/store/ui-store';
 import { useAuth } from '@/lib/store/auth-store';
 import {
-  bookingNotifications,
   orderNotifications,
   useNotificationStore,
   useNotifications,
@@ -27,7 +25,6 @@ import {
 } from '@/lib/store/notification-store';
 import { useHydrated } from '@/lib/store/hydration';
 import { useMyOrders } from '@/lib/hooks/use-orders';
-import { useMyBookings } from '@/lib/hooks/use-bookings';
 import { timeAgoFa } from '@/lib/jalali';
 import { cn } from '@/lib/utils';
 
@@ -47,13 +44,8 @@ export function NotificationSync() {
   const hydrated = useHydrated(useNotificationStore);
 
   const orders = useMyOrders();
-  const bookings = useMyBookings();
-
   const orderItems = orders.data;
-  const bookingItems = bookings.data;
-  // Both lists have to land before the first sync: a backfill that sees only
-  // half the history would mark the other half as unread news.
-  const ready = !orders.isPending && !bookings.isPending;
+  const ready = !orders.isPending;
 
   React.useEffect(() => {
     if (!hydrated) return;
@@ -62,11 +54,8 @@ export function NotificationSync() {
       return;
     }
     if (!ready) return;
-    sync(user.id, [
-      ...orderNotifications(orderItems ?? []),
-      ...bookingNotifications(bookingItems ?? []),
-    ]);
-  }, [hydrated, isAuthenticated, user, ready, orderItems, bookingItems, sync, reset]);
+    sync(user.id, orderNotifications(orderItems ?? []));
+  }, [hydrated, isAuthenticated, user, ready, orderItems, sync, reset]);
 
   return null;
 }
@@ -104,13 +93,11 @@ export function NotificationBell({ className, size = 'md' }: NotificationBellPro
 
 const KIND_ICON: Record<NotificationKind, React.ElementType> = {
   order: Package,
-  booking: CalendarCheck,
   payment: CreditCard,
 };
 
 const KIND_TONE: Record<NotificationKind, string> = {
   order: 'bg-primary/10 text-primary dark:bg-secondary/15 dark:text-secondary',
-  booking: 'bg-secondary/15 text-secondary',
   payment: 'bg-success/15 text-success',
 };
 
@@ -127,7 +114,7 @@ export function NotificationSheet() {
       onOpenChange={setOpen}
       title="اعلان‌ها"
       description={
-        unread > 0 ? `${toPersianDigits(unread)} اعلان خوانده‌نشده` : 'وضعیت سفارش‌ها و نوبت‌های شما'
+        unread > 0 ? `${toPersianDigits(unread)} اعلان خوانده‌نشده` : 'وضعیت سفارش‌های شما'
       }
       snapPoints={[0.85]}
       desktopClassName="max-w-md"
@@ -149,7 +136,7 @@ export function NotificationSheet() {
       {!isAuthenticated ? (
         <EmptyState
           title="برای دیدن اعلان‌ها وارد شوید"
-          body="وضعیت سفارش‌ها و نوبت‌هایتان اینجا نمایش داده می‌شود."
+          body="وضعیت سفارش‌هایتان اینجا نمایش داده می‌شود."
           action={
             <Button
               type="button"
@@ -165,7 +152,7 @@ export function NotificationSheet() {
       ) : items.length === 0 ? (
         <EmptyState
           title="فعلاً اعلانی ندارید"
-          body="با ثبت اولین سفارش یا نوبت، پیگیری وضعیت آن را همین‌جا می‌بینید."
+          body="با ثبت اولین سفارش، پیگیری وضعیت آن را همین‌جا می‌بینید."
         />
       ) : (
         <ul className="divide-y divide-border">

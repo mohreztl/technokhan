@@ -1,4 +1,4 @@
-// Premium UI Components - اتولانژ
+// Premium UI Components - تکنو خان
 // این فایل تمام کامپوننت‌های ویژوال پیشرفته را اکسپورت می‌کند
 
 // Animated Gradient Effects

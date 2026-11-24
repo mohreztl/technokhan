@@ -5,7 +5,7 @@ import { AdminUsersClient } from './client';
 
 export const metadata: Metadata = {
   title: 'کاربران',
-  description: 'مدیریت کاربران اتولانژ',
+  description: 'مدیریت کاربران تکنو خان',
 };
 
 export default function AdminUsersPage() {

@@ -4,12 +4,11 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { useAuthStore } from './auth-store';
 import { useCartStore } from './cart-store';
 import { useWishlistStore } from './wishlist-store';
-import { useGarageStore } from './garage-store';
 import { useCompareStore } from './compare-store';
 import { useNotificationStore } from './notification-store';
 import { useRecentlyViewedStore } from './recently-viewed-store';
 
-const persistedStores = [useAuthStore, useCartStore, useWishlistStore, useGarageStore, useCompareStore, useNotificationStore, useRecentlyViewedStore] as const;
+const persistedStores = [useAuthStore, useCartStore, useWishlistStore, useCompareStore, useNotificationStore, useRecentlyViewedStore] as const;
 
 /** Rehydrates local stores after the server-compatible first paint. */
 export function StoreHydrator() {

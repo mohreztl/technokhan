@@ -3,8 +3,8 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
-import { BadgeCheck, ExternalLink, Package, Star, Trash2, Wrench } from 'lucide-react';
-import { findProduct, findService, toPersianDigits } from '@technokhan/shared';
+import { BadgeCheck, ExternalLink, Package, Star, Trash2 } from 'lucide-react';
+import { findProduct, toPersianDigits } from '@technokhan/shared';
 import type { AdminReview } from '@/lib/api/endpoints';
 import { useAdminMutations, useAdminReviews } from '@/lib/hooks/use-admin';
 import { formatJalaliDateTime } from '@/lib/jalali';
@@ -25,18 +25,15 @@ const PAGE_SIZE = 20;
 type Tab = 'pending' | 'approved';
 
 interface Target {
-  kind: 'product' | 'service';
   id: string;
   name: string;
   href: string;
 }
 
 function reviewTarget(r: AdminReview): Target | null {
-  const kind = r.targetType ?? (r.productId ? 'product' : r.serviceId ? 'service' : null);
-  const id = r.targetId ?? r.productId ?? r.serviceId;
-  if (!kind || !id) return null;
-  const name = kind === 'product' ? findProduct(id)?.name : findService(id)?.name;
-  return { kind, id, name: name ?? id, href: `/${kind === 'product' ? 'products' : 'services'}/${id}` };
+  const id = r.targetId ?? r.productId;
+  if (!id) return null;
+  return { id, name: findProduct(id)?.name ?? id, href: `/product/${id}` };
 }
 
 export function AdminReviewsClient() {
@@ -112,7 +109,7 @@ export function AdminReviewsClient() {
             <EmptyState
               icon={<Star />}
               title={tab === 'pending' ? 'نظری در انتظار تأیید نیست' : 'هنوز نظری تأیید نشده'}
-              description={tab === 'pending' ? 'نظرات جدید کاربران اینجا نمایش داده می‌شوند.' : 'نظرات تأییدشده در صفحهٔ محصول یا خدمت نمایش داده می‌شوند.'}
+              description={tab === 'pending' ? 'نظرات جدید کاربران اینجا نمایش داده می‌شوند.' : 'نظرات تأییدشده در صفحهٔ محصول نمایش داده می‌شوند.'}
             />
           </div>
         ) : (
@@ -140,7 +137,7 @@ export function AdminReviewsClient() {
                       href={target.href}
                       className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 self-start rounded-lg text-xs font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                      {target.kind === 'product' ? <Package className="h-3.5 w-3.5" aria-hidden="true" /> : <Wrench className="h-3.5 w-3.5" aria-hidden="true" />}
+                      <Package className="h-3.5 w-3.5" aria-hidden="true" />
                       <span className="truncate">{target.name}</span>
                       <ExternalLink className="h-3 w-3" aria-hidden="true" />
                     </Link>

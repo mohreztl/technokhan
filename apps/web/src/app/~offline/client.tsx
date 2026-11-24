@@ -55,7 +55,7 @@ export function OfflineClient() {
         className="mt-8 inline-flex min-h-[44px] items-center gap-2 text-sm text-muted-foreground hover:text-secondary"
       >
         <Phone className="h-4 w-4" aria-hidden />
-        تماس با اتولانژ: <span dir="ltr">{CONTACT.phone}</span>
+        تماس با تکنو خان: <span dir="ltr">{CONTACT.phone}</span>
       </a>
     </div>
   );

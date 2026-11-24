@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# AutoLounge web (Next.js standalone) — build context is the repository root (pnpm workspace)
+# TechnoKhan web (Next.js standalone) — build context is the repository root (pnpm workspace)
 
 FROM node:22-alpine AS base
 # Node 22 resolves AAAA first; on hosts with no IPv6 route every request stalls.

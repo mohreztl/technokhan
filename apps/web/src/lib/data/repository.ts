@@ -3,23 +3,16 @@ import type {
   Article,
   Brand,
   Category,
-  GalleryItem,
   PagedList,
   Product,
   ProductListQuery,
-  Service,
-  ServiceListQuery,
 } from '@technokhan/shared';
 import { BRANDS, CATEGORIES, findArticle, sortedArticles } from '@technokhan/shared';
 import { apiFetch, buildQuery, isDemoMode } from '@/lib/api/client';
 import {
   findLocalProduct,
-  findLocalService,
-  localGallery,
   queryLocalProducts,
-  queryLocalServices,
   relatedLocalProducts,
-  relatedLocalServices,
 } from './local-query';
 
 /**
@@ -96,64 +89,6 @@ export async function getRelatedProducts(id: string, limit = 4): Promise<Product
   }
   return relatedLocalProducts(id, limit);
 }
-
-export async function getServices(q: ServiceListQuery = {}): Promise<Sourced<PagedList<Service>>> {
-  if (!isDemoMode()) {
-    const r = await apiFetch<Service[]>(`/services${buildQuery(q as Record<string, unknown>)}`, {
-      auth: false,
-      timeoutMs: SERVER_TIMEOUT,
-      next: { revalidate: REVALIDATE, tags: ['services'] },
-    });
-    if (r.ok && Array.isArray(r.data)) {
-      return { data: pagedFromApi(r.data, r.pagination, q), source: 'api' };
-    }
-  }
-  return { data: queryLocalServices(q), source: 'local' };
-}
-
-export async function getService(id: string): Promise<Sourced<Service> | null> {
-  if (!isDemoMode()) {
-    const r = await apiFetch<Service>(`/services/${encodeURIComponent(id)}`, {
-      auth: false,
-      timeoutMs: SERVER_TIMEOUT,
-      next: { revalidate: REVALIDATE, tags: ['services', `service:${id}`] },
-    });
-    if (r.ok && r.data?.id) return { data: r.data, source: 'api' };
-  }
-  const local = findLocalService(id);
-  return local ? { data: local, source: 'local' } : null;
-}
-
-export async function getRelatedServices(id: string, limit = 3): Promise<Service[]> {
-  if (!isDemoMode()) {
-    const r = await apiFetch<Service[]>(`/services/${encodeURIComponent(id)}/related?limit=${limit}`, {
-      auth: false,
-      timeoutMs: SERVER_TIMEOUT,
-      next: { revalidate: REVALIDATE, tags: ['services'] },
-    });
-    if (r.ok && Array.isArray(r.data) && r.data.length) return r.data;
-  }
-  return relatedLocalServices(id, limit);
-}
-
-export async function getFeatured(): Promise<
-  Sourced<{ products: Product[]; services: Service[] }>
-> {
-  const [p, s] = await Promise.all([
-    getProducts({ featured: true, limit: 8 }),
-    getServices({ featured: true, limit: 6 }),
-  ]);
-  return {
-    data: { products: p.data.items, services: s.data.items },
-    source: p.source === 'api' && s.source === 'api' ? 'api' : 'local',
-  };
-}
-
-export async function getGallery(serviceType?: string): Promise<GalleryItem[]> {
-  // Gallery is editorial content shipped with the app (no API endpoint yet)
-  return localGallery(serviceType);
-}
-
 
 /** Returns category metadata from Fastify or the bundled fallback. */
 export async function getCategories(): Promise<Category[]> {

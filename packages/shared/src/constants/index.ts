@@ -1,5 +1,5 @@
 // Shared constants
-import type { SiteSettings, VehicleSize } from '../types';
+import type { SiteSettings } from '../types';
 
 export const APP_NAME = 'تکنو خان';
 export const APP_NAME_EN = 'TechnoKhan';
@@ -35,14 +35,11 @@ export const API_PREFIX = '/api/v1';
 export const ROUTES = {
   HOME: '/',
   PRODUCTS: '/products',
-  SERVICES: '/services',
-  BOOKING: '/booking',
   CART: '/cart',
   CHECKOUT: '/checkout',
   PROFILE: '/profile',
   ORDERS: '/orders',
   WISHLIST: '/wishlist',
-  GALLERY: '/gallery',
   ABOUT: '/about',
   CONTACT: '/contact',
   TRACK: '/track',
@@ -55,30 +52,7 @@ export const ROUTES = {
   ADMIN: '/admin',
 } as const;
 
-export const BOOKING_TIME_SLOTS = [
-  '08:00 - 10:00',
-  '10:00 - 12:00',
-  '12:00 - 14:00',
-  '14:00 - 16:00',
-  '16:00 - 18:00',
-  '18:00 - 20:00',
-];
-
-/** Workshop is closed on Fridays (day 5 in JS getDay()) */
-export const CLOSED_WEEKDAYS: number[] = [5];
-
-/** How many days ahead a booking can be made */
-export const BOOKING_MAX_DAYS_AHEAD = 45;
-
-/**
- * What the shop looks like before anyone has saved settings: a fresh database,
- * or a demo build with no API at all. The seed writes exactly these values into
- * the SiteSettings row, so a real deployment and a demo start out identical.
- */
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
-  closedWeekdays: [...CLOSED_WEEKDAYS],
-  closedDates: [],
-  timeSlots: [...BOOKING_TIME_SLOTS],
   phone: CONTACT.phoneEn,
   mobile: CONTACT.mobileEn,
   email: CONTACT.email,
@@ -88,12 +62,6 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   telegram: SOCIAL_MEDIA.telegram,
   whatsapp: SOCIAL_MEDIA.whatsapp,
 };
-
-export const VEHICLE_SIZES: { id: VehicleSize; label: string; description: string }[] = [
-  { id: 'small', label: 'سواری', description: 'پراید، ۲۰۶، تیبا، سایپا' },
-  { id: 'medium', label: 'سدان / کراس‌اوور', description: 'دنا، سمند، ال۹۰، هیوندای، کیا' },
-  { id: 'large', label: 'شاسی‌بلند / ون', description: 'سانتافه، تویوتا لندکروزر، ون' },
-];
 
 export const SHIPPING = {
   /** orders above this subtotal ship free (Toman) */
@@ -140,26 +108,6 @@ export const PROVINCES = [
   'سیستان و بلوچستان',
 ] as const;
 
-export const CAR_COLORS: { id: string; name: string; hex: string }[] = [
-  { id: 'white', name: 'سفید', hex: '#F5F5F5' },
-  { id: 'black', name: 'مشکی', hex: '#111111' },
-  { id: 'silver', name: 'نقره‌ای', hex: '#C0C0C0' },
-  { id: 'gray', name: 'خاکستری', hex: '#6B7280' },
-  { id: 'blue', name: 'آبی', hex: '#1E40AF' },
-  { id: 'red', name: 'قرمز', hex: '#B91C1C' },
-  { id: 'beige', name: 'بژ', hex: '#D6C6A5' },
-  { id: 'green', name: 'سبز', hex: '#166534' },
-  { id: 'other', name: 'سایر', hex: '#9CA3AF' },
-];
-
-export const BOOKING_STATUS_LABELS: Record<string, string> = {
-  pending: 'در انتظار تأیید',
-  confirmed: 'تأیید شده',
-  in_progress: 'در حال انجام',
-  completed: 'انجام شده',
-  cancelled: 'لغو شده',
-};
-
 export const ORDER_STATUS_LABELS: Record<string, string> = {
   pending: 'در انتظار پرداخت',
   processing: 'در حال پردازش',
@@ -187,18 +135,6 @@ export const PRODUCT_CATEGORY_LABELS: Record<string, string> = {
   gaming: 'گیمینگ و دسکتاپ',
   wearables: 'گجت‌های پوشیدنی',
   cables: 'کابل، هاب و مبدل',
-};
-
-export const SERVICE_TYPE_LABELS: Record<string, string> = {
-  paint_restoration: 'احیای رنگ',
-  detailing: 'دیتیلینگ',
-  car_wrap: 'رپ خودرو',
-  ceramic_coating: 'سرامیک بدنه',
-  ppf: 'محافظ رنگ (PPF)',
-  interior_cleaning: 'صفرشویی داخل',
-  engine_cleaning: 'شست‌وشوی موتور',
-  headlight_restoration: 'احیای چراغ',
-  custom: 'سفارشی',
 };
 
 export const DEMO_OTP_CODE = '123456';

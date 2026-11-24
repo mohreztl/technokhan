@@ -1,9 +1,7 @@
  
 /**
- * Generates every static asset the app references but that is not a real
- * photograph yet: branded placeholder images for the catalog (products,
- * services, gallery, team, avatars, certifications), PWA icons, favicons,
- * the Open Graph image, PWA screenshots, the logo and the background pattern.
+ * Generates branded catalog placeholders, PWA icons, favicons, the Open Graph
+ * image, screenshots, the logo and the background pattern.
  *
  * The list of required catalog images is derived from `@technokhan/shared`
  * so it can never drift from the data. Existing files are kept unless
@@ -12,15 +10,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
-import {
-  APP_NAME_EN,
-  CERTIFICATIONS,
-  GALLERY,
-  PRODUCTS,
-  SERVICES,
-  TEAM,
-  TESTIMONIALS,
-} from '@technokhan/shared';
+import { APP_NAME_EN, PRODUCTS } from '@technokhan/shared';
 
 const ROOT = process.cwd();
 const PUBLIC = path.join(ROOT, 'public');
@@ -160,14 +150,12 @@ function appIcon(size: number, maskable = false): string {
 }
 
 const SHORTCUT_GLYPHS: Record<string, string> = {
-  booking: '<rect x="22" y="28" width="56" height="50" rx="8" fill="none" stroke="G" stroke-width="7"/><path d="M22 44H78M36 20v14M64 20v14" stroke="G" stroke-width="7" stroke-linecap="round"/>',
   products: '<path d="M30 38h40l4 40H26Z" fill="none" stroke="G" stroke-width="7" stroke-linejoin="round"/><path d="M40 38v-6a10 10 0 0 1 20 0v6" fill="none" stroke="G" stroke-width="7"/>',
-  services: '<path d="M50 18l7 20 20 7-20 7-7 20-7-20-20-7 20-7Z" fill="G"/><circle cx="76" cy="26" r="5" fill="G"/><circle cx="26" cy="74" r="4" fill="G"/>',
   cart: '<path d="M20 28h10l8 34h32l6-24H36" fill="none" stroke="G" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="42" cy="74" r="5" fill="G"/><circle cx="66" cy="74" r="5" fill="G"/>',
 };
 
 function shortcutIcon(name: string, size = 96): string {
-  const glyph = (SHORTCUT_GLYPHS[name] ?? SHORTCUT_GLYPHS.services).replace(/"G"/g, `"${GOLD}"`);
+  const glyph = (SHORTCUT_GLYPHS[name] ?? SHORTCUT_GLYPHS.products).replace(/"G"/g, `"${GOLD}"`);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100">
     <rect width="100" height="100" rx="24" fill="${NAVY}"/>${glyph}
   </svg>`;
@@ -183,9 +171,9 @@ function ogImage(): string {
     <rect width="${w}" height="${h}" fill="url(#og-glow)"/>
     ${mark(90, 165, 300)}
     ${label(APP_NAME_EN.toUpperCase(), 450, 300, 88, { color: IVORY, weight: 800, spacing: 8 })}
-    ${label('PREMIUM CAR CARE · DETAILING · CERAMIC · PPF', 452, 358, 24, { color: GOLD, weight: 600, spacing: 2 })}
+    ${label('PRECISION TECH · GADGETS · ACCESSORIES', 452, 358, 24, { color: GOLD, weight: 600, spacing: 2 })}
     <rect x="452" y="392" width="420" height="4" fill="${GOLD}"/>
-    ${label('autolounge.ir', 452, 460, 32, { color: GOLD_LIGHT, weight: 500, spacing: 2 })}
+    ${label('technokhan.com', 452, 460, 32, { color: GOLD_LIGHT, weight: 500, spacing: 2 })}
   </svg>`;
 }
 
@@ -208,7 +196,7 @@ function screenshot(w: number, h: number, mobile: boolean): string {
     <rect width="${w}" height="${heroH}" fill="url(#ss-glow)"/>
     ${mark(w / 2 - (mobile ? 50 : 70), heroH * 0.18, mobile ? 100 : 140)}
     ${label(APP_NAME_EN.toUpperCase(), w / 2, heroH * 0.66, titleSize, { color: IVORY, weight: 800, spacing: 6, anchor: 'middle' })}
-    ${label('PREMIUM CAR CARE', w / 2, heroH * 0.66 + titleSize * 0.9, titleSize * 0.42, { color: GOLD, weight: 600, spacing: 4, anchor: 'middle' })}
+    ${label('PRECISION TECH', w / 2, heroH * 0.66 + titleSize * 0.9, titleSize * 0.42, { color: GOLD, weight: 600, spacing: 4, anchor: 'middle' })}
     <rect x="${w / 2 - (mobile ? 90 : 120)}" y="${heroH * 0.8}" width="${mobile ? 180 : 240}" height="${mobile ? 44 : 56}" rx="${mobile ? 22 : 28}" fill="${GOLD}"/>
     ${cards}
     ${mobile ? `<rect x="0" y="${h - 84}" width="${w}" height="84" fill="${NAVY}" fill-opacity="0.96"/>
@@ -219,10 +207,10 @@ function screenshot(w: number, h: number, mobile: boolean): string {
 function logoSvg(): string {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="320" height="100" viewBox="0 0 320 100">
   ${mark(0, 0, 100)}
-  <text x="112" y="58" font-family="${FONT}" font-size="34" font-weight="800" fill="${NAVY}" letter-spacing="4">AUTO</text>
-  <text x="200" y="58" font-family="${FONT}" font-size="34" font-weight="300" fill="${GOLD}" letter-spacing="4">LOUNGE</text>
+  <text x="112" y="58" font-family="${FONT}" font-size="34" font-weight="800" fill="${NAVY}" letter-spacing="4">TECHNO</text>
+  <text x="200" y="58" font-family="${FONT}" font-size="34" font-weight="300" fill="${GOLD}" letter-spacing="4">KHAN</text>
   <rect x="112" y="68" width="196" height="3" fill="${GOLD}"/>
-  <text x="112" y="90" font-family="${FONT}" font-size="12" font-weight="600" fill="${NAVY}" letter-spacing="6">PREMIUM CAR CARE</text>
+  <text x="112" y="90" font-family="${FONT}" font-size="12" font-weight="600" fill="${NAVY}" letter-spacing="6">PRECISION TECH</text>
 </svg>`;
 }
 
@@ -246,28 +234,9 @@ function collectSpecs(): Spec[] {
   PRODUCTS.forEach((p, i) =>
     p.images.forEach((url, j) => add({ url, kind: 'product', title: p.nameEn, subtitle: p.brand ? `${p.brand} · ${j + 1}` : `${j + 1}`, variant: i + j }))
   );
-  SERVICES.forEach((s, i) => {
-    s.images.forEach((url, j) => add({ url, kind: 'service', title: s.nameEn, subtitle: `AutoLounge · ${j + 1}`, variant: i + j }));
-    (s.gallery ?? []).forEach((url, j) => add({ url, kind: 'after', title: s.nameEn, subtitle: `Gallery ${j + 1}`, variant: i + j + 1 }));
-    if (s.beforeAfter) {
-      add({ url: s.beforeAfter.before, kind: 'before', title: s.nameEn, subtitle: 'Before', variant: i });
-      add({ url: s.beforeAfter.after, kind: 'after', title: s.nameEn, subtitle: 'After', variant: i });
-    }
-  });
-  GALLERY.forEach((g, i) => {
-    add({ url: g.before, kind: 'before', title: g.vehicle ?? g.title, subtitle: 'Before', variant: i });
-    add({ url: g.after, kind: 'after', title: g.vehicle ?? g.title, subtitle: 'After', variant: i });
-    if (g.cover) add({ url: g.cover, kind: 'after', title: g.vehicle ?? g.title, subtitle: 'AutoLounge', variant: i });
-  });
-  TEAM.forEach((t, i) => add({ url: t.image, kind: 'team', title: t.id.replace(/-/g, ' ').toUpperCase(), subtitle: 'AutoLounge Team', variant: i }));
-  TESTIMONIALS.forEach((t, i) => add({ url: t.avatar ?? '', kind: 'avatar', title: '', variant: i }));
-  CERTIFICATIONS.forEach((c, i) => add({ url: c.image, kind: 'cert', title: c.nameEn ?? c.name, subtitle: c.year ? String(c.year) : undefined, variant: i }));
-
-  add({ url: '/images/placeholder-product.webp', kind: 'placeholder', title: 'AutoLounge', subtitle: 'Product' });
-  add({ url: '/images/placeholder-service.webp', kind: 'placeholder', title: 'AutoLounge', subtitle: 'Service' });
-  add({ url: '/images/placeholder.webp', kind: 'placeholder', title: 'AutoLounge' });
-  add({ url: '/images/about-story.webp', kind: 'after', title: 'Our Story', subtitle: 'AutoLounge · Tehran', variant: 3 });
-  add({ url: '/images/workshop.webp', kind: 'service', title: 'Workshop', subtitle: 'AutoLounge · Tehran', variant: 2 });
+  add({ url: '/images/placeholder-product.webp', kind: 'placeholder', title: 'TechnoKhan', subtitle: 'Product' });
+  add({ url: '/images/placeholder.webp', kind: 'placeholder', title: 'TechnoKhan' });
+  add({ url: '/images/about-story.webp', kind: 'after', title: 'Our Story', subtitle: 'TechnoKhan · Tehran', variant: 3 });
   return [...specs.values()];
 }
 

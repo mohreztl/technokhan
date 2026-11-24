@@ -4,28 +4,22 @@ import { z } from 'zod';
 import { slugify, type AdminDashboardStats } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import {
-  adminBookingQuerySchema,
   adminMessageQuerySchema,
   adminOrderQuerySchema,
   adminProductQuerySchema,
   adminProductSchema,
   adminProductUpdateSchema,
   adminReviewQuerySchema,
-  adminServiceQuerySchema,
-  adminServiceSchema,
-  adminServiceUpdateSchema,
   adminUserQuerySchema,
   couponSchema,
   couponUpdateSchema,
   idParamSchema,
   siteSettingsSchema,
-  updateBookingStatusSchema,
   updateOrderStatusSchema,
 } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
 import { badRequest, conflict, notFound } from '../lib/errors';
 import {
-  bookingInclude,
   orderInclude,
   recomputeRating,
   searchFilter,
@@ -33,12 +27,10 @@ import {
   toJson,
   userSummarySelect,
 } from '../lib/catalog';
-import { dayRange } from '../lib/booking-time';
 import { getSettings, saveSettings } from '../lib/settings';
 import { sendStatusUpdate } from '../services/sms.service';
 
 type ProductInput = z.infer<typeof adminProductSchema>;
-type ServiceInput = z.infer<typeof adminServiceSchema>;
 
 function productData(input: Partial<ProductInput>) {
   return stripUndefined({
@@ -62,43 +54,16 @@ function productData(input: Partial<ProductInput>) {
   });
 }
 
-function serviceData(input: Partial<ServiceInput>) {
-  return stripUndefined({
-    name: input.name,
-    nameEn: input.nameEn,
-    description: input.description,
-    descriptionEn: input.descriptionEn,
-    shortDescription: input.shortDescription,
-    price: input.price,
-    duration: input.duration,
-    type: input.type,
-    images: input.images,
-    featured: input.featured,
-    isActive: input.isActive,
-    features: input.features,
-    tags: input.tags,
-    pricing: toJson(input.pricing),
-    addons: toJson(input.addons),
-    warrantyMonths: input.warrantyMonths,
-  });
-}
-
 /** slug id from the English name, salted when taken */
-async function uniqueId(model: 'product' | 'service', requested: string | undefined, nameEn: string) {
+async function uniqueId(requested: string | undefined, nameEn: string) {
   if (requested) {
-    const exists =
-      model === 'product'
-        ? await prisma.product.findUnique({ where: { id: requested }, select: { id: true } })
-        : await prisma.service.findUnique({ where: { id: requested }, select: { id: true } });
+    const exists = await prisma.product.findUnique({ where: { id: requested }, select: { id: true } });
     if (exists) throw conflict('شناسه انتخاب‌شده قبلاً استفاده شده است');
     return requested;
   }
   const base = slugify(nameEn).replace(/[^a-z0-9-]/g, '') || undefined;
-  if (!base) return undefined; // fall back to cuid()
-  const exists =
-    model === 'product'
-      ? await prisma.product.findUnique({ where: { id: base }, select: { id: true } })
-      : await prisma.service.findUnique({ where: { id: base }, select: { id: true } });
+  if (!base) return undefined;
+  const exists = await prisma.product.findUnique({ where: { id: base }, select: { id: true } });
   return exists ? `${base}-${Math.random().toString(36).slice(2, 6)}` : base;
 }
 
@@ -109,26 +74,11 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
   // Dashboard
   // ------------------------------------------------------------------
   fastify.get('/dashboard', async (_request, reply) => {
-    const [
-      users,
-      orders,
-      bookings,
-      products,
-      services,
-      pendingOrders,
-      pendingBookings,
-      unreadMessages,
-      revenueAgg,
-      recentOrders,
-      recentBookings,
-    ] = await Promise.all([
+    const [users, orders, products, pendingOrders, unreadMessages, revenueAgg, recentOrders] = await Promise.all([
       prisma.user.count(),
       prisma.order.count(),
-      prisma.booking.count(),
       prisma.product.count(),
-      prisma.service.count(),
       prisma.order.count({ where: { status: 'pending' } }),
-      prisma.booking.count({ where: { status: 'pending' } }),
       prisma.contactMessage.count({ where: { isRead: false } }),
       prisma.order.aggregate({ _sum: { totalPrice: true }, where: { paymentStatus: 'paid' } }),
       prisma.order.findMany({
@@ -136,25 +86,16 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         orderBy: { createdAt: 'desc' },
         include: { ...orderInclude, user: { select: userSummarySelect } },
       }),
-      prisma.booking.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: { ...bookingInclude, user: { select: userSummarySelect } },
-      }),
     ]);
 
     const stats: AdminDashboardStats = {
       users,
       orders,
-      bookings,
       products,
-      services,
       revenue: revenueAgg._sum.totalPrice ?? 0,
       pendingOrders,
-      pendingBookings,
       unreadMessages,
       recentOrders: recentOrders as unknown as AdminDashboardStats['recentOrders'],
-      recentBookings: recentBookings as unknown as AdminDashboardStats['recentBookings'],
     };
     return apiResponse.success(reply, stats);
   });
@@ -188,7 +129,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
 
   fastify.post('/products', async (request, reply) => {
     const input = parse(adminProductSchema, request.body);
-    const id = await uniqueId('product', input.id, input.nameEn);
+    const id = await uniqueId(input.id, input.nameEn);
     const product = await prisma.product.create({
       data: { ...(id ? { id } : {}), ...productData(input), rating: 0, reviewCount: 0 } as Prisma.ProductUncheckedCreateInput,
     });
@@ -207,55 +148,6 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = parse(idParamSchema, request.params);
     const product = await prisma.product.update({ where: { id }, data: { isActive: false, featured: false } });
     return apiResponse.success(reply, product);
-  });
-
-  // ------------------------------------------------------------------
-  // Services
-  // ------------------------------------------------------------------
-  fastify.get('/services', async (request, reply) => {
-    const q = parse(adminServiceQuerySchema, request.query);
-    const where: Prisma.ServiceWhereInput = {};
-    if (q.type) where.type = q.type;
-    if (q.isActive !== undefined) where.isActive = q.isActive;
-    if (q.search) where.OR = searchFilter(q.search, ['id', 'name', 'nameEn']) as Prisma.ServiceWhereInput[];
-
-    const [items, total] = await Promise.all([
-      prisma.service.findMany({ where, orderBy: { createdAt: 'desc' }, skip: (q.page - 1) * q.limit, take: q.limit }),
-      prisma.service.count({ where }),
-    ]);
-    return apiResponse.paginated(reply, items, total, q.page, q.limit);
-  });
-
-  fastify.get('/services/:id', async (request, reply) => {
-    const { id } = parse(idParamSchema, request.params);
-    const service = await prisma.service.findUnique({
-      where: { id },
-      include: { reviews: { orderBy: { createdAt: 'desc' } }, _count: { select: { bookings: true } } },
-    });
-    if (!service) throw notFound('خدمت یافت نشد');
-    return apiResponse.success(reply, service);
-  });
-
-  fastify.post('/services', async (request, reply) => {
-    const input = parse(adminServiceSchema, request.body);
-    const id = await uniqueId('service', input.id, input.nameEn);
-    const service = await prisma.service.create({
-      data: { ...(id ? { id } : {}), ...serviceData(input), rating: 0, reviewCount: 0 } as Prisma.ServiceUncheckedCreateInput,
-    });
-    return apiResponse.success(reply, service, 201);
-  });
-
-  fastify.put('/services/:id', async (request, reply) => {
-    const { id } = parse(idParamSchema, request.params);
-    const input = parse(adminServiceUpdateSchema, request.body);
-    const service = await prisma.service.update({ where: { id }, data: serviceData(input) });
-    return apiResponse.success(reply, service);
-  });
-
-  fastify.delete('/services/:id', async (request, reply) => {
-    const { id } = parse(idParamSchema, request.params);
-    const service = await prisma.service.update({ where: { id }, data: { isActive: false, featured: false } });
-    return apiResponse.success(reply, service);
   });
 
   // ------------------------------------------------------------------
@@ -337,61 +229,6 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   // ------------------------------------------------------------------
-  // Bookings
-  // ------------------------------------------------------------------
-  fastify.get('/bookings', async (request, reply) => {
-    const q = parse(adminBookingQuerySchema, request.query);
-    const where: Prisma.BookingWhereInput = {};
-    if (q.status) where.status = q.status;
-    if (q.date) where.date = dayRange(q.date);
-
-    const [items, total] = await Promise.all([
-      prisma.booking.findMany({
-        where,
-        include: { ...bookingInclude, user: { select: userSummarySelect } },
-        orderBy: [{ date: 'desc' }, { timeSlot: 'asc' }],
-        skip: (q.page - 1) * q.limit,
-        take: q.limit,
-      }),
-      prisma.booking.count({ where }),
-    ]);
-    return apiResponse.paginated(reply, items, total, q.page, q.limit);
-  });
-
-  fastify.get('/bookings/:id', async (request, reply) => {
-    const { id } = parse(idParamSchema, request.params);
-    const booking = await prisma.booking.findUnique({
-      where: { id },
-      include: {
-        ...bookingInclude,
-        user: { select: userSummarySelect },
-        transactions: { orderBy: { createdAt: 'desc' } },
-      },
-    });
-    if (!booking) throw notFound('رزرو یافت نشد');
-    return apiResponse.success(reply, booking);
-  });
-
-  fastify.put('/bookings/:id/status', async (request, reply) => {
-    const { id } = parse(idParamSchema, request.params);
-    const input = parse(updateBookingStatusSchema, request.body);
-
-    const existing = await prisma.booking.findUnique({ where: { id }, include: { user: true } });
-    if (!existing) throw notFound('رزرو یافت نشد');
-
-    const booking = await prisma.booking.update({
-      where: { id },
-      data: { status: input.status },
-      include: { ...bookingInclude, user: { select: userSummarySelect } },
-    });
-
-    if (existing.status !== input.status) {
-      void sendStatusUpdate(existing.user.phoneNumber, 'booking', input.status);
-    }
-    return apiResponse.success(reply, booking);
-  });
-
-  // ------------------------------------------------------------------
   // Users
   // ------------------------------------------------------------------
   fastify.get('/users', async (request, reply) => {
@@ -417,7 +254,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
           isActive: true,
           createdAt: true,
           updatedAt: true,
-          _count: { select: { orders: true, bookings: true, reviews: true, addresses: true } },
+          _count: { select: { orders: true, reviews: true, addresses: true } },
         },
       }),
       prisma.user.count({ where }),
@@ -435,9 +272,8 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
         isActive: true,
         createdAt: true,
         updatedAt: true,
-        _count: { select: { orders: true, bookings: true, reviews: true, addresses: true } },
+        _count: { select: { orders: true, reviews: true, addresses: true } },
         orders: { take: 10, orderBy: { createdAt: 'desc' }, include: orderInclude },
-        bookings: { take: 10, orderBy: { createdAt: 'desc' }, include: bookingInclude },
         addresses: { orderBy: [{ isDefault: 'desc' }, { createdAt: 'desc' }] },
       },
     });
@@ -471,13 +307,12 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
   // ------------------------------------------------------------------
   const adminReviewInclude = {
     product: { select: { id: true, name: true } },
-    service: { select: { id: true, name: true } },
     user: { select: userSummarySelect },
   } satisfies Prisma.ReviewInclude;
 
   fastify.get('/reviews', async (request, reply) => {
     const q = parse(adminReviewQuerySchema, request.query);
-    const where: Prisma.ReviewWhereInput = {};
+    const where: Prisma.ReviewWhereInput = { productId: { not: null } };
     if (q.approved !== undefined) where.isApproved = q.approved;
 
     const [items, total] = await Promise.all([

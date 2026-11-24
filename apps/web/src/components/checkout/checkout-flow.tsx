@@ -13,7 +13,7 @@ import { IconButton } from '@/components/ui/icon-button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { showToast } from '@/components/ui/toaster';
 import { useRequireAuth } from '@/components/auth/login-sheet';
-import { WizardStepper } from '@/components/booking/wizard-stepper';
+import { WizardStepper } from '@/components/ui/wizard-stepper';
 import { useAddresses, useCreateOrder, useRequestPayment } from '@/lib/hooks';
 import { useReducedMotion } from '@/lib/hooks/use-reduced-motion';
 import { useAuth } from '@/lib/store/auth-store';

@@ -5,7 +5,7 @@ import { AdminProductsClient } from './client';
 
 export const metadata: Metadata = {
   title: 'محصولات',
-  description: 'مدیریت محصولات فروشگاه اتولانژ',
+  description: 'مدیریت محصولات فروشگاه تکنو خان',
 };
 
 export default function AdminProductsPage() {

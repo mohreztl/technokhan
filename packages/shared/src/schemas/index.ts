@@ -125,36 +125,6 @@ export const updateOrderStatusSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
-// Bookings
-// ---------------------------------------------------------------------------
-
-export const vehicleSizeSchema = z.enum(['small', 'medium', 'large']);
-
-export const createBookingSchema = z.object({
-  serviceId: z.string().min(1, 'خدمت را انتخاب کنید'),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'تاریخ نامعتبر است'),
-  timeSlot: z.string().min(1, 'بازه زمانی را انتخاب کنید'),
-  location: z.string().min(1, 'محل انجام خدمت را انتخاب کنید'),
-  carModel: z.string().trim().min(2, 'مدل خودرو را وارد کنید').max(60),
-  carYear: z.number().int().min(1350).max(1420),
-  carColor: z.string().trim().min(1, 'رنگ خودرو را انتخاب کنید'),
-  carPlate: z.string().trim().max(20).optional(),
-  vehicleSize: vehicleSizeSchema.optional(),
-  addonIds: z.array(z.string()).default([]),
-  notes: z.string().trim().max(500).optional(),
-  totalPrice: z.number().min(0),
-});
-
-export const updateBookingStatusSchema = z.object({
-  status: z.enum(['pending', 'confirmed', 'in_progress', 'completed', 'cancelled']),
-});
-
-export const availableSlotsQuerySchema = z.object({
-  serviceId: z.string().min(1),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-});
-
-// ---------------------------------------------------------------------------
 // Contact / reviews
 // ---------------------------------------------------------------------------
 
@@ -286,37 +256,6 @@ export const adminProductSchema = z.object({
   tags: z.array(z.string().trim().min(1)).default([]),
 });
 
-export const adminServiceSchema = z.object({
-  id: z.string().min(1).optional(),
-  name: z.string().trim().min(2),
-  nameEn: z.string().trim().min(2),
-  description: z.string().trim().min(10),
-  descriptionEn: z.string().trim().min(10),
-  shortDescription: z.string().trim().max(200).optional(),
-  price: z.number().positive(),
-  duration: z.number().int().positive(),
-  type: z.string().min(1),
-  images: z.array(imagePath).default([]),
-  featured: z.boolean().default(false),
-  isActive: z.boolean().default(true),
-  features: z.array(z.string()).default([]),
-  pricing: z
-    .object({ small: z.number().min(0), medium: z.number().min(0), large: z.number().min(0) })
-    .optional(),
-  addons: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        price: z.number().min(0),
-        description: z.string().optional(),
-      })
-    )
-    .default([]),
-  warrantyMonths: z.number().int().min(0).optional(),
-  tags: z.array(z.string().trim().min(1)).default([]),
-});
-
 export const idParamSchema = z.object({ id: z.string().min(1, 'شناسه نامعتبر است') });
 
 export const paginationQuerySchema = z.object({
@@ -331,10 +270,8 @@ export type LoginPasswordInput = z.infer<typeof loginPasswordSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ShippingAddressInput = z.infer<typeof shippingAddressSchema>;
 export type CreateOrderSchemaInput = z.infer<typeof createOrderSchema>;
-export type CreateBookingSchemaInput = z.infer<typeof createBookingSchema>;
 export type ContactSchemaInput = z.infer<typeof contactSchema>;
 export type TrackInput = z.infer<typeof trackSchema>;
 export type CouponInput = z.infer<typeof couponSchema>;
 export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
 export type AdminProductInput = z.infer<typeof adminProductSchema>;
-export type AdminServiceInput = z.infer<typeof adminServiceSchema>;

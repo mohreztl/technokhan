@@ -4,7 +4,7 @@ import { AdminShell } from '@/components/admin/admin-shell';
 export const metadata: Metadata = {
   title: {
     default: 'پنل مدیریت',
-    template: '%s — پنل مدیریت | اتولانژ',
+    template: '%s — پنل مدیریت | تکنو خان',
   },
   robots: {
     index: false,

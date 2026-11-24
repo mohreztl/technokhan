@@ -2,12 +2,10 @@ import type {
   Address,
   AdminDashboardStats,
   AuthResponse,
-  Booking,
   ContactInput,
   ContactMessage,
   Coupon,
   CouponResult,
-  CreateBookingInput,
   CreateOrderInput,
   Order,
   Pagination,
@@ -17,17 +15,12 @@ import type {
   Product,
   ProductListQuery,
   Review,
-  Service,
-  ServiceListQuery,
   SiteSettings,
   TrackInput,
   TrackResult,
   User,
-  VehicleSize,
 } from '@technokhan/shared';
 import {
-  BOOKING_MAX_DAYS_AHEAD,
-  BookingStatus,
   COUPONS,
   DEFAULT_SITE_SETTINGS,
   DEMO_ADMIN_PHONE,
@@ -35,24 +28,18 @@ import {
   OrderStatus,
   PaymentStatus,
   PRODUCTS,
-  SERVICES,
   applyCoupon,
   computeOrderTotals,
-  computeQuote,
   normalizePhoneNumber,
   normalizeTrackingCode,
   toEnglishDigits,
   trackingCodeFromId,
-  trackingCodeKind,
 } from '@technokhan/shared';
 import type { ApiResult } from './client';
 import {
   findLocalProduct,
-  findLocalService,
   queryLocalProducts,
-  queryLocalServices,
   relatedLocalProducts,
-  relatedLocalServices,
 } from '@/lib/data/local-query';
 import { useAuthStore } from '@/lib/store/auth-store';
 
@@ -65,33 +52,29 @@ import { useAuthStore } from '@/lib/store/auth-store';
  * callers in `endpoints.ts` can switch transports transparently.
  */
 
-const KEY = 'autolounge_demo';
+const KEY = 'technokhan_demo';
 const LATENCY: [number, number] = [180, 420];
 
 interface DemoDb {
   users: User[];
   otps: Record<string, { code: string; expiresAt: number }>;
-  bookings: Booking[];
   orders: Order[];
   transactions: PaymentTransaction[];
   addresses: (Address & { id: string; userId: string })[];
   messages: ContactMessage[];
-  reviews: (Review & { targetType: 'product' | 'service'; targetId: string; approved: boolean })[];
+  reviews: (Review & { targetType: 'product'; targetId: string; approved: boolean })[];
   /** Seeded from the bundled COUPONS the first time the demo admin opens the page. */
   coupons: (Coupon & { id: string })[];
   settings: SiteSettings | null;
   catalog: {
     products: Record<string, Product>;
-    services: Record<string, Service>;
     deletedProducts: string[];
-    deletedServices: string[];
   };
 }
 
 const emptyDb = (): DemoDb => ({
   users: [],
   otps: {},
-  bookings: [],
   orders: [],
   transactions: [],
   addresses: [],
@@ -99,7 +82,7 @@ const emptyDb = (): DemoDb => ({
   reviews: [],
   coupons: [],
   settings: null,
-  catalog: { products: {}, services: {}, deletedProducts: [], deletedServices: [] },
+  catalog: { products: {}, deletedProducts: [] },
 });
 
 let memory: DemoDb | null = null;
@@ -205,9 +188,6 @@ function requireAdmin(): { user: User } | { error: ApiResult<never> } {
   return r;
 }
 
-const servicePick = (s: Service | undefined): Booking['service'] =>
-  s ? { id: s.id, name: s.name, nameEn: s.nameEn, images: s.images, duration: s.duration, type: s.type } : undefined;
-
 const productPick = (p: Product | undefined) =>
   p ? { id: p.id, name: p.name, nameEn: p.nameEn, images: p.images, brand: p.brand } : undefined;
 
@@ -223,17 +203,6 @@ function catalogProducts(): Product[] {
     (p) => catalog[p.id] ?? p
   );
   const created = Object.values(catalog).filter((p) => !PRODUCTS.some((b) => b.id === p.id));
-  return [...created, ...base];
-}
-
-function catalogServices(): Service[] {
-  const db = load();
-  const deletedServices = db.catalog?.deletedServices ?? [];
-  const catalog = db.catalog?.services ?? {};
-  const base = SERVICES.filter((s) => !deletedServices.includes(s.id)).map(
-    (s) => catalog[s.id] ?? s
-  );
-  const created = Object.values(catalog).filter((s) => !SERVICES.some((b) => b.id === s.id));
   return [...created, ...base];
 }
 
@@ -258,25 +227,8 @@ export const demoProducts = {
     demoReview('product', id, input),
 };
 
-export const demoServices = {
-  // reads the admin-overridden catalog, so a service created or edited in /admin shows up here
-  list: (q: ServiceListQuery = {}) => {
-    const { items, pagination } = queryLocalServices(q, catalogServices());
-    return ok(items, pagination);
-  },
-  get: (id: string) => {
-    const s = findLocalService(id, catalogServices());
-    return s ? ok(s) : fail<Service>('خدمت یافت نشد', 404, 'NOT_FOUND');
-  },
-  featured: (limit = 6) => ok(catalogServices().filter((s) => s.featured && s.isActive !== false).slice(0, limit)),
-  related: (id: string, limit = 3) => ok(relatedLocalServices(id, limit, catalogServices())),
-  categories: () => ok(Array.from(new Set(catalogServices().map((s) => s.type)))),
-  addReview: (id: string, input: { rating: number; comment: string }) =>
-    demoReview('service', id, input),
-};
-
 function demoReview(
-  targetType: 'product' | 'service',
+  targetType: 'product',
   targetId: string,
   input: { rating: number; comment: string }
 ): Promise<ApiResult<Review>> {
@@ -286,7 +238,7 @@ function demoReview(
     const r = {
       id: uid('rv'),
       userId: auth.user.id,
-      userName: auth.user.name || 'کاربر اتولانژ',
+      userName: auth.user.name || 'کاربر تکنو خان',
       rating: Math.min(5, Math.max(1, Math.round(input.rating))),
       comment: input.comment.trim(),
       createdAt: nowIso(),
@@ -422,30 +374,14 @@ export const demoAuth = {
   logout: () => ok({ message: 'خروج انجام شد' }),
 };
 
-// ---------------------------------------------------------------------------
-// bookings
-// ---------------------------------------------------------------------------
-
-function slotHour(slot: string): number {
-  // normalizePhoneNumber strips the colon, so the localized digits are parsed directly here
-  const m = /^(\d{1,2}):(\d{2})/.exec(toEnglishDigits(slot));
-  return m ? Number(m[1]) + Number(m[2]) / 60 : 0;
-}
-
-// ---------------------------------------------------------------------------
-// settings and coupons
-// ---------------------------------------------------------------------------
-
-/** The demo's settings row, created from the bundled defaults on first read. */
 function settingsRow(): SiteSettings {
   return mutate((db) => (db.settings ??= structuredClone(DEFAULT_SITE_SETTINGS)));
 }
 
-/** Same for coupons — the bundled list is the demo's starting catalogue. */
 function couponRows(): (Coupon & { id: string })[] {
   return mutate((db) => {
     if (db.coupons.length === 0) {
-      db.coupons = COUPONS.map((c, i) => ({ ...c, id: `cpn_${i + 1}`, isActive: true, usedCount: 0 }));
+      db.coupons = COUPONS.map((coupon, index) => ({ ...coupon, id: `cpn_${index + 1}`, isActive: true, usedCount: 0 }));
     }
     return db.coupons;
   });
@@ -453,109 +389,6 @@ function couponRows(): (Coupon & { id: string })[] {
 
 export const demoSettings = {
   get: () => ok(settingsRow()),
-};
-
-export const demoBookings = {
-  availableSlots: (serviceId: string, date: string) => {
-    const day = new Date(`${date}T00:00:00`);
-    if (Number.isNaN(day.getTime())) return fail<never>('تاریخ معتبر نیست');
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const diffDays = Math.round((day.getTime() - today.getTime()) / 86_400_000);
-    const settings = settingsRow();
-    const closed =
-      settings.closedWeekdays.includes(day.getDay()) ||
-      settings.closedDates.includes(date) ||
-      diffDays < 0 ||
-      diffDays > BOOKING_MAX_DAYS_AHEAD;
-    const booked = load()
-      .bookings.filter(
-        (b) => b.serviceId === serviceId && String(b.date).slice(0, 10) === date && b.status !== BookingStatus.CANCELLED
-      )
-      .map((b) => b.timeSlot);
-    const nowHour = new Date().getHours() + new Date().getMinutes() / 60;
-    const availableSlots = closed
-      ? []
-      : settings.timeSlots.filter((s) => !booked.includes(s) && (diffDays > 0 || slotHour(s) > nowHour + 1));
-    return ok({ date, serviceId, availableSlots, bookedSlots: booked });
-  },
-
-  create: (input: CreateBookingInput) => {
-    const auth = requireUser();
-    if ('error' in auth) return Promise.resolve(auth.error);
-    const service = findLocalService(input.serviceId, catalogServices());
-    if (!service) return fail<Booking>('خدمت یافت نشد', 404, 'NOT_FOUND');
-    const taken = load().bookings.some(
-      (b) =>
-        b.serviceId === input.serviceId &&
-        String(b.date).slice(0, 10) === input.date &&
-        b.timeSlot === input.timeSlot &&
-        b.status !== BookingStatus.CANCELLED
-    );
-    if (taken) return fail<Booking>('این زمان قبلاً رزرو شده است', 409, 'CONFLICT');
-    const quote = computeQuote(service, (input.vehicleSize ?? 'medium') as VehicleSize, input.addonIds ?? []);
-    const booking = mutate((db) => {
-      const id = uid('bk');
-      const b: Booking = {
-        id,
-        userId: auth.user.id,
-        serviceId: input.serviceId,
-        service: servicePick(service),
-        date: `${input.date}T00:00:00.000Z`,
-        timeSlot: input.timeSlot,
-        location: input.location,
-        carModel: input.carModel,
-        carYear: input.carYear,
-        carColor: input.carColor,
-        carPlate: input.carPlate,
-        vehicleSize: input.vehicleSize,
-        addonIds: input.addonIds ?? [],
-        notes: input.notes,
-        status: BookingStatus.PENDING,
-        totalPrice: quote.total,
-        trackingCode: trackingCodeFromId('BK', id),
-        createdAt: nowIso(),
-        updatedAt: nowIso(),
-      };
-      db.bookings.unshift(b);
-      return b;
-    });
-    return ok(booking);
-  },
-
-  mine: (status?: string) => {
-    const auth = requireUser();
-    if ('error' in auth) return Promise.resolve(auth.error);
-    const list = load()
-      .bookings.filter((b) => b.userId === auth.user.id && (!status || b.status === status))
-      .sort(byDateDesc);
-    return ok(list);
-  },
-
-  get: (id: string) => {
-    const auth = requireUser();
-    if ('error' in auth) return Promise.resolve(auth.error);
-    const b = load().bookings.find((x) => x.id === id && (x.userId === auth.user.id || auth.user.role === 'admin'));
-    return b ? ok(b) : fail<Booking>('رزرو یافت نشد', 404, 'NOT_FOUND');
-  },
-
-  cancel: (id: string) => {
-    const auth = requireUser();
-    if ('error' in auth) return Promise.resolve(auth.error);
-    const result = mutate((db): { error: string; status: number } | { booking: Booking } => {
-      const b = db.bookings.find((x) => x.id === id && x.userId === auth.user.id);
-      if (!b) return { error: 'رزرو یافت نشد', status: 404 };
-      if (b.status !== BookingStatus.PENDING && b.status !== BookingStatus.CONFIRMED) {
-        return { error: 'این رزرو قابل لغو نیست', status: 409 };
-      }
-      b.status = BookingStatus.CANCELLED;
-      b.updatedAt = nowIso();
-      return { booking: b };
-    });
-    return 'booking' in result
-      ? ok(result.booking)
-      : fail<Booking>(result.error, result.status, result.status === 404 ? 'NOT_FOUND' : 'CONFLICT');
-  },
 };
 
 // ---------------------------------------------------------------------------
@@ -686,7 +519,7 @@ export const demoOrders = {
 /** In-app mock gateway page; it redirects back to `/checkout/callback`. */
 export const DEMO_GATEWAY_PATH = '/payment/demo';
 
-function createTransaction(target: { orderId?: string; bookingId?: string }, amount: number, callbackUrl?: string) {
+function createTransaction(target: { orderId?: string }, amount: number, callbackUrl?: string) {
   const tx = mutate((db) => {
     const id = uid('tx');
     const t: PaymentTransaction = {
@@ -722,14 +555,6 @@ export const demoPayment = {
     return ok(createTransaction({ orderId }, o.totalPrice, callbackUrl));
   },
 
-  requestBooking: (bookingId: string, callbackUrl?: string) => {
-    const auth = requireUser();
-    if ('error' in auth) return Promise.resolve(auth.error);
-    const b = load().bookings.find((x) => x.id === bookingId && x.userId === auth.user.id);
-    if (!b) return fail<PaymentRequestResult>('رزرو یافت نشد', 404, 'NOT_FOUND');
-    return ok(createTransaction({ bookingId }, b.totalPrice, callbackUrl));
-  },
-
   /** Whether this authority belongs to a transaction stored in the browser. */
   has: (authority: string): boolean => load().transactions.some((t) => t.authority === authority),
 
@@ -738,7 +563,7 @@ export const demoPayment = {
       const tx = db.transactions.find((t) => t.authority === authority);
       if (!tx) return { success: false, message: 'تراکنش یافت نشد' };
       if (tx.status === 'success') {
-        return { success: true, refId: tx.refId, cardNumber: tx.cardNumber, amount: tx.amount, orderId: tx.orderId, bookingId: tx.bookingId, message: 'این تراکنش قبلاً تأیید شده است' };
+        return { success: true, refId: tx.refId, cardNumber: tx.cardNumber, amount: tx.amount, orderId: tx.orderId, message: 'این تراکنش قبلاً تأیید شده است' };
       }
       if (status !== 'OK') {
         tx.status = 'failed';
@@ -746,18 +571,16 @@ export const demoPayment = {
         tx.errorMessage = 'پرداخت توسط کاربر لغو شد';
         const o = db.orders.find((x) => x.id === tx.orderId);
         if (o) o.paymentStatus = PaymentStatus.FAILED;
-        return { success: false, orderId: tx.orderId, bookingId: tx.bookingId, amount: tx.amount, message: 'پرداخت لغو شد' };
+        return { success: false, orderId: tx.orderId, amount: tx.amount, message: 'پرداخت لغو شد' };
       }
       const cancelledOrder = db.orders.find((x) => x.id === tx.orderId && x.status === OrderStatus.CANCELLED);
-      const cancelledBooking = db.bookings.find((x) => x.id === tx.bookingId && x.status === BookingStatus.CANCELLED);
-      if (cancelledOrder || cancelledBooking) {
+      if (cancelledOrder) {
         tx.status = 'failed';
         tx.errorCode = 'CANCELLED';
-        tx.errorMessage = 'سفارش یا رزرو پیش از پرداخت لغو شده بود';
+        tx.errorMessage = 'سفارش پیش از پرداخت لغو شده بود';
         return {
           success: false,
           orderId: tx.orderId,
-          bookingId: tx.bookingId,
           amount: tx.amount,
           message: 'این سفارش پیش از تکمیل پرداخت لغو شده بود و مبلغی کسر نشد',
         };
@@ -771,12 +594,7 @@ export const demoPayment = {
         if (o.status === OrderStatus.PENDING) o.status = OrderStatus.PROCESSING;
         o.updatedAt = nowIso();
       }
-      const b = db.bookings.find((x) => x.id === tx.bookingId);
-      if (b) {
-        if (b.status === BookingStatus.PENDING) b.status = BookingStatus.CONFIRMED;
-        b.updatedAt = nowIso();
-      }
-      return { success: true, refId: tx.refId, cardNumber: tx.cardNumber, amount: tx.amount, orderId: tx.orderId, bookingId: tx.bookingId, message: 'پرداخت با موفقیت انجام شد' };
+      return { success: true, refId: tx.refId, cardNumber: tx.cardNumber, amount: tx.amount, orderId: tx.orderId, message: 'پرداخت با موفقیت انجام شد' };
     });
     return ok(result);
   },
@@ -795,8 +613,7 @@ export const demoPayment = {
     if ('error' in auth) return Promise.resolve(auth.error);
     const db = load();
     const mineOrders = new Set(db.orders.filter((o) => o.userId === auth.user.id).map((o) => o.id));
-    const mineBookings = new Set(db.bookings.filter((b) => b.userId === auth.user.id).map((b) => b.id));
-    return ok(db.transactions.filter((t) => (t.orderId && mineOrders.has(t.orderId)) || (t.bookingId && mineBookings.has(t.bookingId))));
+    return ok(db.transactions.filter((t) => t.orderId && mineOrders.has(t.orderId)));
   },
 };
 
@@ -882,24 +699,8 @@ export const demoTrack = {
     const db = load();
     // Same wording for a bad code and a mismatched phone, as the API does, so
     // neither can be used to probe for the other.
-    const missing = () => fail<TrackResult>('سفارش یا رزروی با این کد و شمارهٔ موبایل پیدا نشد', 404, 'NOT_FOUND');
+    const missing = () => fail<TrackResult>('سفارشی با این کد و شمارهٔ موبایل پیدا نشد', 404, 'NOT_FOUND');
     const owner = (userId: string) => db.users.find((u) => u.id === userId)?.phoneNumber ?? '';
-
-    if (trackingCodeKind(code) === 'booking') {
-      const booking = db.bookings.find((b) => (b.trackingCode ?? trackingCodeFromId('BK', b.id)) === code);
-      if (!booking || normalizePhoneNumber(owner(booking.userId)) !== phone) return missing();
-      return ok<TrackResult>({
-        kind: 'booking',
-        code,
-        status: booking.status,
-        createdAt: booking.createdAt,
-        updatedAt: booking.updatedAt,
-        totalPrice: booking.totalPrice,
-        serviceName: booking.service?.name ?? findLocalService(booking.serviceId, catalogServices())?.name,
-        date: booking.date,
-        timeSlot: booking.timeSlot,
-      });
-    }
 
     const order = db.orders.find((o) => (o.trackingCode ?? trackingCodeFromId('OR', o.id)) === code);
     const shipTo = order?.shippingAddress?.phoneNumber ?? '';
@@ -936,15 +737,11 @@ export const demoAdmin = {
     const stats: AdminDashboardStats = {
       users: db.users.length,
       orders: db.orders.length,
-      bookings: db.bookings.length,
       products: catalogProducts().length,
-      services: catalogServices().length,
       revenue: db.orders.filter((o) => o.paymentStatus === PaymentStatus.PAID).reduce((s, o) => s + o.totalPrice, 0),
       pendingOrders: db.orders.filter((o) => o.status === OrderStatus.PENDING).length,
-      pendingBookings: db.bookings.filter((b) => b.status === BookingStatus.PENDING).length,
       unreadMessages: db.messages.filter((m) => !m.isRead).length,
       recentOrders: [...db.orders].sort(byDateDesc).slice(0, 5),
-      recentBookings: [...db.bookings].sort(byDateDesc).slice(0, 5),
     };
     return ok(stats);
   },
@@ -1004,59 +801,6 @@ export const demoAdmin = {
     },
   },
 
-  services: {
-    list: (q: Q = {}) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      let items = catalogServices();
-      const search = str(q.search);
-      if (search) items = items.filter((s) => includesFa(`${s.name} ${s.nameEn}`, search));
-      if (q.type) items = items.filter((s) => s.type === q.type);
-      const { items: page, pagination } = paginate(items, num(q.page, 1), num(q.limit, 20));
-      return ok(page, pagination);
-    },
-    create: (input: Partial<Service>) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      const id = input.id || uid('svc');
-      const service = mutate((db) => {
-        const s = {
-          rating: 0,
-          reviewCount: 0,
-          reviews: [],
-          images: [],
-          featured: false,
-          isActive: true,
-          ...input,
-          id,
-          createdAt: nowIso(),
-          updatedAt: nowIso(),
-        } as Service;
-        db.catalog.services[id] = s;
-        db.catalog.deletedServices = db.catalog.deletedServices.filter((x) => x !== id);
-        return s;
-      });
-      return ok(service);
-    },
-    update: (id: string, patch: Partial<Service>) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      const base = catalogServices().find((s) => s.id === id);
-      if (!base) return fail<Service>('خدمت یافت نشد', 404, 'NOT_FOUND');
-      const service = mutate((db) => (db.catalog.services[id] = { ...base, ...patch, id, updatedAt: nowIso() }));
-      return ok(service);
-    },
-    remove: (id: string) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      mutate((db) => {
-        delete db.catalog.services[id];
-        if (!db.catalog.deletedServices.includes(id)) db.catalog.deletedServices.push(id);
-      });
-      return ok({ id });
-    },
-  },
-
   orders: {
     list: (q: Q = {}) => {
       const auth = requireAdmin();
@@ -1099,37 +843,6 @@ export const demoAdmin = {
     },
   },
 
-  bookings: {
-    list: (q: Q = {}) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      let items = [...load().bookings].sort(byDateDesc);
-      if (q.status) items = items.filter((b) => b.status === q.status);
-      if (q.date) items = items.filter((b) => String(b.date).slice(0, 10) === String(q.date));
-      const { items: page, pagination } = paginate(items, num(q.page, 1), num(q.limit, 20));
-      return ok(page, pagination);
-    },
-    get: (id: string) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      const b = load().bookings.find((x) => x.id === id);
-      return b ? ok(b) : fail<Booking>('رزرو یافت نشد', 404, 'NOT_FOUND');
-    },
-    updateStatus: (id: string, input: { status: BookingStatus }) => {
-      const auth = requireAdmin();
-      if ('error' in auth) return Promise.resolve(auth.error);
-      const b = mutate((db) => {
-        const found = db.bookings.find((x) => x.id === id);
-        if (found) {
-          found.status = input.status;
-          found.updatedAt = nowIso();
-        }
-        return found;
-      });
-      return b ? ok(b) : fail<Booking>('رزرو یافت نشد', 404, 'NOT_FOUND');
-    },
-  },
-
   users: {
     list: (q: Q = {}) => {
       const auth = requireAdmin();
@@ -1142,7 +855,6 @@ export const demoAdmin = {
         ...u,
         _count: {
           orders: db.orders.filter((o) => o.userId === u.id).length,
-          bookings: db.bookings.filter((b) => b.userId === u.id).length,
         },
       }));
       const { items: page, pagination } = paginate(withCounts, num(q.page, 1), num(q.limit, 20));
@@ -1157,7 +869,6 @@ export const demoAdmin = {
       return ok({
         ...u,
         orders: db.orders.filter((o) => o.userId === id),
-        bookings: db.bookings.filter((b) => b.userId === id),
       });
     },
   },

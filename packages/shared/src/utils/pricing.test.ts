@@ -1,44 +1,14 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { ServiceType, type Coupon, type Service } from '../types';
+import { type Coupon } from '../types';
 import { SHIPPING } from '../constants';
 import {
   applyCoupon,
-  basePriceFor,
   computeOrderTotals,
-  computeQuote,
   computeShipping,
   discountPercent,
   effectivePrice,
 } from './pricing';
-
-// ---------------------------------------------------------------------------
-// Fixtures (inline — never depend on the data arrays)
-// ---------------------------------------------------------------------------
-
-function makeService(over: Partial<Service> = {}): Service {
-  return {
-    id: 'svc',
-    name: 'خدمت تست',
-    nameEn: 'Test service',
-    description: '',
-    descriptionEn: '',
-    price: 1_000_000,
-    duration: 120,
-    type: ServiceType.DETAILING,
-    images: [],
-    featured: false,
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-01',
-    ...over,
-  };
-}
-
-const ADDONS = [
-  { id: 'a', name: 'افزودنی الف', price: 200_000 },
-  { id: 'b', name: 'افزودنی ب', price: 350_000 },
-  { id: 'c', name: 'افزودنی پ', price: 100_000 },
-];
 
 const COUPONS: Coupon[] = [
   {
@@ -86,98 +56,6 @@ describe('effectivePrice / discountPercent', () => {
     assert.equal(discountPercent({ price: 300_000, discountPrice: 200_000 }), 33);
     assert.equal(discountPercent({ price: 100_000 }), 0);
     assert.equal(discountPercent({ price: 100_000, discountPrice: 120_000 }), 0);
-  });
-});
-
-// ---------------------------------------------------------------------------
-// basePriceFor / computeQuote
-// ---------------------------------------------------------------------------
-
-describe('basePriceFor', () => {
-  it('prefers the explicit pricing table', () => {
-    const svc = makeService({
-      price: 1_000_000,
-      pricing: { small: 900_000, medium: 1_400_000, large: 1_900_000 },
-    });
-    assert.equal(basePriceFor(svc, 'small'), 900_000);
-    assert.equal(basePriceFor(svc, 'medium'), 1_400_000);
-    assert.equal(basePriceFor(svc, 'large'), 1_900_000);
-  });
-
-  it('falls back to size factors (0.85 / 1 / 1.3) rounded to 10,000', () => {
-    const svc = makeService({ price: 1_000_000 });
-    assert.equal(basePriceFor(svc, 'small'), 850_000);
-    assert.equal(basePriceFor(svc, 'medium'), 1_000_000);
-    assert.equal(basePriceFor(svc, 'large'), 1_300_000);
-
-    const odd = makeService({ price: 1_234_567 });
-    assert.equal(basePriceFor(odd, 'small'), 1_050_000); // 1,049,381.95 -> 1,050,000
-    assert.equal(basePriceFor(odd, 'medium'), 1_230_000); // 1,234,567 -> 1,230,000
-    assert.equal(basePriceFor(odd, 'large'), 1_600_000); // 1,604,937.1 -> 1,600,000
-  });
-});
-
-describe('computeQuote', () => {
-  it('returns the base price for each size from the pricing table', () => {
-    const svc = makeService({
-      pricing: { small: 900_000, medium: 1_400_000, large: 1_900_000 },
-      duration: 90,
-    });
-    const q = computeQuote(svc, 'large');
-    assert.deepEqual(q, {
-      base: 1_900_000,
-      addons: [],
-      total: 1_900_000,
-      durationMinutes: 90,
-      currency: 'IRT',
-    });
-    assert.equal(computeQuote(svc, 'small').base, 900_000);
-    assert.equal(computeQuote(svc, 'medium').base, 1_400_000);
-  });
-
-  it('uses the fallback factors when no pricing table exists', () => {
-    const svc = makeService({ price: 2_000_000 });
-    assert.equal(computeQuote(svc, 'small').total, 1_700_000);
-    assert.equal(computeQuote(svc, 'medium').total, 2_000_000);
-    assert.equal(computeQuote(svc, 'large').total, 2_600_000);
-  });
-
-  it('adds selected add-ons in catalog order, ignores unknown ids, +30 min each', () => {
-    const svc = makeService({ price: 1_000_000, duration: 120, addons: ADDONS });
-    const q = computeQuote(svc, 'medium', ['c', 'a', 'does-not-exist']);
-    assert.deepEqual(q.addons, [
-      { id: 'a', name: 'افزودنی الف', price: 200_000 },
-      { id: 'c', name: 'افزودنی پ', price: 100_000 },
-    ]);
-    assert.equal(q.base, 1_000_000);
-    assert.equal(q.total, 1_300_000);
-    assert.equal(q.durationMinutes, 180);
-    assert.equal(q.currency, 'IRT');
-  });
-
-  it('handles no add-ons / services without an addons list', () => {
-    const svc = makeService({ price: 1_000_000, duration: 60, addons: ADDONS });
-    const none = computeQuote(svc, 'medium', []);
-    assert.equal(none.total, 1_000_000);
-    assert.equal(none.durationMinutes, 60);
-    assert.deepEqual(none.addons, []);
-
-    const bare = makeService({ price: 500_000, duration: 45 });
-    const q = computeQuote(bare, 'small', ['a']);
-    assert.deepEqual(q.addons, []);
-    assert.equal(q.total, 430_000); // 425,000 -> 430,000
-    assert.equal(q.durationMinutes, 45);
-  });
-
-  it('combines the pricing table with add-ons', () => {
-    const svc = makeService({
-      pricing: { small: 1_000_000, medium: 1_500_000, large: 2_000_000 },
-      duration: 240,
-      addons: ADDONS,
-    });
-    const q = computeQuote(svc, 'small', ['a', 'b', 'c']);
-    assert.equal(q.total, 1_650_000);
-    assert.equal(q.durationMinutes, 330);
   });
 });
 

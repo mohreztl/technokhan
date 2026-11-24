@@ -193,7 +193,7 @@ export function LoadingOverlay({ isLoading }: { isLoading: boolean }) {
                 ease: 'easeInOut',
               }}
             >
-              اتولانژ
+              تکنو خان
             </motion.div>
 
             {/* Loading Bar */}

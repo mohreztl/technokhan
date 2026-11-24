@@ -2,14 +2,11 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
-  Booking,
-  BookingStatus,
   Coupon,
   Order,
   OrderStatus,
   Pagination,
   Product,
-  Service,
   SiteSettings,
 } from '@technokhan/shared';
 import { adminApi } from '@/lib/api/endpoints';
@@ -55,16 +52,6 @@ export function useAdminProducts(q: AdminQuery = {}) {
   });
 }
 
-export function useAdminServices(q: AdminQuery = {}) {
-  const enabled = useAdminEnabled();
-  return useQuery({
-    queryKey: qk.admin.services(q),
-    queryFn: () => paged(adminApi.services.list(q)),
-    enabled,
-    placeholderData: keepPreviousData,
-  });
-}
-
 export function useAdminOrders(q: AdminQuery = {}) {
   const enabled = useAdminEnabled();
   return useQuery({
@@ -80,25 +67,6 @@ export function useAdminOrder(id: string | undefined) {
   return useQuery({
     queryKey: qk.admin.order(id ?? ''),
     queryFn: () => unwrap(adminApi.orders.get(id!)),
-    enabled: enabled && !!id,
-  });
-}
-
-export function useAdminBookings(q: AdminQuery = {}) {
-  const enabled = useAdminEnabled();
-  return useQuery({
-    queryKey: qk.admin.bookings(q),
-    queryFn: () => paged(adminApi.bookings.list(q)),
-    enabled,
-    placeholderData: keepPreviousData,
-  });
-}
-
-export function useAdminBooking(id: string | undefined) {
-  const enabled = useAdminEnabled();
-  return useQuery({
-    queryKey: qk.admin.booking(id ?? ''),
-    queryFn: () => unwrap(adminApi.bookings.get(id!)),
     enabled: enabled && !!id,
   });
 }
@@ -173,33 +141,12 @@ export function useAdminMutations() {
       mutationFn: (id: string) => unwrap(adminApi.products.remove(id)),
       onSuccess: () => bust(['admin', 'products'], ['products']),
     }),
-    createService: useMutation({
-      mutationFn: (input: Partial<Service>) => unwrap(adminApi.services.create(input)),
-      onSuccess: () => bust(['admin', 'services'], ['services']),
-    }),
-    updateService: useMutation({
-      mutationFn: ({ id, patch }: { id: string; patch: Partial<Service> }) =>
-        unwrap(adminApi.services.update(id, patch)),
-      onSuccess: (_s, v) => bust(['admin', 'services'], ['services'], qk.service(v.id)),
-    }),
-    deleteService: useMutation({
-      mutationFn: (id: string) => unwrap(adminApi.services.remove(id)),
-      onSuccess: () => bust(['admin', 'services'], ['services']),
-    }),
     updateOrderStatus: useMutation({
       mutationFn: ({ id, status, shipmentCode }: { id: string; status: OrderStatus; shipmentCode?: string }) =>
         unwrap(adminApi.orders.updateStatus(id, { status, shipmentCode })),
       onSuccess: (order: Order) => {
         qc.setQueryData(qk.admin.order(order.id), order);
         bust(['admin', 'orders'], qk.orders());
-      },
-    }),
-    updateBookingStatus: useMutation({
-      mutationFn: ({ id, status }: { id: string; status: BookingStatus }) =>
-        unwrap(adminApi.bookings.updateStatus(id, { status })),
-      onSuccess: (booking: Booking) => {
-        qc.setQueryData(qk.admin.booking(booking.id), booking);
-        bust(['admin', 'bookings'], qk.bookings());
       },
     }),
     markMessageRead: useMutation({
@@ -231,8 +178,7 @@ export function useAdminMutations() {
       mutationFn: (input: SiteSettings) => unwrap(adminApi.settings.update(input)),
       onSuccess: (settings: SiteSettings) => {
         qc.setQueryData(qk.admin.settings(), settings);
-        // The public footer/contact and the booking calendar read the same row.
-        bust(qk.settings(), ['slots']);
+        bust(qk.settings());
       },
     }),
   };

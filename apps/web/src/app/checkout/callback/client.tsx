@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
-  CalendarCheck,
   Check,
   CheckCircle2,
   ClipboardList,
@@ -179,7 +178,6 @@ export function PaymentCallbackClient() {
 
   const pending = pendingRef.current;
   const orderId = (state.kind === 'success' ? state.result.orderId : undefined) ?? pending?.orderId;
-  const bookingId = (state.kind === 'success' ? state.result.bookingId : undefined) ?? pending?.bookingId;
 
   const retry = async () => {
     if (!orderId) return;
@@ -215,7 +213,7 @@ export function PaymentCallbackClient() {
             </motion.div>
             <h1 className="text-2xl font-black">پرداخت نمایشی با موفقیت انجام شد</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              هیچ تراکنش واقعی انجام نشد؛ {bookingId ? 'پرداخت رزرو شما در حالت دمو ثبت شد.' : 'سفارش نمایشی شما در حال پردازش است.'}
+              هیچ تراکنش واقعی انجام نشد؛ سفارش نمایشی شما در حال پردازش است.
             </p>
           </div>
 
@@ -250,14 +248,6 @@ export function PaymentCallbackClient() {
                 <Link href={`${ROUTES.ORDERS}/${orderId}`}>
                   <ClipboardList className="h-5 w-5" aria-hidden="true" />
                   مشاهدهٔ سفارش
-                </Link>
-              </Button>
-            )}
-            {bookingId && (
-              <Button size="lg" asChild>
-                <Link href={`${ROUTES.PROFILE}?tab=bookings`}>
-                  <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-                  مشاهدهٔ رزرو
                 </Link>
               </Button>
             )}
@@ -303,14 +293,6 @@ export function PaymentCallbackClient() {
                 </Link>
               </Button>
             )}
-            {bookingId && (
-              <Button variant="outline" size="lg" asChild>
-                <Link href={`${ROUTES.PROFILE}?tab=bookings`}>
-                  <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-                  مشاهدهٔ رزروها
-                </Link>
-              </Button>
-            )}
           </div>
         </motion.div>
       )}
@@ -353,21 +335,12 @@ export function PaymentCallbackClient() {
                 </Link>
               </Button>
             )}
-            {bookingId ? (
-              <Button variant="outline" size="lg" asChild>
-                <Link href={`${ROUTES.PROFILE}?tab=bookings`}>
-                  <CalendarCheck className="h-5 w-5" aria-hidden="true" />
-                  مشاهدهٔ رزروها
-                </Link>
-              </Button>
-            ) : (
-              <Button variant="ghost" size="lg" asChild>
-                <Link href={ROUTES.CART}>
-                  <ShoppingBag className="h-5 w-5" aria-hidden="true" />
-                  بازگشت به سبد خرید
-                </Link>
-              </Button>
-            )}
+            <Button variant="ghost" size="lg" asChild>
+              <Link href={ROUTES.CART}>
+                <ShoppingBag className="h-5 w-5" aria-hidden="true" />
+                بازگشت به سبد خرید
+              </Link>
+            </Button>
           </div>
         </motion.div>
       )}

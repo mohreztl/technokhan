@@ -1,4 +1,4 @@
-import { BOOKING_STATUS_LABELS, ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@technokhan/shared';
+import { ORDER_STATUS_LABELS, PAYMENT_STATUS_LABELS } from '@technokhan/shared';
 import { Badge, type BadgeProps } from '@/components/ui/badge';
 
 type Variant = NonNullable<BadgeProps['variant']>;
@@ -16,14 +16,6 @@ const PAYMENT_VARIANTS: Record<string, Variant> = {
   paid: 'success',
   failed: 'destructive',
   refunded: 'muted',
-};
-
-const BOOKING_VARIANTS: Record<string, Variant> = {
-  pending: 'warning',
-  confirmed: 'secondary',
-  in_progress: 'default',
-  completed: 'success',
-  cancelled: 'destructive',
 };
 
 interface StatusBadgeProps {
@@ -44,14 +36,6 @@ export function PaymentStatusBadge({ status, size = 'md', className }: StatusBad
   return (
     <Badge variant={PAYMENT_VARIANTS[status] ?? 'outline'} size={size} className={className}>
       {PAYMENT_STATUS_LABELS[status] ?? status}
-    </Badge>
-  );
-}
-
-export function BookingStatusBadge({ status, size = 'md', className }: StatusBadgeProps) {
-  return (
-    <Badge variant={BOOKING_VARIANTS[status] ?? 'outline'} size={size} className={className}>
-      {BOOKING_STATUS_LABELS[status] ?? status}
     </Badge>
   );
 }
