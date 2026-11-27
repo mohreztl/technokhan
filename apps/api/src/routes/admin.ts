@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { slugify, type AdminDashboardStats } from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import {
+  adminArticleQuerySchema,
+  adminArticleSchema,
+  adminArticleUpdateSchema,
   adminMessageQuerySchema,
   adminOrderQuerySchema,
   adminProductQuerySchema,
@@ -28,6 +31,7 @@ import {
   userSummarySelect,
 } from '../lib/catalog';
 import { getSettings, saveSettings } from '../lib/settings';
+import { IMAGE_MIME_TYPES, uploadImage } from '../lib/s3';
 import { sendStatusUpdate } from '../services/sms.service';
 
 type ProductInput = z.infer<typeof adminProductSchema>;
@@ -65,6 +69,19 @@ async function uniqueId(requested: string | undefined, nameEn: string) {
   if (!base) return undefined;
   const exists = await prisma.product.findUnique({ where: { id: base }, select: { id: true } });
   return exists ? `${base}-${Math.random().toString(36).slice(2, 6)}` : base;
+}
+
+/** Latin slug for an article; Persian-only titles fall back to a generated slug. */
+async function uniqueArticleSlug(requested: string | undefined, title: string) {
+  if (requested) {
+    const exists = await prisma.article.findUnique({ where: { slug: requested }, select: { id: true } });
+    if (exists) throw conflict('این اسلاگ قبلاً استفاده شده است');
+    return requested;
+  }
+  const base = slugify(title).replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '');
+  const candidate = base || `post-${Date.now().toString(36)}`;
+  const exists = await prisma.article.findUnique({ where: { slug: candidate }, select: { id: true } });
+  return exists ? `${candidate}-${Math.random().toString(36).slice(2, 6)}` : candidate;
 }
 
 export const adminRoutes: FastifyPluginAsync = async (fastify) => {
@@ -148,6 +165,130 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     const { id } = parse(idParamSchema, request.params);
     const product = await prisma.product.update({ where: { id }, data: { isActive: false, featured: false } });
     return apiResponse.success(reply, product);
+  });
+
+  // ------------------------------------------------------------------
+  // Image uploads (S3)
+  // ------------------------------------------------------------------
+  fastify.post('/uploads', async (request, reply) => {
+    const file = await request.file().catch(() => undefined);
+    if (!file) throw badRequest('فایلی ارسال نشده است');
+    if (!IMAGE_MIME_TYPES.includes(file.mimetype)) {
+      throw badRequest('فقط تصویر با فرمت JPG، PNG، WebP، AVIF، GIF یا SVG مجاز است');
+    }
+    const buffer = await file.toBuffer();
+    if (buffer.length === 0) throw badRequest('فایل ارسال‌شده خالی است');
+    const uploaded = await uploadImage({
+      buffer,
+      filename: file.filename || 'image',
+      contentType: file.mimetype,
+    });
+    return apiResponse.success(reply, { ...uploaded, name: file.filename, size: buffer.length }, 201);
+  });
+
+  // ------------------------------------------------------------------
+  // Articles (magazine)
+  // ------------------------------------------------------------------
+  fastify.get('/articles', async (request, reply) => {
+    const q = parse(adminArticleQuerySchema, request.query);
+    const where: Prisma.ArticleWhereInput = {};
+    if (q.category) where.category = q.category;
+    if (q.isActive !== undefined) where.isActive = q.isActive === 'true';
+    if (q.search) {
+      where.OR = [
+        { title: { contains: q.search, mode: 'insensitive' } },
+        { slug: { contains: q.search, mode: 'insensitive' } },
+        { excerpt: { contains: q.search, mode: 'insensitive' } },
+      ];
+    }
+
+    const [items, total] = await Promise.all([
+      prisma.article.findMany({
+        where,
+        // content is a heavy Text column — the list only needs summaries
+        select: {
+          id: true,
+          slug: true,
+          title: true,
+          excerpt: true,
+          category: true,
+          coverImage: true,
+          tags: true,
+          author: true,
+          publishedAt: true,
+          isActive: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        orderBy: { publishedAt: 'desc' },
+        skip: (q.page - 1) * q.limit,
+        take: q.limit,
+      }),
+      prisma.article.count({ where }),
+    ]);
+    return apiResponse.paginated(reply, items, total, q.page, q.limit);
+  });
+
+  fastify.get('/articles/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const article = await prisma.article.findUnique({ where: { id } });
+    if (!article) throw notFound('مقاله یافت نشد');
+    return apiResponse.success(reply, article);
+  });
+
+  fastify.post('/articles', async (request, reply) => {
+    const input = parse(adminArticleSchema, request.body);
+    const slug = await uniqueArticleSlug(input.slug, input.title);
+    const article = await prisma.article.create({
+      data: {
+        slug,
+        title: input.title,
+        excerpt: input.excerpt,
+        content: input.content,
+        category: input.category,
+        coverImage: input.coverImage ?? null,
+        tags: input.tags,
+        author: input.author,
+        publishedAt: input.publishedAt ?? new Date(),
+        isActive: input.isActive,
+      },
+    });
+    return apiResponse.success(reply, article, 201);
+  });
+
+  fastify.put('/articles/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const input = parse(adminArticleUpdateSchema, request.body);
+
+    const existing = await prisma.article.findUnique({ where: { id }, select: { id: true, slug: true } });
+    if (!existing) throw notFound('مقاله یافت نشد');
+    if (input.slug && input.slug !== existing.slug) {
+      const taken = await prisma.article.findUnique({ where: { slug: input.slug }, select: { id: true } });
+      if (taken) throw conflict('این اسلاگ قبلاً استفاده شده است');
+    }
+
+    const article = await prisma.article.update({
+      where: { id },
+      data: stripUndefined({
+        slug: input.slug,
+        title: input.title,
+        excerpt: input.excerpt,
+        content: input.content,
+        category: input.category,
+        coverImage: input.coverImage,
+        tags: input.tags,
+        author: input.author,
+        publishedAt: input.publishedAt,
+        isActive: input.isActive,
+      }),
+    });
+    return apiResponse.success(reply, article);
+  });
+
+  fastify.delete('/articles/:id', async (request, reply) => {
+    const { id } = parse(idParamSchema, request.params);
+    const article = await prisma.article.update({ where: { id }, data: { isActive: false } });
+    return apiResponse.success(reply, article);
   });
 
   // ------------------------------------------------------------------

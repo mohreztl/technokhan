@@ -258,6 +258,36 @@ export const adminProductSchema = z.object({
 
 export const idParamSchema = z.object({ id: z.string().min(1, 'شناسه نامعتبر است') });
 
+export const articleSlug = z
+  .string()
+  .trim()
+  .min(2, 'اسلاگ کوتاه است')
+  .max(160)
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'اسلاگ فقط می‌تواند شامل حروف انگلیسی کوچک، عدد و خط تیره باشد');
+
+export const adminArticleSchema = z.object({
+  slug: articleSlug.optional(),
+  title: z.string().trim().min(2, 'عنوان کوتاه است').max(200),
+  excerpt: z.string().trim().max(500).optional(),
+  content: z.string().trim().min(10, 'متن مقاله کوتاه است'),
+  category: z.string().trim().min(1).max(60).default('دانش فنی'),
+  coverImage: imagePath.optional().nullable(),
+  tags: z.array(z.string().trim().min(1)).default([]),
+  author: z.string().trim().max(80).optional(),
+  publishedAt: z.coerce.date().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export const adminArticleUpdateSchema = adminArticleSchema.partial();
+
+export const adminArticleQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
+  search: z.string().trim().min(1).max(100).optional(),
+  category: z.string().trim().min(1).optional(),
+  isActive: z.enum(['true', 'false']).optional(),
+});
+
 export const paginationQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(12),
@@ -275,3 +305,4 @@ export type TrackInput = z.infer<typeof trackSchema>;
 export type CouponInput = z.infer<typeof couponSchema>;
 export type SiteSettingsInput = z.infer<typeof siteSettingsSchema>;
 export type AdminProductInput = z.infer<typeof adminProductSchema>;
+export type AdminArticleInput = z.infer<typeof adminArticleSchema>;

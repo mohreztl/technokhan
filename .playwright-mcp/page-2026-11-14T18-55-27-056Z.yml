@@ -1,0 +1,276 @@
+- generic [active] [ref=f1e1]:
+  - link "رفتن به محتوای اصلی" [ref=f1e2] [cursor=pointer]:
+    - /url: "#content"
+  - generic [ref=f1e3]:
+    - banner [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - link "تکنو خان، صفحه اصلی" [ref=f1e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f1e7]: T
+          - generic [ref=f1e8]:
+            - generic [ref=f1e9]: تکنو خان
+            - text: PRECISION TECH
+        - navigation "ناوبری اصلی" [ref=f1e10]:
+          - link "فروشگاه" [ref=f1e12] [cursor=pointer]:
+            - /url: /shop
+          - link "مقایسه" [ref=f1e13] [cursor=pointer]:
+            - /url: /compare
+          - link "مجله تکنو" [ref=f1e14] [cursor=pointer]:
+            - /url: /blog
+          - link "درباره ما" [ref=f1e15] [cursor=pointer]:
+            - /url: /about
+        - generic [ref=f1e16]:
+          - button "جستجو (Ctrl+K)" [ref=f1e17]
+          - link "پنل کاربری" [ref=f1e23] [cursor=pointer]:
+            - /url: /profile
+          - link "علاقه‌مندی‌ها، ۰ مورد" [ref=f1e27] [cursor=pointer]:
+            - /url: /wishlist
+          - button "سبد خرید، ۰ کالا" [ref=f1e30]
+    - main [ref=f1e34]:
+      - generic [ref=f1e36]:
+        - generic [ref=f1e38]:
+          - navigation "مسیر صفحه" [ref=f1e39]:
+            - link "خانه" [ref=f1e40] [cursor=pointer]:
+              - /url: /
+            - link "فروشگاه" [ref=f1e43] [cursor=pointer]:
+              - /url: /shop
+            - generic [ref=f1e46]: شارژرهای فوق سریع
+          - generic [ref=f1e47]:
+            - generic [ref=f1e48]:
+              - heading "شارژ سریع، خنک و مطمئن" [level=1] [ref=f1e49]
+              - paragraph [ref=f1e50]: شارژر و تجهیزات شارژ با توان واقعی، محافظت دمایی و سازگاری روشن با دستگاه شما.
+            - generic [ref=f1e51]: ۲ محصول
+          - list [ref=f1e52]:
+            - listitem [ref=f1e53]: توان و پروتکل شارژ مشخص
+            - listitem [ref=f1e56]: محافظت در برابر نوسان و دما
+            - listitem [ref=f1e59]: گارانتی قابل بررسی
+        - navigation "دسته‌بندی محصولات" [ref=f1e62]:
+          - generic [ref=f1e63]:
+            - link "همه" [ref=f1e64] [cursor=pointer]:
+              - /url: /shop
+            - link "شارژرهای فوق سریع" [ref=f1e65] [cursor=pointer]:
+              - /url: /category/chargers
+            - link "هدفون و ایرباد" [ref=f1e66] [cursor=pointer]:
+              - /url: /category/headphones
+            - link "پاوربانک و مگ‌سیف" [ref=f1e67] [cursor=pointer]:
+              - /url: /category/powerbanks
+            - link "گیمینگ و دسکتاپ" [ref=f1e68] [cursor=pointer]:
+              - /url: /category/gaming
+            - link "گجت‌های پوشیدنی" [ref=f1e69] [cursor=pointer]:
+              - /url: /category/wearables
+            - link "کابل، هاب و مبدل" [ref=f1e70] [cursor=pointer]:
+              - /url: /category/cables
+        - generic [ref=f1e71]:
+          - complementary [ref=f1e72]:
+            - generic [ref=f1e74]:
+              - generic [ref=f1e75]:
+                - heading "فیلترهای دقیق" [level=2] [ref=f1e76]
+                - button "پاک کردن" [ref=f1e77]
+              - generic [ref=f1e81]:
+                - generic [ref=f1e82]: جستجو
+                - searchbox "جستجو" [ref=f1e84]
+              - group "برند" [ref=f1e85]:
+                - generic [ref=f1e87]:
+                  - generic [ref=f1e89] [cursor=pointer]:
+                    - checkbox "انکر" [ref=f1e91]
+                    - generic [ref=f1e93]: انکر
+                  - generic [ref=f1e96] [cursor=pointer]:
+                    - checkbox "بیسوس" [ref=f1e98]
+                    - generic [ref=f1e100]: بیسوس
+                  - generic [ref=f1e103] [cursor=pointer]:
+                    - checkbox "مک‌دودو" [ref=f1e105]
+                    - generic [ref=f1e107]: مک‌دودو
+                  - generic [ref=f1e110] [cursor=pointer]:
+                    - checkbox "جی‌بی‌ال" [ref=f1e112]
+                    - generic [ref=f1e114]: جی‌بی‌ال
+                  - generic [ref=f1e117] [cursor=pointer]:
+                    - checkbox "سامسونگ" [ref=f1e119]
+                    - generic [ref=f1e121]: سامسونگ
+                  - generic [ref=f1e124] [cursor=pointer]:
+                    - checkbox "اپل" [ref=f1e126]
+                    - generic [ref=f1e128]: اپل
+                  - generic [ref=f1e131] [cursor=pointer]:
+                    - checkbox "شیائومی" [ref=f1e133]
+                    - generic [ref=f1e135]: شیائومی
+              - group "بازه قیمت" [ref=f1e137]:
+                - status [ref=f1e139]:
+                  - generic [ref=f1e140]: ۰
+                  - generic [aria-hidden] [ref=f1e141]: تا
+                  - generic [ref=f1e142]: ۱۰۰٬۰۰۰٬۰۰۰
+                - generic [ref=f1e143]:
+                  - generic [ref=f1e144]: حداقل بازه قیمت
+                  - slider "حداقل بازه قیمت" [ref=f1e145] [cursor=pointer]: "0"
+                  - generic [ref=f1e146]: حداکثر بازه قیمت
+                  - slider "حداکثر بازه قیمت" [ref=f1e147] [cursor=pointer]: "100000000"
+              - generic [ref=f1e148]:
+                - generic [ref=f1e149]: حداقل امتیاز خریداران
+                - combobox "حداقل امتیاز خریداران" [ref=f1e151] [cursor=pointer]:
+                  - option "همه امتیازها" [selected]
+                  - option "۴ ستاره و بیشتر"
+                  - option "۴٫۵ ستاره و بیشتر"
+              - group "ویژگی فنی" [ref=f1e152]:
+                - generic [ref=f1e154]:
+                  - generic [ref=f1e156] [cursor=pointer]:
+                    - checkbox "GaN" [ref=f1e158]
+                    - generic [ref=f1e160]: GaN
+                  - generic [ref=f1e163] [cursor=pointer]:
+                    - checkbox "شارژ سریع" [ref=f1e165]
+                    - generic [ref=f1e167]: شارژ سریع
+                  - generic [ref=f1e170] [cursor=pointer]:
+                    - checkbox "بی‌سیم" [ref=f1e172]
+                    - generic [ref=f1e174]: بی‌سیم
+                  - generic [ref=f1e177] [cursor=pointer]:
+                    - checkbox "بلوتوث" [ref=f1e179]
+                    - generic [ref=f1e181]: بلوتوث
+                  - generic [ref=f1e184] [cursor=pointer]:
+                    - checkbox "نویزکنسلینگ" [ref=f1e186]
+                    - generic [ref=f1e188]: نویزکنسلینگ
+                  - generic [ref=f1e191] [cursor=pointer]:
+                    - checkbox "ضدآب" [ref=f1e193]
+                    - generic [ref=f1e195]: ضدآب
+                  - generic [ref=f1e198] [cursor=pointer]:
+                    - checkbox "USB-C" [ref=f1e200]
+                    - generic [ref=f1e202]: USB-C
+                  - generic [ref=f1e205] [cursor=pointer]:
+                    - checkbox "Qi2" [ref=f1e207]
+                    - generic [ref=f1e209]: Qi2
+              - generic [ref=f1e211]:
+                - generic [ref=f1e212]: فقط کالاهای موجود
+                - switch "فقط کالاهای موجود" [ref=f1e213]
+              - generic [ref=f1e216]:
+                - generic [ref=f1e217]: فقط تخفیف‌دار
+                - switch "فقط تخفیف‌دار" [ref=f1e218]
+              - generic [ref=f1e221]:
+                - generic [ref=f1e222]: منتخب تکنو خان
+                - switch "فقط محصولات منتخب تکنو خان" [ref=f1e223]
+          - generic [ref=f1e226]:
+            - generic [ref=f1e227]:
+              - paragraph [ref=f1e228]: همه محصولات با ضمانت اصالت
+              - combobox "مرتب‌سازی محصولات" [ref=f1e234] [cursor=pointer]:
+                - option "پرفروش‌ترین" [selected]
+                - option "جدیدترین"
+                - option "بالاترین امتیاز"
+                - option "ارزان‌ترین"
+                - option "گران‌ترین"
+              - group "چیدمان محصولات" [ref=f1e235]:
+                - button "نمایش شبکه‌ای" [pressed] [ref=f1e236]
+                - button "نمایش فهرستی" [ref=f1e239]
+            - generic "فیلترهای فعال"
+            - generic [ref=f1e242]:
+              - article [ref=f1e243]:
+                - generic [ref=f1e244]:
+                  - link "مشاهده شارژر GaNPrime انکر ۱۰۰ وات" [ref=f1e245] [cursor=pointer]:
+                    - /url: /product/gan-charger
+                    - img "شارژر GaN سه پورت با طراحی صنعتی و پنل شفاف" [ref=f1e246]
+                  - generic [ref=f1e247]: ۱۳٪ تخفیف
+                  - generic [ref=f1e249]:
+                    - button "افزودن شارژر GaNPrime انکر ۱۰۰ وات به علاقه‌مندی‌ها" [ref=f1e250]
+                    - button "افزودن شارژر GaNPrime انکر ۱۰۰ وات به مقایسه" [ref=f1e253]
+                - generic [ref=f1e261]:
+                  - generic [ref=f1e262]:
+                    - generic [ref=f1e263]: Anker
+                    - generic [ref=f1e264]: منتخب سردبیر
+                  - heading [level=3] [ref=f1e267]:
+                    - link "شارژر GaNPrime انکر ۱۰۰ وات" [ref=f1e268] [cursor=pointer]:
+                      - /url: /product/gan-charger
+                  - img "امتیاز ۴.۹ از ۵" [ref=f1e270]:
+                    - generic [ref=f1e302]: (۱۷۶ نظر)
+                  - generic [ref=f1e304]:
+                    - generic [ref=f1e305]: ۴٬۶۹۰٬۰۰۰ تومان
+                    - deletion [ref=f1e306]: ۵٬۴۰۰٬۰۰۰ تومان
+                    - generic [ref=f1e307]: ۱۳٪
+                  - generic [ref=f1e308]:
+                    - button "افزودن" [ref=f1e309]
+                    - button "مشاهده سریع شارژر GaNPrime انکر ۱۰۰ وات" [ref=f1e313]
+              - article [ref=f1e317]:
+                - generic [ref=f1e318]:
+                  - link "مشاهده شارژر بی‌سیم Anker 3-in-1 Cube" [ref=f1e319] [cursor=pointer]:
+                    - /url: /product/wireless-charger
+                    - img "شارژر بی‌سیم تاشو سه‌کاره برای گوشی، ساعت و ایرباد" [ref=f1e320]
+                  - generic [ref=f1e321]:
+                    - button "افزودن شارژر بی‌سیم Anker 3-in-1 Cube به علاقه‌مندی‌ها" [ref=f1e322]
+                    - button "افزودن شارژر بی‌سیم Anker 3-in-1 Cube به مقایسه" [ref=f1e325]
+                - generic [ref=f1e333]:
+                  - generic [ref=f1e334]: Anker
+                  - heading [level=3] [ref=f1e336]:
+                    - link "شارژر بی‌سیم Anker 3-in-1 Cube" [ref=f1e337] [cursor=pointer]:
+                      - /url: /product/wireless-charger
+                  - img "امتیاز ۴.۸ از ۵" [ref=f1e339]:
+                    - generic [ref=f1e371]: (۱۰۹ نظر)
+                  - generic [ref=f1e372]: ۷٬۴۰۰٬۰۰۰ تومان
+                  - generic [ref=f1e375]:
+                    - button "افزودن" [ref=f1e376]
+                    - button "مشاهده سریع شارژر بی‌سیم Anker 3-in-1 Cube" [ref=f1e380]
+    - contentinfo [ref=f1e384]:
+      - generic [ref=f1e385]:
+        - generic [ref=f1e391]:
+          - heading "ضمانت اصالت" [level=2] [ref=f1e392]
+          - paragraph [ref=f1e393]: سریال و منشأ کالا بررسی می‌شود
+        - generic [ref=f1e401]:
+          - heading "ارسال سریع" [level=2] [ref=f1e402]
+          - paragraph [ref=f1e403]: بسته‌بندی امن و رهگیری آنلاین
+        - generic [ref=f1e409]:
+          - heading "۷ روز فرصت بازگشت" [level=2] [ref=f1e410]
+          - paragraph [ref=f1e411]: با شرایط شفاف و بدون پیچیدگی
+        - generic [ref=f1e416]:
+          - heading "مشاوره انتخاب" [level=2] [ref=f1e417]
+          - paragraph [ref=f1e418]: راهنمایی پیش از خرید، نه فقط فروش
+      - generic [ref=f1e419]:
+        - generic [ref=f1e420]:
+          - link "T تکنو خان" [ref=f1e421] [cursor=pointer]:
+            - /url: /
+            - generic [ref=f1e422]: T
+            - generic [ref=f1e423]: تکنو خان
+          - paragraph [ref=f1e424]: فروشگاه مستقل گجت و لوازم جانبی دیجیتال با انتخاب محدود، مشخصات روشن و راهنمای خرید فارسی.
+          - paragraph [ref=f1e425]: این نسخه نمایشی است؛ سفارش و پرداخت در حالت دمو انجام می‌شود.
+        - navigation "فروشگاه" [ref=f1e426]:
+          - heading "فروشگاه" [level=2] [ref=f1e427]
+          - list [ref=f1e428]:
+            - listitem [ref=f1e429]:
+              - link "همه محصولات" [ref=f1e430] [cursor=pointer]:
+                - /url: /shop
+            - listitem [ref=f1e431]:
+              - link "پیشنهادهای تخفیف‌دار" [ref=f1e432] [cursor=pointer]:
+                - /url: /shop?deals=true
+            - listitem [ref=f1e433]:
+              - link "مقایسه محصولات" [ref=f1e434] [cursor=pointer]:
+                - /url: /compare
+            - listitem [ref=f1e435]:
+              - link "علاقه‌مندی‌ها" [ref=f1e436] [cursor=pointer]:
+                - /url: /wishlist
+        - navigation "راهنما" [ref=f1e437]:
+          - heading "راهنما" [level=2] [ref=f1e438]
+          - list [ref=f1e439]:
+            - listitem [ref=f1e440]:
+              - link "مجله تکنو" [ref=f1e441] [cursor=pointer]:
+                - /url: /blog
+            - listitem [ref=f1e442]:
+              - link "سوالات متداول" [ref=f1e443] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=f1e444]:
+              - link "پیگیری سفارش" [ref=f1e445] [cursor=pointer]:
+                - /url: /track
+            - listitem [ref=f1e446]:
+              - link "تماس با ما" [ref=f1e447] [cursor=pointer]:
+                - /url: /contact
+        - navigation "تکنو خان" [ref=f1e448]:
+          - heading "تکنو خان" [level=2] [ref=f1e449]
+          - list [ref=f1e450]:
+            - listitem [ref=f1e451]:
+              - link "درباره ما" [ref=f1e452] [cursor=pointer]:
+                - /url: /about
+            - listitem [ref=f1e453]:
+              - link "دیزاین سیستم" [ref=f1e454] [cursor=pointer]:
+                - /url: /design-system
+            - listitem [ref=f1e455]:
+              - link "حریم خصوصی" [ref=f1e456] [cursor=pointer]:
+                - /url: /privacy
+            - listitem [ref=f1e457]:
+              - link "شرایط استفاده" [ref=f1e458] [cursor=pointer]:
+                - /url: /terms
+      - generic [ref=f1e459]:
+        - generic [ref=f1e460]: © ۱۴۰۵ تکنو خان
+        - generic [ref=f1e461]: technokhan.com
+  - button "باز کردن پشتیبانی هوشمند" [ref=f1e462] [cursor=pointer]:
+    - generic [ref=f1e466]: پشتیبانی هوشمند
+  - region "Notifications alt+T"

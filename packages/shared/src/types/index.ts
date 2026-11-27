@@ -466,3 +466,23 @@ export interface AdminDashboardStats {
   unreadMessages: number;
   recentOrders: Order[];
 }
+
+/** Magazine article row as managed from the admin panel (Prisma `Article`). */
+export interface AdminArticle {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string | null;
+  content: string;
+  category: string;
+  coverImage: string | null;
+  tags: string[];
+  author: string | null;
+  publishedAt: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** Article list item without the heavy HTML body. */
+export type AdminArticleSummary = Omit<AdminArticle, 'content'>;

@@ -15,6 +15,8 @@ export const qk = {
   admin: {
     dashboard: () => ['admin', 'dashboard'] as const,
     products: (q?: Record<string, unknown>) => ['admin', 'products', q ?? {}] as const,
+    articles: (q?: Record<string, unknown>) => ['admin', 'articles', q ?? {}] as const,
+    article: (id: string) => ['admin', 'article', id] as const,
     orders: (q?: Record<string, unknown>) => ['admin', 'orders', q ?? {}] as const,
     order: (id: string) => ['admin', 'order', id] as const,
     users: (q?: Record<string, unknown>) => ['admin', 'users', q ?? {}] as const,

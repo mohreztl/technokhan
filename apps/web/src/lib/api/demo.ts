@@ -1,6 +1,8 @@
 import type {
   Address,
+  AdminArticle,
   AdminDashboardStats,
+  Article,
   AuthResponse,
   ContactInput,
   ContactMessage,
@@ -32,6 +34,7 @@ import {
   computeOrderTotals,
   normalizePhoneNumber,
   normalizeTrackingCode,
+  sortedArticles,
   toEnglishDigits,
   trackingCodeFromId,
 } from '@technokhan/shared';
@@ -69,6 +72,9 @@ interface DemoDb {
   catalog: {
     products: Record<string, Product>;
     deletedProducts: string[];
+    /** Magazine articles created/edited in the demo admin, keyed by slug. */
+    articles: Record<string, AdminArticle>;
+    deletedArticles: string[];
   };
 }
 
@@ -82,7 +88,7 @@ const emptyDb = (): DemoDb => ({
   reviews: [],
   coupons: [],
   settings: null,
-  catalog: { products: {}, deletedProducts: [] },
+  catalog: { products: {}, deletedProducts: [], articles: {}, deletedArticles: [] },
 });
 
 let memory: DemoDb | null = null;
@@ -204,6 +210,37 @@ function catalogProducts(): Product[] {
   );
   const created = Object.values(catalog).filter((p) => !PRODUCTS.some((b) => b.id === p.id));
   return [...created, ...base];
+}
+
+/** Bundled editorial articles in the admin (Prisma-like) shape. */
+function bundledToAdminArticle(a: Article): AdminArticle {
+  return {
+    id: `bundled-${a.slug}`,
+    slug: a.slug,
+    title: a.title,
+    excerpt: a.excerpt,
+    content: a.body.map((b) => ('text' in b ? b.text : '')).filter(Boolean).join('\n\n'),
+    category: a.category,
+    coverImage: a.cover || null,
+    tags: a.tags,
+    author: a.author.name,
+    publishedAt: a.publishedAt,
+    isActive: true,
+    createdAt: a.publishedAt,
+    updatedAt: a.updatedAt ?? a.publishedAt,
+  };
+}
+
+function catalogArticles(): AdminArticle[] {
+  const db = load();
+  const overrides = db.catalog?.articles ?? {};
+  const deleted = db.catalog?.deletedArticles ?? [];
+  const base = sortedArticles()
+    .map(bundledToAdminArticle)
+    .filter((a) => !deleted.includes(a.slug))
+    .map((a) => overrides[a.slug] ?? a);
+  const created = Object.values(overrides).filter((a) => !base.some((b) => b.slug === a.slug));
+  return [...created, ...base].sort((x, y) => y.publishedAt.localeCompare(x.publishedAt));
 }
 
 // ---------------------------------------------------------------------------
@@ -798,6 +835,107 @@ export const demoAdmin = {
         if (!db.catalog.deletedProducts.includes(id)) db.catalog.deletedProducts.push(id);
       });
       return ok({ id });
+    },
+  },
+
+  articles: {
+    list: (q: Q = {}) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      let items = catalogArticles();
+      const search = str(q.search);
+      if (search) items = items.filter((a) => includesFa(`${a.title} ${a.slug} ${a.excerpt ?? ''}`, search));
+      if (q.category) items = items.filter((a) => a.category === q.category);
+      if (q.isActive !== undefined && q.isActive !== '') items = items.filter((a) => a.isActive === (String(q.isActive) === 'true'));
+      const { items: page, pagination } = paginate(items, num(q.page, 1), num(q.limit, 20));
+      return ok(page, pagination);
+    },
+    get: (id: string) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const article = catalogArticles().find((a) => a.id === id);
+      return article ? ok(article) : fail<AdminArticle>('مقاله یافت نشد', 404, 'NOT_FOUND');
+    },
+    create: (input: Partial<AdminArticle>) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const slug =
+        input.slug ||
+        input.title
+          ?.toLowerCase()
+          .trim()
+          .replace(/[^\p{L}\p{N}\s-]/gu, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-') ||
+        uid('post');
+      if (catalogArticles().some((a) => a.slug === slug)) {
+        return fail<AdminArticle>('این اسلاگ قبلاً استفاده شده است', 409, 'CONFLICT');
+      }
+      const article = mutate((db) => {
+        db.catalog.articles ??= {};
+        const a: AdminArticle = {
+          id: uid('art'),
+          slug,
+          title: input.title ?? '',
+          excerpt: input.excerpt ?? null,
+          content: input.content ?? '',
+          category: input.category ?? 'دانش فنی',
+          coverImage: input.coverImage ?? null,
+          tags: input.tags ?? [],
+          author: input.author ?? null,
+          publishedAt: input.publishedAt ?? nowIso(),
+          isActive: input.isActive ?? true,
+          createdAt: nowIso(),
+          updatedAt: nowIso(),
+        };
+        db.catalog.articles[slug] = a;
+        return a;
+      });
+      return ok(article);
+    },
+    update: (id: string, patch: Partial<AdminArticle>) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const base = catalogArticles().find((a) => a.id === id);
+      if (!base) return fail<AdminArticle>('مقاله یافت نشد', 404, 'NOT_FOUND');
+      const article = mutate((db) => {
+        db.catalog.articles ??= {};
+        const next = { ...base, ...patch, id: base.id, slug: base.slug, updatedAt: nowIso() };
+        db.catalog.articles[base.slug] = next;
+        return next;
+      });
+      return ok(article);
+    },
+    remove: (id: string) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      const base = catalogArticles().find((a) => a.id === id);
+      if (!base) return fail<AdminArticle>('مقاله یافت نشد', 404, 'NOT_FOUND');
+      mutate((db) => {
+        db.catalog.deletedArticles ??= [];
+        delete (db.catalog.articles ?? {})[base.slug];
+        if (!db.catalog.deletedArticles.includes(base.slug)) db.catalog.deletedArticles.push(base.slug);
+      });
+      return ok({ id });
+    },
+  },
+
+  uploads: {
+    /** Demo "upload": inline the file as a data URL so previews keep working offline. */
+    image: (file: File) => {
+      const auth = requireAdmin();
+      if ('error' in auth) return Promise.resolve(auth.error);
+      if (typeof window === 'undefined') {
+        return fail<{ url: string; key: string; name: string; size: number }>('آپلود فقط در مرورگر در دسترس است', 400);
+      }
+      type Uploaded = { url: string; key: string; name: string; size: number };
+      return new Promise<ApiResult<Uploaded>>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () =>
+          resolve(ok<Uploaded>({ url: String(reader.result), key: `demo/${file.name}`, name: file.name, size: file.size }));
+        reader.onerror = () => resolve(fail<Uploaded>('خواندن فایل ناموفق بود', 400));
+        reader.readAsDataURL(file);
+      });
     },
   },
 

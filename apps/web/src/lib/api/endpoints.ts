@@ -1,5 +1,7 @@
 import type {
   Address,
+  AdminArticle,
+  AdminArticleSummary,
   AdminDashboardStats,
   AuthResponse,
   ContactInput,
@@ -364,6 +366,43 @@ export const adminApi = {
       withDemoFallback<{ id: string }>(
         () => apiDelete(`/admin/products/${encodeURIComponent(id)}`),
         () => demoAdmin.products.remove(id)
+      ),
+  },
+  uploads: {
+    image: (file: File) => {
+      const form = new FormData();
+      form.append('file', file);
+      return withDemoFallback<{ url: string; key: string; name: string; size: number }>(
+        () => apiPost('/admin/uploads', form),
+        () => demoAdmin.uploads.image(file)
+      );
+    },
+  },
+  articles: {
+    list: (q: AdminQuery = {}) =>
+      withDemoFallback<AdminArticleSummary[]>(
+        () => apiGet(`/admin/articles${buildQuery(q)}`),
+        () => demoAdmin.articles.list(q)
+      ),
+    get: (id: string) =>
+      withDemoFallback<AdminArticle>(
+        () => apiGet(`/admin/articles/${encodeURIComponent(id)}`),
+        () => demoAdmin.articles.get(id)
+      ),
+    create: (input: Partial<AdminArticle>) =>
+      withDemoFallback<AdminArticle>(
+        () => apiPost('/admin/articles', input),
+        () => demoAdmin.articles.create(input)
+      ),
+    update: (id: string, patch: Partial<AdminArticle>) =>
+      withDemoFallback<AdminArticle>(
+        () => apiPut(`/admin/articles/${encodeURIComponent(id)}`, patch),
+        () => demoAdmin.articles.update(id, patch)
+      ),
+    remove: (id: string) =>
+      withDemoFallback<{ id: string }>(
+        () => apiDelete(`/admin/articles/${encodeURIComponent(id)}`),
+        () => demoAdmin.articles.remove(id)
       ),
   },
   orders: {

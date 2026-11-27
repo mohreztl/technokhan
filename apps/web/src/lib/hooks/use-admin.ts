@@ -2,6 +2,7 @@
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  AdminArticle,
   Coupon,
   Order,
   OrderStatus,
@@ -49,6 +50,25 @@ export function useAdminProducts(q: AdminQuery = {}) {
     queryFn: () => paged(adminApi.products.list(q)),
     enabled,
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useAdminArticles(q: AdminQuery = {}) {
+  const enabled = useAdminEnabled();
+  return useQuery({
+    queryKey: qk.admin.articles(q),
+    queryFn: () => paged(adminApi.articles.list(q)),
+    enabled,
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useAdminArticle(id: string | undefined) {
+  const enabled = useAdminEnabled();
+  return useQuery({
+    queryKey: qk.admin.article(id ?? ''),
+    queryFn: () => unwrap(adminApi.articles.get(id!)),
+    enabled: enabled && !!id,
   });
 }
 
@@ -140,6 +160,22 @@ export function useAdminMutations() {
     deleteProduct: useMutation({
       mutationFn: (id: string) => unwrap(adminApi.products.remove(id)),
       onSuccess: () => bust(['admin', 'products'], ['products']),
+    }),
+    uploadImage: useMutation({
+      mutationFn: (file: File) => unwrap(adminApi.uploads.image(file)),
+    }),
+    createArticle: useMutation({
+      mutationFn: (input: Partial<AdminArticle>) => unwrap(adminApi.articles.create(input)),
+      onSuccess: () => bust(['admin', 'articles'], ['articles']),
+    }),
+    updateArticle: useMutation({
+      mutationFn: ({ id, patch }: { id: string; patch: Partial<AdminArticle> }) =>
+        unwrap(adminApi.articles.update(id, patch)),
+      onSuccess: (_a, v) => bust(['admin', 'articles'], ['articles'], qk.admin.article(v.id)),
+    }),
+    deleteArticle: useMutation({
+      mutationFn: (id: string) => unwrap(adminApi.articles.remove(id)),
+      onSuccess: () => bust(['admin', 'articles'], ['articles']),
     }),
     updateOrderStatus: useMutation({
       mutationFn: ({ id, status, shipmentCode }: { id: string; status: OrderStatus; shipmentCode?: string }) =>

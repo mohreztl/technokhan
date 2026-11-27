@@ -2,6 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import {
   LayoutDashboard,
   MessageSquare,
+  Newspaper,
   Package,
   Settings,
   ShoppingBag,
@@ -25,6 +26,7 @@ export const ADMIN_NAV: AdminNavItem[] = [
   { href: '/admin', label: 'داشبورد', icon: LayoutDashboard, exact: true },
   { href: '/admin/orders', label: 'سفارش‌ها', icon: ShoppingBag },
   { href: '/admin/products', label: 'محصولات', icon: Package },
+  { href: '/admin/articles', label: 'مقالات', icon: Newspaper },
   { href: '/admin/users', label: 'کاربران', icon: Users },
   { href: '/admin/messages', label: 'پیام‌ها', icon: MessageSquare, badgeKey: 'unreadMessages' },
   { href: '/admin/reviews', label: 'نظرات', icon: Star },

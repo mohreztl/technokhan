@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useAdminMutations } from '@/lib/hooks/use-admin';
+import { ImagePreviewStrip, ImageUploadButton } from './image-upload';
 import { formResolver, joinLines, linesField, numberField, optionalText } from './form-utils';
 
 const base = adminProductSchema.shape;
@@ -108,6 +109,8 @@ export function ProductFormDialog({ open, onOpenChange, product, onSaved }: Prod
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<ProductFormValues, unknown, ProductFormOutput>({
     resolver: formResolver<ProductFormValues, ProductFormOutput>(productFormSchema),
@@ -117,6 +120,13 @@ export function ProductFormDialog({ open, onOpenChange, product, onSaved }: Prod
   React.useEffect(() => {
     if (open) reset(toValues(product));
   }, [open, product, reset]);
+
+  const imageLines = (watch('images') ?? '')
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  const appendImage = (url: string) =>
+    setValue('images', [...imageLines, url].join('\n'), { shouldDirty: true });
 
   const submit = async (out: ProductFormOutput) => {
     const patch: Partial<Product> = {
@@ -185,8 +195,13 @@ export function ProductFormDialog({ open, onOpenChange, product, onSaved }: Prod
         <Input label="موجودی" inputMode="numeric" error={errors.stock?.message} {...register('stock')} />
         <Input label="کد کالا (SKU)" dir="ltr" className="text-start" error={errors.sku?.message} {...register('sku')} />
         <div className="sm:col-span-2">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="text-sm font-medium">تصاویر محصول</span>
+            <ImageUploadButton onUploaded={appendImage} label="آپلود تصویر از سیستم" />
+          </div>
+          <ImagePreviewStrip images={imageLines} className="mb-2" />
           <Textarea
-            label="تصاویر (هر مسیر در یک خط)"
+            label="مسیر تصاویر (هر مسیر در یک خط)"
             dir="ltr"
             className="min-h-[88px] text-start text-sm"
             placeholder="/images/products/example.webp"
