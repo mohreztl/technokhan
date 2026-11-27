@@ -66,22 +66,22 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
           'hidden lg:sticky lg:flex lg:w-72 lg:shrink-0 lg:flex-col lg:overflow-y-auto',
           TOP_OFFSET,
           SIDEBAR_HEIGHT,
-          'bg-primary text-white shadow-luxury'
+          'bg-sidebar text-sidebar-foreground shadow-luxury'
         )}
       >
         <Link
           href={ROUTES.ADMIN}
-          className="flex items-center gap-3 px-5 pb-4 pt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
+          className="flex items-center gap-3 px-5 pb-4 pt-6 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-accent"
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-secondary to-secondary-700 text-primary shadow-glow-secondary">
+          <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-br from-sidebar-accent to-sidebar-accent/60 text-sidebar-accent-foreground shadow-glow-secondary">
             <Sparkles className="h-5 w-5" aria-hidden="true" />
           </span>
           <span className="min-w-0">
             <span className="block truncate text-base font-black">{APP_NAME}</span>
-            <span className="block text-[11px] text-white/60">پنل مدیریت</span>
+            <span className="block text-[11px] text-sidebar-foreground/60">پنل مدیریت</span>
           </span>
         </Link>
-        <span className="mx-5 h-px bg-linear-to-l from-transparent via-secondary/50 to-transparent" aria-hidden="true" />
+        <span className="mx-5 h-px bg-linear-to-l from-transparent via-sidebar-accent/50 to-transparent" aria-hidden="true" />
 
         <nav aria-label="ناوبری پنل مدیریت" className="flex-1 space-y-1 px-3 py-4">
           {ADMIN_NAV.map((item) => {
@@ -95,24 +95,24 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
                 aria-current={active ? 'page' : undefined}
                 className={cn(
                   'relative flex min-h-[44px] items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors',
-                  'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary',
-                  active ? 'text-secondary' : 'text-white/75 hover:bg-white/5 hover:text-white'
+                  'focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-accent',
+                  active ? 'text-sidebar-accent' : 'text-sidebar-foreground/75 hover:bg-sidebar-foreground/5 hover:text-sidebar-foreground'
                 )}
               >
                 {active && (
                   <motion.span
                     layoutId="admin-sidebar-active"
-                    className="absolute inset-0 rounded-xl bg-white/10 ring-1 ring-secondary/40"
+                    className="absolute inset-0 rounded-xl bg-sidebar-foreground/10 ring-1 ring-sidebar-accent/40"
                     transition={springTab}
                     aria-hidden="true"
                   />
                 )}
-                {active && <span className="absolute inset-y-2.5 inset-s-0 w-1 rounded-full bg-secondary" aria-hidden="true" />}
+                {active && <span className="absolute inset-y-2.5 inset-s-0 w-1 rounded-full bg-sidebar-accent" aria-hidden="true" />}
                 <Icon className="relative z-10 h-5 w-5 shrink-0" aria-hidden="true" />
                 <span className="relative z-10 flex-1">{item.label}</span>
                 {badge > 0 && (
                   <span
-                    className="relative z-10 rounded-full bg-secondary px-2 py-0.5 text-[11px] font-bold tabular-nums text-primary"
+                    className="relative z-10 rounded-full bg-sidebar-accent px-2 py-0.5 text-[11px] font-bold tabular-nums text-sidebar-accent-foreground"
                     aria-label={`${toPersianDigits(badge)} مورد جدید`}
                   >
                     {toPersianDigits(badge > 99 ? '99+' : badge)}
@@ -123,12 +123,12 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
           })}
         </nav>
 
-        <div className="border-t border-white/10 px-4 py-4">
+        <div className="border-t border-sidebar-foreground/10 px-4 py-4">
           <div className="flex items-center gap-3">
-            <Avatar size="md" fallback={(userName ?? 'م').charAt(0)} className="ring-2 ring-secondary/60" />
+            <Avatar size="md" fallback={(userName ?? 'م').charAt(0)} className="ring-2 ring-sidebar-accent/60" />
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-bold">{userName || 'مدیر سیستم'}</p>
-              <p className="truncate text-[11px] text-white/60" dir="ltr">
+              <p className="truncate text-[11px] text-sidebar-foreground/60" dir="ltr">
                 {toPersianDigits(userPhone)}
               </p>
             </div>
@@ -137,14 +137,14 @@ function Shell({ userName, userPhone, children }: { userName?: string; userPhone
               icon={<LogOut />}
               variant="ghost"
               size="sm"
-              className="text-white/80 hover:bg-white/10 hover:text-white"
+              className="text-sidebar-foreground/80 hover:bg-sidebar-foreground/10 hover:text-sidebar-foreground"
               onClick={handleLogout}
               disabled={loggingOut}
             />
           </div>
           <Link
             href={ROUTES.HOME}
-            className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-xs text-white/60 transition-colors hover:text-secondary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-secondary"
+            className="mt-3 inline-flex min-h-[44px] items-center gap-1.5 text-xs text-sidebar-foreground/60 transition-colors hover:text-sidebar-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-sidebar-accent"
           >
             <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
             بازگشت به سایت
@@ -186,7 +186,7 @@ function MobileBar({
     <div className={cn('sticky z-30 border-b border-border/40 glass-effect-strong lg:hidden', TOP_OFFSET)}>
       <div className="flex h-14 items-center justify-between gap-2 px-4">
         <Link href={ROUTES.ADMIN} className="flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-secondary to-secondary-700 text-primary">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-sidebar-accent to-sidebar-accent/60 text-sidebar-accent-foreground">
             <Sparkles className="h-4 w-4" aria-hidden="true" />
           </span>
           <span className="min-w-0">
@@ -229,7 +229,7 @@ function MobileBar({
                 <span
                   className={cn(
                     'relative z-10 rounded-full px-1.5 text-[11px] font-bold tabular-nums',
-                    active ? 'bg-secondary text-primary' : 'bg-secondary/25 text-foreground'
+                    active ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'bg-secondary/25 text-foreground'
                   )}
                   aria-label={`${toPersianDigits(badge)} مورد جدید`}
                 >
@@ -306,11 +306,11 @@ function GateCard({ variant }: { variant: 'login' | 'forbidden' }) {
 function ShellSkeleton() {
   return (
     <div className={cn('min-h-dvh bg-background lg:flex lg:items-start', CANCEL_LAYOUT_OFFSETS)} aria-busy="true" aria-label="در حال بارگذاری پنل مدیریت">
-      <div className={cn('hidden bg-primary/90 lg:sticky lg:block lg:w-72 lg:shrink-0', TOP_OFFSET, SIDEBAR_HEIGHT)}>
+      <div className={cn('hidden bg-sidebar/90 lg:sticky lg:block lg:w-72 lg:shrink-0', TOP_OFFSET, SIDEBAR_HEIGHT)}>
         <div className="space-y-3 p-5">
-          <Skeleton className="h-11 w-40 bg-white/10" />
+          <Skeleton className="h-11 w-40 bg-sidebar-foreground/10" />
           {Array.from({ length: 8 }).map((_, i) => (
-            <Skeleton key={i} className="h-11 w-full bg-white/10" />
+            <Skeleton key={i} className="h-11 w-full bg-sidebar-foreground/10" />
           ))}
         </div>
       </div>

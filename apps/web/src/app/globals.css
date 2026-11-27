@@ -37,6 +37,12 @@
   --color-metal: #aeb6b8;
   --color-deal: #ff6846;
 
+  /* Admin sidebar: always-dark surface with bright green accents, readable in both themes */
+  --color-sidebar: hsl(195 12% 9%);
+  --color-sidebar-foreground: hsl(75 14% 95%);
+  --color-sidebar-accent: hsl(82 86% 62%);
+  --color-sidebar-accent-foreground: hsl(195 12% 9%);
+
   --font-sans: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
   --font-display: var(--font-vazirmatn), Tahoma, Arial, sans-serif;
 
