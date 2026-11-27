@@ -46,7 +46,8 @@ export const config = {
     sandbox: bool(env.ZARINPAL_SANDBOX, true),
   },
   zibal: {
-    merchantId: env.ZIBAL_MERCHANT_ID || '',
+    merchantId: env.ZIBAL_MERCHANT || env.ZIBAL_MERCHANT_ID || '',
+    timeoutMs: int(env.ZIBAL_TIMEOUT_MS, 15_000),
   },
   sms: {
     /** mellipayamak (default) or kavenegar — both stay implemented */
