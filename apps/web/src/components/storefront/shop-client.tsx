@@ -4,7 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AlertCircle, Check, ChevronLeft, Filter, Grid2X2, List, RotateCcw, ShieldCheck, X } from 'lucide-react';
-import { toPersianDigits, type Brand, type Category, type PagedList, type Product, type ProductListQuery } from '@technokhan/shared';
+import { toPersianDigits, type PagedList, type Product, type ProductListQuery } from '@technokhan/shared';
 import { useProducts } from '@/lib/hooks/use-products';
 import { parseShopQuery, shopQueryToSearchParams, SHOP_PRICE_LIMIT } from '@/lib/shop-query';
 import { cn } from '@/lib/utils';
@@ -19,12 +19,26 @@ import { BottomSheet } from '@/components/ui/bottom-sheet';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
+export interface ShopCategoryOption {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface ShopBrandOption {
+  id: string;
+  name: string;
+  nameFa: string;
+}
+
 export interface ShopClientProps {
   initialProducts: PagedList<Product>;
-  categories: Category[];
-  brands: Brand[];
+  categories: ShopCategoryOption[];
+  brands: ShopBrandOption[];
   initialQuery: ProductListQuery;
-  lockedCategory?: Category;
+  lockedCategory?: ShopCategoryOption;
+  /** Brand page: the brand filter is fixed and hidden from the panel. */
+  lockedBrand?: ShopBrandOption & { description?: string };
 }
 
 const CATEGORY_CONTENT: Record<string, { headline: string; description: string; points: string[] }> = {
@@ -66,7 +80,7 @@ const FEATURE_GROUPS = [
 ];
 
 /** URL-seeded catalog with composable filters, sorting, grid/list views and mobile filter sheet. */
-export function ShopClient({ initialProducts, categories, brands, initialQuery, lockedCategory }: ShopClientProps) {
+export function ShopClient({ initialProducts, categories, brands, initialQuery, lockedCategory, lockedBrand }: ShopClientProps) {
   const pathname = usePathname();
   const [query, setQuery] = React.useState(initialQuery);
   const [filtersOpen, setFiltersOpen] = React.useState(false);
@@ -76,16 +90,21 @@ export function ShopClient({ initialProducts, categories, brands, initialQuery, 
   const deferredQuery = React.useDeferredValue(query);
   const signature = JSON.stringify(deferredQuery);
   const result = useProducts(deferredQuery, { initialData: signature === initialSignature ? initialProducts : undefined });
-  const content = lockedCategory ? CATEGORY_CONTENT[lockedCategory.id] : undefined;
+  const content = lockedBrand
+    ? { headline: lockedBrand.name, description: lockedBrand.description ?? '', points: [] }
+    : lockedCategory
+      ? CATEGORY_CONTENT[lockedCategory.id] ??
+        (lockedCategory.description ? { headline: lockedCategory.name, description: lockedCategory.description, points: [] } : undefined)
+      : undefined;
   const update = React.useCallback((patch: Partial<ProductListQuery>) => setQuery((current) => {
     const next = { ...current, ...patch, page: patch.page ?? 1 };
     if (next.minPrice === 0) next.minPrice = undefined;
     if (next.maxPrice === SHOP_PRICE_LIMIT) next.maxPrice = undefined;
     return next;
   }), []);
-  const clear = () => setQuery({ category: lockedCategory?.id, sortBy: 'popular', sortOrder: 'desc', page: 1, limit: 12 });
-  const filterPanel = <FilterPanel categories={categories} brands={brands} query={query} lockedCategory={lockedCategory} update={update} clear={clear} />;
-  const activeCount = [query.search, query.brands?.length, query.inStock, query.deals, query.featured, query.editorChoice, query.minRating, query.minDiscount, query.minReviews, query.minPrice !== undefined || query.maxPrice !== undefined, query.features?.length, !lockedCategory && query.category].filter(Boolean).length;
+  const clear = () => setQuery({ category: lockedCategory?.id, brands: lockedBrand ? [lockedBrand.name] : undefined, sortBy: 'popular', sortOrder: 'desc', page: 1, limit: 12 });
+  const filterPanel = <FilterPanel categories={categories} brands={brands} query={query} lockedCategory={lockedCategory} lockedBrand={lockedBrand} update={update} clear={clear} />;
+  const activeCount = [query.search, !lockedBrand && query.brands?.length, query.inStock, query.deals, query.featured, query.editorChoice, query.minRating, query.minDiscount, query.minReviews, query.minPrice !== undefined || query.maxPrice !== undefined, query.features?.length, !lockedCategory && query.category].filter(Boolean).length;
 
   React.useEffect(() => {
     if (firstUrlSync.current) {
@@ -93,21 +112,21 @@ export function ShopClient({ initialProducts, categories, brands, initialQuery, 
       return;
     }
     const timer = window.setTimeout(() => {
-      const nextUrl = `${pathname}${shopQueryToSearchParams(deferredQuery, { skipCategory: Boolean(lockedCategory) })}`;
+      const nextUrl = `${pathname}${shopQueryToSearchParams(deferredQuery, { skipCategory: Boolean(lockedCategory), skipBrands: Boolean(lockedBrand) })}`;
       if (`${window.location.pathname}${window.location.search}` !== nextUrl) window.history.pushState(window.history.state, '', nextUrl);
     }, 250);
     return () => window.clearTimeout(timer);
-  }, [deferredQuery, lockedCategory, pathname]);
+  }, [deferredQuery, lockedCategory, lockedBrand, pathname]);
 
   React.useEffect(() => {
     const onPopState = () => {
       const params = Object.fromEntries(new URLSearchParams(window.location.search));
       const next = parseShopQuery(params);
-      setQuery({ ...next, category: lockedCategory?.id ?? next.category });
+      setQuery({ ...next, category: lockedCategory?.id ?? next.category, brands: lockedBrand ? [lockedBrand.name] : next.brands });
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [lockedCategory?.id]);
+  }, [lockedCategory?.id, lockedBrand?.name]);
 
   return (
     <div className="pb-16">
@@ -115,7 +134,7 @@ export function ShopClient({ initialProducts, categories, brands, initialQuery, 
         <div className="container-custom py-7 sm:py-10">
           <nav className="mb-5 flex items-center gap-2 text-xs text-white/55" aria-label="مسیر صفحه">
             <Link href="/" className="hover:text-white">خانه</Link><ChevronLeft className="size-3" aria-hidden="true" />
-            {!lockedCategory ? <span>فروشگاه</span> : <><Link href="/shop" className="hover:text-white">فروشگاه</Link><ChevronLeft className="size-3" aria-hidden="true" /><span>{lockedCategory.name}</span></>}
+            {!lockedCategory && !lockedBrand ? <span>فروشگاه</span> : <><Link href="/shop" className="hover:text-white">فروشگاه</Link><ChevronLeft className="size-3" aria-hidden="true" /><span>{lockedBrand?.name ?? lockedCategory?.name}</span></>}
           </nav>
           <div className="flex flex-wrap items-end justify-between gap-5">
             <div className="max-w-3xl">
@@ -124,7 +143,7 @@ export function ShopClient({ initialProducts, categories, brands, initialQuery, 
             </div>
             <Badge variant="original" className="border-white/15 bg-white/10 px-4 py-2 text-white tabular-nums" aria-live="polite" aria-atomic="true">{toPersianDigits(result.total)} محصول</Badge>
           </div>
-          {content && <ul className="mt-6 grid gap-2 border-t border-white/10 pt-5 text-xs text-white/75 sm:grid-cols-3">{content.points.map((point) => <li key={point} className="flex items-center gap-2"><Check className="size-4 text-[#c8f45a]" aria-hidden="true" />{point}</li>)}</ul>}
+          {content && content.points.length > 0 && <ul className="mt-6 grid gap-2 border-t border-white/10 pt-5 text-xs text-white/75 sm:grid-cols-3">{content.points.map((point) => <li key={point} className="flex items-center gap-2"><Check className="size-4 text-[#c8f45a]" aria-hidden="true" />{point}</li>)}</ul>}
         </div>
       </header>
 
@@ -150,7 +169,7 @@ export function ShopClient({ initialProducts, categories, brands, initialQuery, 
               <Button size="icon-sm" variant={layout === 'list' ? 'primary' : 'ghost'} aria-label="نمایش فهرستی" aria-pressed={layout === 'list'} onClick={() => setLayout('list')}><List className="size-4" aria-hidden="true" /></Button>
             </div>
           </div>
-          <ActiveChips categories={categories} query={query} update={update} lockedCategory={lockedCategory} />
+          <ActiveChips categories={categories} query={query} update={update} lockedCategory={lockedCategory} lockedBrand={lockedBrand} />
           {result.isLoading ? <ProductSkeletons /> : result.isError ? (
             <div className="flex min-h-80 flex-col items-center justify-center rounded-2xl border border-dashed border-border p-8 text-center"><AlertCircle className="mb-4 size-8 text-destructive" aria-hidden="true" /><h2 className="text-xl font-black">دریافت محصولات ناموفق بود</h2><p className="mt-2 text-sm text-muted-foreground">اتصال را بررسی کنید و دوباره تلاش کنید؛ فیلترهای شما حفظ شده‌اند.</p><Button className="mt-5" variant="outline" onClick={() => result.refetch()}><RotateCcw className="size-4" aria-hidden="true" />تلاش دوباره</Button></div>
           ) : result.products.length === 0 ? (
@@ -173,16 +192,17 @@ export function ShopClient({ initialProducts, categories, brands, initialQuery, 
 }
 
 interface FilterPanelProps {
-  categories: Category[];
-  brands: Brand[];
+  categories: ShopCategoryOption[];
+  brands: ShopBrandOption[];
   query: ProductListQuery;
-  lockedCategory?: Category;
+  lockedCategory?: ShopCategoryOption;
+  lockedBrand?: ShopBrandOption;
   update: (patch: Partial<ProductListQuery>) => void;
   clear: () => void;
 }
 
 /** Controlled filter form shared by the desktop sidebar and mobile sheet. */
-function FilterPanel({ categories, brands, query, lockedCategory, update, clear }: FilterPanelProps) {
+function FilterPanel({ categories, brands, query, lockedCategory, lockedBrand, update, clear }: FilterPanelProps) {
   const toggleFeature = (feature: string, checked: boolean) => {
     const current = query.features ?? [];
     update({ features: checked ? [...current, feature] : current.filter((item) => item !== feature) });
@@ -194,10 +214,10 @@ function FilterPanel({ categories, brands, query, lockedCategory, update, clear 
         <div className="flex items-center justify-between"><h2 className="font-black">فیلترهای دقیق</h2><Button variant="ghost" size="sm" onClick={clear}><RotateCcw className="size-3.5" aria-hidden="true" /> پاک کردن</Button></div>
         <Input name="search" label="جستجو" type="search" value={query.search ?? ''} maxLength={100} enterKeyHint="search" onChange={(event) => update({ search: event.target.value || undefined })} placeholder="نام یا مشخصه محصول" />
         {!lockedCategory && <Select name="category" label="دسته‌بندی" value={query.category ?? ''} onChange={(event) => update({ category: event.target.value || undefined })} options={[{ value: '', label: 'همه دسته‌ها' }, ...categories.map((category) => ({ value: category.id, label: category.name }))]} />}
-        <fieldset><legend className="mb-2 text-sm font-semibold">برند</legend><div className="space-y-1">{brands.map((brand) => <Checkbox key={brand.id} label={brand.nameFa} checked={query.brands?.includes(brand.name) ?? false} onChange={(event) => {
+        {!lockedBrand && <fieldset><legend className="mb-2 text-sm font-semibold">برند</legend><div className="space-y-1">{brands.map((brand) => <Checkbox key={brand.id} label={brand.nameFa} checked={query.brands?.includes(brand.name) ?? false} onChange={(event) => {
           const current = query.brands ?? [];
           update({ brands: event.target.checked ? [...current, brand.name] : current.filter((item) => item !== brand.name) });
-        }} />)}</div></fieldset>
+        }} />)}</div></fieldset>}
         <div>
           <div className="mb-3 grid grid-cols-2 gap-2">
             <Input name="minPrice" label="حداقل قیمت" type="number" inputMode="numeric" min={0} max={SHOP_PRICE_LIMIT} step={500_000} value={query.minPrice ?? ''} onChange={(event) => {
@@ -227,12 +247,12 @@ function FilterPanel({ categories, brands, query, lockedCategory, update, clear 
 }
 
 /** Removable summary of the currently active filter state. */
-function ActiveChips({ categories, query, update, lockedCategory }: Pick<FilterPanelProps, 'categories' | 'query' | 'update' | 'lockedCategory'>) {
+function ActiveChips({ categories, query, update, lockedCategory, lockedBrand }: Pick<FilterPanelProps, 'categories' | 'query' | 'update' | 'lockedCategory' | 'lockedBrand'>) {
   return (
     <div className="mb-4 flex flex-wrap gap-2" aria-label="فیلترهای فعال">
       {!lockedCategory && query.category && <Chip label={categories.find((category) => category.id === query.category)?.name ?? query.category} onRemove={() => update({ category: undefined })} />}
       {query.search && <Chip label={`جستجو: ${query.search}`} onRemove={() => update({ search: undefined })} />}
-      {query.brands?.map((brand) => <Chip key={brand} label={brand} onRemove={() => update({ brands: query.brands?.filter((item) => item !== brand) })} />)}
+      {!lockedBrand && query.brands?.map((brand) => <Chip key={brand} label={brand} onRemove={() => update({ brands: query.brands?.filter((item) => item !== brand) })} />)}
       {(query.minPrice !== undefined || query.maxPrice !== undefined) && <Chip label="بازه قیمت" onRemove={() => update({ minPrice: undefined, maxPrice: undefined })} />}
       {query.minRating !== undefined && <Chip label={`امتیاز ${toPersianDigits(query.minRating)}+`} onRemove={() => update({ minRating: undefined })} />}
       {query.minDiscount !== undefined && <Chip label={`تخفیف ${toPersianDigits(query.minDiscount)}٪+`} onRemove={() => update({ minDiscount: undefined })} />}

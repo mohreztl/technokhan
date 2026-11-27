@@ -1,6 +1,22 @@
 import { type FastifyPluginAsync, type FastifyRequest } from 'fastify';
 import { Prisma } from '@prisma/client';
-import { BRANDS, CATEGORIES, PRODUCTS, filterProducts, findProduct, getFeaturedProducts, getRelatedProducts, type Product } from '@technokhan/shared';
+import {
+  BRANDS,
+  CATEGORIES,
+  PRODUCTS,
+  categoryForRawName,
+  categoryQueryValues,
+  filterProducts,
+  findProduct,
+  findStoreBrand,
+  findStoreCategory,
+  getFeaturedProducts,
+  getRelatedProducts,
+  normalizeTaxonomyText,
+  type Product,
+  type StoreBrandInfo,
+  type StoreCategoryInfo,
+} from '@technokhan/shared';
 import { prisma } from '../lib/prisma';
 import { productQuerySchema, limitQuerySchema, idParamSchema, reviewSchema } from '../schemas';
 import { parse, apiResponse } from '../lib/validation';
@@ -12,6 +28,31 @@ function logCatalogFallback(request: FastifyRequest, error: unknown): void {
   request.log.warn({ err: error }, 'Database product read failed; serving bundled catalog');
 }
 
+// Live distinct categories, cached briefly: the Sepidar sync owns raw spellings,
+// so taxonomy expansion must cover whatever spellings currently exist.
+const CATEGORY_CACHE_TTL_MS = 60_000;
+let categoryCache: { at: number; values: string[] } | null = null;
+
+async function liveCategories(): Promise<string[]> {
+  if (categoryCache && Date.now() - categoryCache.at < CATEGORY_CACHE_TTL_MS) return categoryCache.values;
+  try {
+    const rows = await prisma.product.findMany({ where: { isActive: true }, select: { category: true }, distinct: ['category'] });
+    categoryCache = { at: Date.now(), values: rows.map((row) => row.category).filter(Boolean) };
+  } catch {
+    categoryCache = { at: Date.now(), values: categoryCache?.values ?? [] };
+  }
+  return categoryCache.values;
+}
+
+/** A category query value covers its taxonomy match list plus live spellings of it. */
+function expandCategoryValues(input: string, live: string[]): string[] {
+  const tax = findStoreCategory(input);
+  if (!tax) return [input];
+  const wanted = new Set(tax.match.map((raw) => normalizeTaxonomyText(raw)));
+  const liveMatches = live.filter((raw) => wanted.has(normalizeTaxonomyText(raw)));
+  return [...new Set([...categoryQueryValues(tax), ...liveMatches])];
+}
+
 /** Public product catalog, filtering, related items and authenticated reviews. */
 export const productRoutes: FastifyPluginAsync = async (fastify) => {
   // GET /products
@@ -19,7 +60,12 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     const q = parse(productQuerySchema, request.query);
 
     const where: Prisma.ProductWhereInput = { isActive: true };
-    if (q.category) where.category = q.category;
+    if (q.categories?.length || q.category) {
+      const live = await liveCategories();
+      where.category = {
+        in: (q.categories?.length ? q.categories : [q.category!]).flatMap((c) => expandCategoryValues(c, live)),
+      };
+    }
     if (q.brands?.length) where.brand = { in: q.brands, mode: 'insensitive' };
     else if (q.brand) where.brand = { equals: q.brand, mode: 'insensitive' };
     if (q.features?.length) where.tags = { hasEvery: q.features };
@@ -82,14 +128,69 @@ export const productRoutes: FastifyPluginAsync = async (fastify) => {
     }
   });
 
-  // GET /products/categories/details
-  fastify.get('/categories/details', async (_request, reply) => {
-    return apiResponse.success(reply, CATEGORIES);
+  // GET /products/categories/details — taxonomy pages with live product counts
+  fastify.get('/categories/details', async (request, reply) => {
+    const fallback = CATEGORIES.map((category) => ({
+      slug: category.id as string,
+      name: category.name,
+      description: category.description,
+      image: category.image as string | undefined,
+      productCount: 0,
+    }));
+    try {
+      const grouped = await prisma.product.groupBy({
+        by: ['category'],
+        where: { isActive: true },
+        _count: { _all: true },
+      });
+      const infos = new Map<string, StoreCategoryInfo>();
+      for (const row of grouped) {
+        if (!row.category) continue;
+        const tax = categoryForRawName(row.category);
+        const slug = tax?.slug ?? row.category;
+        const prev = infos.get(slug);
+        infos.set(slug, {
+          slug,
+          name: tax?.name ?? row.category,
+          description: tax?.description ?? `خرید ${row.category} اورجینال با ضمانت اصالت کالا.`,
+          image: tax?.image,
+          productCount: (prev?.productCount ?? 0) + row._count._all,
+        });
+      }
+      const list = [...infos.values()].sort((a, b) => b.productCount - a.productCount);
+      return apiResponse.success(reply, list.length ? list : fallback);
+    } catch (error) {
+      logCatalogFallback(request, error);
+      return apiResponse.success(reply, fallback);
+    }
   });
 
-  // GET /products/brands/list
-  fastify.get('/brands/list', async (_request, reply) => {
-    return apiResponse.success(reply, BRANDS);
+  // GET /products/brands/list — brands present in the catalog, dictionary-enriched
+  fastify.get('/brands/list', async (request, reply) => {
+    try {
+      const grouped = await prisma.product.groupBy({
+        by: ['brand'],
+        where: { isActive: true, AND: [{ brand: { not: null } }, { brand: { not: '' } }] },
+        _count: { _all: true },
+      });
+      const infos: StoreBrandInfo[] = grouped
+        .filter((row) => row.brand)
+        .map((row) => {
+          const known = findStoreBrand(row.brand!);
+          return {
+            id: row.brand!.toLowerCase(),
+            name: known?.name ?? row.brand!,
+            nameFa: known?.nameFa ?? row.brand!,
+            country: known?.country ?? '',
+            productCount: row._count._all,
+          };
+        })
+        .sort((a, b) => b.productCount - a.productCount);
+      return apiResponse.success(reply, infos.length ? infos : BRANDS.map((b) => ({ ...b, productCount: 0 })));
+    } catch (error) {
+      logCatalogFallback(request, error);
+      return apiResponse.success(reply, BRANDS.map((b) => ({ ...b, productCount: 0 })));
+    }
   });
 
   // GET /products/:id

@@ -10,6 +10,7 @@ describe('productRoutes offline catalog', () => {
   const originalFindMany = prisma.product.findMany;
   const originalFindFirst = prisma.product.findFirst;
   const originalCount = prisma.product.count;
+  const originalGroupBy = prisma.product.groupBy;
 
   before(async () => {
     app = Fastify();
@@ -29,6 +30,7 @@ describe('productRoutes offline catalog', () => {
     prisma.product.findMany = originalFindMany;
     prisma.product.findFirst = originalFindFirst;
     prisma.product.count = originalCount;
+    prisma.product.groupBy = originalGroupBy;
   });
 
   after(async () => app.close());
@@ -80,5 +82,57 @@ describe('productRoutes offline catalog', () => {
     assert.equal(response.statusCode, 200);
     assert.deepEqual(response.json().data.map((product: { id: string }) => product.id), ['discounted', 'cheap']);
     assert.equal(response.json().pagination.total, 2);
+  });
+
+  it('expands a taxonomy slug into live raw category spellings', async () => {
+    let capturedWhere: { category?: { in?: string[] } } = {};
+    prisma.product.findMany = (async (args: { where?: typeof capturedWhere; distinct?: string[] }) => {
+      if (args?.distinct) return [{ category: 'هدفون و هندزفري بلوتوث' }, { category: 'کابل و شارژر' }];
+      capturedWhere = args?.where ?? {};
+      return [];
+    }) as unknown as typeof prisma.product.findMany;
+
+    const response = await app.inject({ method: 'GET', url: '/products?category=headphones' });
+    assert.equal(response.statusCode, 200);
+    const values = capturedWhere.category?.in ?? [];
+    assert.ok(values.includes('هدفون و هندزفری'), 'curated match present');
+    assert.ok(values.includes('هدفون و هندزفري بلوتوث'), 'live Arabic-spelling variant discovered');
+    assert.ok(!values.includes('کابل و شارژر'), 'unrelated categories excluded');
+  });
+
+  it('groups raw categories into taxonomy pages with counts', async () => {
+    prisma.product.groupBy = (async () => [
+      { category: 'کابل و شارژر', _count: { _all: 128 } },
+      { category: 'ايرپاد', _count: { _all: 52 } },
+      { category: 'ایرپاد', _count: { _all: 4 } },
+      { category: 'دسته ناشناخته', _count: { _all: 2 } },
+    ]) as unknown as typeof prisma.product.groupBy;
+
+    const response = await app.inject({ method: 'GET', url: '/products/categories/details' });
+    assert.equal(response.statusCode, 200);
+    const data = response.json().data as Array<{ slug: string; name: string; productCount: number }>;
+    const cables = data.find((c) => c.slug === 'cables-chargers');
+    assert.equal(cables?.productCount, 128);
+    const airpods = data.find((c) => c.slug === 'airpods');
+    assert.equal(airpods?.productCount, 56, 'spelling variants merge into one page');
+    const unknown = data.find((c) => c.slug === 'دسته ناشناخته');
+    assert.equal(unknown?.productCount, 2);
+    assert.equal(data[0]!.slug, 'cables-chargers', 'sorted by count desc');
+  });
+
+  it('lists brands present in the catalog enriched with dictionary metadata', async () => {
+    prisma.product.groupBy = (async () => [
+      { brand: 'ldnio', _count: { _all: 38 } },
+      { brand: 'samsung', _count: { _all: 27 } },
+      { brand: 'no-name', _count: { _all: 1 } },
+    ]) as unknown as typeof prisma.product.groupBy;
+
+    const response = await app.inject({ method: 'GET', url: '/products/brands/list' });
+    assert.equal(response.statusCode, 200);
+    const data = response.json().data as Array<{ id: string; nameFa: string; productCount: number }>;
+    assert.equal(data[0]!.id, 'ldnio');
+    assert.equal(data[0]!.nameFa, 'الدی‌انو');
+    assert.equal(data[0]!.productCount, 38);
+    assert.equal(data.find((b) => b.id === 'no-name')?.nameFa, 'no-name');
   });
 });

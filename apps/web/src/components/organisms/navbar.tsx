@@ -5,8 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Heart, Menu, Search, ShoppingBag, UserRound } from 'lucide-react';
-import { CATEGORIES, toPersianDigits } from '@technokhan/shared';
-import { CATEGORY_MEDIA } from '@/content/media-assets';
+import { STORE_CATEGORIES, toPersianDigits } from '@technokhan/shared';
 import { useCart } from '@/lib/store/cart-store';
 import { useWishlist } from '@/lib/store/wishlist-store';
 import { useUIStore } from '@/lib/store/ui-store';
@@ -36,16 +35,13 @@ export function Navbar() {
             <Link href="/shop" className="flex min-h-11 items-center rounded-xl px-4 text-sm font-semibold hover:bg-muted">فروشگاه</Link>
             <div className="invisible absolute inset-x-auto start-0 top-full w-[min(78vw,58rem)] translate-y-2 rounded-2xl border border-border bg-popover p-4 opacity-0 shadow-panel transition-[opacity,transform,visibility] group-hover:visible group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:visible group-focus-within:translate-y-0 group-focus-within:opacity-100">
               <div className="grid grid-cols-3 gap-3">
-                {CATEGORIES.map((category) => {
-                  const media = CATEGORY_MEDIA[category.id as keyof typeof CATEGORY_MEDIA];
-                  return (
-                    <Link key={category.id} href={`/category/${category.id}`} className="group/card relative min-h-36 overflow-hidden rounded-xl border border-border">
-                      <Image src={media.src} alt="" fill sizes="280px" fetchPriority="low" className="object-cover transition-transform duration-300 group-hover/card:scale-105" />
-                      <span className="absolute inset-0 bg-gradient-to-t from-[#090b0cee] to-transparent" />
-                      <span className="absolute inset-x-4 bottom-3 text-sm font-bold text-white">{category.name}</span>
-                    </Link>
-                  );
-                })}
+                {STORE_CATEGORIES.filter((category) => category.image).map((category) => (
+                  <Link key={category.slug} href={`/category/${category.slug}`} className="group/card relative min-h-36 overflow-hidden rounded-xl border border-border">
+                    <Image src={category.image!} alt="" fill sizes="280px" fetchPriority="low" className="object-cover transition-transform duration-300 group-hover/card:scale-105" />
+                    <span className="absolute inset-0 bg-gradient-to-t from-[#090b0cee] to-transparent" />
+                    <span className="absolute inset-x-4 bottom-3 text-sm font-bold text-white">{category.name}</span>
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
@@ -69,7 +65,7 @@ export function Navbar() {
         <nav className="grid gap-2 py-3" aria-label="دسته‌بندی موبایل">
           <Link href="/categories" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-primary px-4 font-semibold text-primary-foreground">همه دسته‌بندی‌ها</Link>
           <Link href="/brands" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">برندها</Link>
-          {CATEGORIES.map((category) => <Link key={category.id} href={`/category/${category.id}`} onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">{category.name}</Link>)}
+          {STORE_CATEGORIES.map((category) => <Link key={category.slug} href={`/category/${category.slug}`} onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">{category.name}</Link>)}
           <Link href="/blog" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">مجله تکنو</Link>
           <Link href="/wishlist" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">علاقه‌مندی‌ها</Link>
           <Link href="/profile" onClick={() => setMenuOpen(false)} className="flex min-h-12 items-center rounded-xl bg-muted px-4 font-semibold">پنل کاربری</Link>

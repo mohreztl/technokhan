@@ -1,5 +1,13 @@
 import type { Product, ProductListQuery } from '../types';
 import { discountPercent, effectivePrice } from './pricing';
+import { categoryQueryValues, findStoreCategory, normalizeTaxonomyText } from '../data/taxonomy';
+
+/** Raw category values a query entry covers: taxonomy slugs expand to their match list. */
+function expandCategoryFilter(value: string): Set<string> {
+  const tax = findStoreCategory(value);
+  const raw = tax ? categoryQueryValues(tax) : [value];
+  return new Set(raw.map((c) => normalizeTaxonomyText(c)));
+}
 
 /** Normalizes Arabic/Persian letter variants and whitespace for catalog search. */
 export function normalizeSearchText(value: string): string {
@@ -31,7 +39,13 @@ function sortProducts(items: Product[], sortBy = 'createdAt', sortOrder: 'asc' |
 /** Applies the complete storefront query to products without I/O. */
 export function filterProducts(source: Product[], q: ProductListQuery = {}): Product[] {
   let items = source.filter((product) => product.isActive !== false);
-  if (q.category) items = items.filter((product) => product.category === q.category);
+  if (q.categories?.length) {
+    const wanted = new Set(q.categories.flatMap((c) => [...expandCategoryFilter(c)]));
+    items = items.filter((product) => wanted.has(normalizeTaxonomyText(product.category ?? '')));
+  } else if (q.category) {
+    const wanted = expandCategoryFilter(q.category);
+    items = items.filter((product) => wanted.has(normalizeTaxonomyText(product.category ?? '')));
+  }
   if (q.brands?.length) {
     const brands = q.brands.map((brand) => brand.toLowerCase());
     items = items.filter((product) => product.brand && brands.includes(product.brand.toLowerCase()));

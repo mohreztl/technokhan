@@ -40,11 +40,11 @@ export function parseShopQuery(params: ShopSearchParams): ProductListQuery {
 }
 
 /** Serializes active filters into the same public query format parseShopQuery reads. */
-export function shopQueryToSearchParams(query: ProductListQuery, options: { skipCategory?: boolean } = {}): string {
+export function shopQueryToSearchParams(query: ProductListQuery, options: { skipCategory?: boolean; skipBrands?: boolean } = {}): string {
   const params = new URLSearchParams();
   if (query.search) params.set('search', query.search);
   if (!options.skipCategory && query.category) params.set('category', query.category);
-  if (query.brands?.length) params.set('brands', query.brands.join(','));
+  if (!options.skipBrands && query.brands?.length) params.set('brands', query.brands.join(','));
   if (query.features?.length) params.set('features', query.features.join(','));
   if (query.minPrice) params.set('minPrice', String(query.minPrice));
   if (query.maxPrice && query.maxPrice < SHOP_PRICE_LIMIT) params.set('maxPrice', String(query.maxPrice));

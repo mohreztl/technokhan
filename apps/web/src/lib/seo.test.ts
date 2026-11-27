@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { PRODUCTS, findCategory } from '@technokhan/shared';
+import { PRODUCTS, categoryForRawName, findCategory } from '@technokhan/shared';
 
 test('builds product and breadcrumb graphs for a product page', async () => {
   const seo = await import('./seo').catch(() => ({ productPageJsonLd: undefined }));
@@ -12,7 +12,8 @@ test('builds product and breadcrumb graphs for a product page', async () => {
   assert.equal(graphs[0]?.['@type'], 'Product');
   assert.equal(graphs[1]?.['@type'], 'BreadcrumbList');
   const items = graphs[1]?.itemListElement as { name: string }[];
-  assert.deepEqual(items.map((item) => item.name), ['خانه', 'فروشگاه', findCategory(product.category)?.name ?? product.category, product.name]);
+  const expectedCategory = categoryForRawName(product.category)?.name ?? findCategory(product.category)?.name ?? product.category;
+  assert.deepEqual(items.map((item) => item.name), ['خانه', 'فروشگاه', expectedCategory, product.name]);
 });
 
 test('builds a category collection and item list from visible products', async () => {

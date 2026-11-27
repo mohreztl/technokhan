@@ -4,6 +4,17 @@ import { PRODUCTS } from './products';
 import { COUPONS } from './coupons';
 
 export { CATEGORIES, BRANDS, findCategory } from './categories';
+export {
+  STORE_CATEGORIES,
+  STORE_BRANDS,
+  normalizeTaxonomyText,
+  findStoreCategory,
+  categoryForRawName,
+  categoryQueryValues,
+  findStoreBrand,
+  detectBrandId,
+} from './taxonomy';
+export type { StoreCategory, StoreBrand } from './taxonomy';
 export { ARTICLES } from './articles';
 export { PRODUCTS, PRODUCT_BRANDS } from './products';
 export { FAQ } from './faq';

@@ -18,7 +18,8 @@
     "migrate:users": "tsx tools/import-users.ts",
     "migrate:products": "tsx tools/import-products.ts",
     "migrate:articles": "tsx tools/import-articles.ts",
-    "migrate:redirects": "tsx tools/build-redirects.ts"
+    "migrate:redirects": "tsx tools/build-redirects.ts",
+    "migrate:brands": "tsx tools/assign-brands.ts"
   },
   "dependencies": {
     "@fastify/cors": "^11.3.0",

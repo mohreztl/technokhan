@@ -1,11 +1,11 @@
 import 'server-only';
 import type {
   Article,
-  Brand,
-  Category,
   PagedList,
   Product,
   ProductListQuery,
+  StoreBrandInfo,
+  StoreCategoryInfo,
 } from '@technokhan/shared';
 import { BRANDS, CATEGORIES, findArticle, sortedArticles } from '@technokhan/shared';
 import { apiFetch, buildQuery, isDemoMode } from '@/lib/api/client';
@@ -90,22 +90,28 @@ export async function getRelatedProducts(id: string, limit = 4): Promise<Product
   return relatedLocalProducts(id, limit);
 }
 
-/** Returns category metadata from Fastify or the bundled fallback. */
-export async function getCategories(): Promise<Category[]> {
+/** Returns taxonomy categories with live product counts (bundled fallback). */
+export async function getStoreCategories(): Promise<StoreCategoryInfo[]> {
   if (!isDemoMode()) {
-    const result = await apiFetch<Category[]>('/products/categories/details', { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['categories'] } });
-    if (result.ok && Array.isArray(result.data)) return result.data;
+    const result = await apiFetch<StoreCategoryInfo[]>('/products/categories/details', { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['categories'] } });
+    if (result.ok && Array.isArray(result.data) && result.data.length) return result.data;
   }
-  return CATEGORIES;
+  return CATEGORIES.map((category) => ({
+    slug: category.id as string,
+    name: category.name,
+    description: category.description,
+    image: category.image,
+    productCount: 0,
+  }));
 }
 
-/** Returns original brand metadata used by filters and brand showcases. */
-export async function getBrands(): Promise<Brand[]> {
+/** Returns brands present in the catalog with counts (bundled fallback). */
+export async function getStoreBrands(): Promise<StoreBrandInfo[]> {
   if (!isDemoMode()) {
-    const result = await apiFetch<Brand[]>('/products/brands/list', { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['brands'] } });
-    if (result.ok && Array.isArray(result.data)) return result.data;
+    const result = await apiFetch<StoreBrandInfo[]>('/products/brands/list', { auth: false, timeoutMs: SERVER_TIMEOUT, next: { revalidate: REVALIDATE, tags: ['brands'] } });
+    if (result.ok && Array.isArray(result.data) && result.data.length) return result.data;
   }
-  return BRANDS;
+  return BRANDS.map((brand) => ({ ...brand, productCount: 0 }));
 }
 
 /** Lists magazine articles newest-first with optional category/search filtering. */

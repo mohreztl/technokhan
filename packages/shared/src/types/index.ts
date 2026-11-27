@@ -48,6 +48,24 @@ export interface Brand {
   country: string;
 }
 
+/** Category as exposed by the data-driven taxonomy endpoints (slug-addressed). */
+export interface StoreCategoryInfo {
+  slug: string;
+  name: string;
+  description: string;
+  image?: string;
+  productCount: number;
+}
+
+/** Brand as exposed by the data-driven taxonomy endpoints. */
+export interface StoreBrandInfo {
+  id: string;
+  name: string;
+  nameFa: string;
+  country: string;
+  productCount: number;
+}
+
 export interface ProductSpecification {
   label: string;
   value: string;
@@ -437,6 +455,8 @@ export interface ApiResponse<T = any> {
 
 export interface ProductListQuery {
   category?: string;
+  /** Several raw category names at once (a taxonomy page spans its match list). */
+  categories?: string[];
   brand?: string;
   brands?: string[];
   features?: string[];

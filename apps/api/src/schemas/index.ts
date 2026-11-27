@@ -89,6 +89,7 @@ export const pageQuery = (defaultLimit = 12, maxLimit = 100) =>
 
 export const productQuerySchema = pageQuery(12).extend({
   category: z.string().trim().min(1).optional(),
+  categories: queryStringList,
   brand: z.string().trim().min(1).optional(),
   brands: queryStringList,
   features: queryStringList,

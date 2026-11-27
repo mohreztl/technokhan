@@ -3,20 +3,18 @@ import Link from 'next/link';
 import { ArrowLeft, BadgeCheck, Globe2 } from 'lucide-react';
 import { toPersianDigits } from '@technokhan/shared';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { getCatalogCounts } from '@/lib/catalog-counts';
-import { getBrands, getProducts } from '@/lib/data/repository';
+import { getStoreBrands } from '@/lib/data/repository';
 import { breadcrumbJsonLd, JsonLd } from '@/lib/seo';
 
 export const metadata: Metadata = {
   title: 'برندهای فروشگاه',
-  description: 'مشاهده برندهای گجت و لوازم جانبی در تکنو خان و مرور محصولات انکر، بیسوس، جی‌بی‌ال، سامسونگ، اپل و دیگر برندها.',
+  description: 'مشاهده برندهای گجت و لوازم جانبی در تکنو خان و مرور محصولات سامسونگ، الدی‌انو، ارلدام، هیسکا، مک‌دودو و دیگر برندها.',
   alternates: { canonical: '/brands' },
   openGraph: { title: 'برندهای فروشگاه تکنو خان', description: 'محصولات برند موردنظر را با ضمانت اصالت و مشخصات روشن مرور کنید.', url: '/brands' },
 };
 
 export default async function BrandsPage() {
-  const [brands, products] = await Promise.all([getBrands(), getProducts({ limit: 500 })]);
-  const counts = getCatalogCounts(products.data.items).brands;
+  const brands = await getStoreBrands();
 
   return (
     <div className="container-custom py-7 sm:py-10">
@@ -32,22 +30,19 @@ export default async function BrandsPage() {
       <section aria-labelledby="brand-list-title" className="py-8 sm:py-10">
         <h2 id="brand-list-title" className="sr-only">همه برندها</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {brands.map((brand) => {
-            const count = counts[brand.name.toLocaleLowerCase('en')] ?? 0;
-            return (
-              <Link key={brand.id} href={`/shop?brands=${encodeURIComponent(brand.name)}`} className="group flex min-h-56 flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-secondary/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
-                <div className="flex items-start justify-between gap-4">
-                  <span className="inline-flex items-center gap-2 text-xs text-muted-foreground"><Globe2 className="size-4" aria-hidden="true" /> {brand.country}</span>
-                  <ArrowLeft className="size-5 text-secondary transition-transform group-hover:-translate-x-1" aria-hidden="true" />
-                </div>
-                <div>
-                  <span className="block text-4xl font-black tracking-tight" dir="ltr">{brand.name}</span>
-                  <span className="mt-2 block text-sm text-muted-foreground">{brand.nameFa}</span>
-                  <span className="mt-5 inline-flex rounded-full bg-muted px-3 py-1.5 text-xs font-semibold">{toPersianDigits(count)} محصول در فروشگاه</span>
-                </div>
-              </Link>
-            );
-          })}
+          {brands.map((brand) => (
+            <Link key={brand.id} href={`/brand/${encodeURIComponent(brand.id)}`} className="group flex min-h-56 flex-col justify-between rounded-3xl border border-border bg-card p-6 transition-[border-color,transform] duration-300 hover:-translate-y-1 hover:border-secondary/60 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
+              <div className="flex items-start justify-between gap-4">
+                <span className="inline-flex items-center gap-2 text-xs text-muted-foreground"><Globe2 className="size-4" aria-hidden="true" /> {brand.country || '—'}</span>
+                <ArrowLeft className="size-5 text-secondary transition-transform group-hover:-translate-x-1" aria-hidden="true" />
+              </div>
+              <div>
+                <span className="block text-4xl font-black tracking-tight" dir="ltr">{brand.name}</span>
+                <span className="mt-2 block text-sm text-muted-foreground">{brand.nameFa}</span>
+                <span className="mt-5 inline-flex rounded-full bg-muted px-3 py-1.5 text-xs font-semibold">{toPersianDigits(brand.productCount)} محصول در فروشگاه</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 

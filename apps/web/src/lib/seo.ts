@@ -5,12 +5,13 @@ import {
   APP_NAME,
   APP_NAME_EN,
   CONTACT,
+  categoryForRawName,
   findCategory,
+  findStoreCategory,
   PRODUCT_CATEGORY_LABELS,
   SOCIAL_MEDIA,
   effectivePrice,
   type Article,
-  type Category,
   type FaqItem,
   type Product,
 } from '@technokhan/shared';
@@ -177,13 +178,16 @@ export function productJsonLd(product: Product, url: string): JsonLdData {
 /** Product graph plus the visible Home → Shop → Category → Product breadcrumb. */
 export function productPageJsonLd(product: Product): JsonLdData[] {
   const path = `/product/${product.slug ?? product.id}`;
-  const category = findCategory(product.category);
+  const tax = categoryForRawName(product.category) ?? findStoreCategory(product.category);
+  const bundled = tax ? undefined : findCategory(product.category);
+  const categoryName = tax?.name ?? bundled?.name ?? product.category;
+  const categoryHref = `/category/${tax?.slug ?? bundled?.id ?? encodeURIComponent(product.category)}`;
   return [
     productJsonLd(product, absoluteUrl(path)),
     breadcrumbJsonLd([
       { name: 'خانه', href: '/' },
       { name: 'فروشگاه', href: '/shop' },
-      { name: category?.name ?? product.category, href: `/category/${product.category}` },
+      { name: categoryName, href: categoryHref },
       { name: product.name, href: path },
     ]),
   ];
@@ -206,7 +210,7 @@ export function productListJsonLd(products: Product[], path: string, name: strin
   };
 }
 
-export function categoryPageJsonLd(category: Category, products: Product[]): JsonLdData[] {
+export function categoryPageJsonLd(category: { id: string; name: string; description?: string }, products: Product[]): JsonLdData[] {
   return [
     {
       '@context': 'https://schema.org',

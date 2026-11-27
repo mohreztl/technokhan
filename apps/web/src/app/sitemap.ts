@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { CATEGORIES, sortedArticles } from '@technokhan/shared';
+import { STORE_BRANDS, STORE_CATEGORIES, sortedArticles } from '@technokhan/shared';
 import { getProducts } from '@/lib/data/repository';
 import { siteUrl } from '@/lib/site';
 
@@ -23,8 +23,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${base}/privacy`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
     { url: `${base}/terms`, lastModified: now, changeFrequency: 'yearly', priority: 0.3 },
   ];
-  const categoryPages: MetadataRoute.Sitemap = CATEGORIES.map((category) => ({ url: `${base}/category/${category.id}`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 }));
+  const categoryPages: MetadataRoute.Sitemap = STORE_CATEGORIES.map((category) => ({ url: `${base}/category/${category.slug}`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 }));
+  const brandPages: MetadataRoute.Sitemap = STORE_BRANDS.map((brand) => ({ url: `${base}/brand/${brand.id}`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 }));
   const productPages: MetadataRoute.Sitemap = products.data.items.map((product) => ({ url: `${base}/product/${product.id}`, lastModified: new Date(product.updatedAt as string), changeFrequency: 'weekly', priority: 0.8 }));
   const articlePages: MetadataRoute.Sitemap = sortedArticles().map((article) => ({ url: `${base}/blog/${article.slug}`, lastModified: new Date(article.updatedAt ?? article.publishedAt), changeFrequency: 'yearly', priority: 0.7 }));
-  return [...staticPages, ...categoryPages, ...productPages, ...articlePages];
+  return [...staticPages, ...categoryPages, ...brandPages, ...productPages, ...articlePages];
 }
