@@ -1,14 +1,21 @@
 /**
  * One-shot brand backfill: detects brands from product names with the shared
  * dictionary and writes `Product.brand` (latin id). Safe to re-run — only
- * rows whose detected brand differs are updated.
+ * rows whose detected brand differs are updated. Self-contained so it also
+ * runs inside the production API image (no src/ imports).
  *
  *   pnpm --filter api exec tsx tools/assign-brands.ts [--dry]
+ *   docker exec technokhan-api-1 pnpm exec tsx tools/assign-brands.ts
  */
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 import { detectBrandId } from '@technokhan/shared';
-import { prisma } from '../src/lib/prisma';
 
 const dry = process.argv.includes('--dry');
+
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL || '' }),
+});
 
 async function main() {
   const products = await prisma.product.findMany({
