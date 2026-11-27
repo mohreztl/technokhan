@@ -75,7 +75,7 @@ export const articleRoutes: FastifyPluginAsync = async (fastify) => {
     const { slug } = parse(articleParamsSchema, request.params);
 
     try {
-      const row = await prisma.article.findUnique({ where: { slug } });
+      const row = await prisma.article.findFirst({ where: { slug, isActive: true } });
       if (row) return apiResponse.success(reply, serializeArticle(row));
     } catch {
       // fall through to the bundled catalog
