@@ -31,7 +31,7 @@ import {
   userSummarySelect,
 } from '../lib/catalog';
 import { getSettings, saveSettings } from '../lib/settings';
-import { IMAGE_MIME_TYPES, uploadImage } from '../lib/s3';
+import { IMAGE_MIME_TYPES, saveImage } from '../lib/uploads';
 import { sendStatusUpdate } from '../services/sms.service';
 
 type ProductInput = z.infer<typeof adminProductSchema>;
@@ -168,7 +168,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
   });
 
   // ------------------------------------------------------------------
-  // Image uploads (S3)
+  // Image uploads (stored on the api_uploads volume, mirrored to S3)
   // ------------------------------------------------------------------
   fastify.post('/uploads', async (request, reply) => {
     const file = await request.file().catch(() => undefined);
@@ -178,7 +178,7 @@ export const adminRoutes: FastifyPluginAsync = async (fastify) => {
     }
     const buffer = await file.toBuffer();
     if (buffer.length === 0) throw badRequest('فایل ارسال‌شده خالی است');
-    const uploaded = await uploadImage({
+    const uploaded = await saveImage({
       buffer,
       filename: file.filename || 'image',
       contentType: file.mimetype,

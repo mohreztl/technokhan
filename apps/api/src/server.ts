@@ -14,6 +14,7 @@ import { prisma } from './lib/prisma';
 import { bindLogger } from './lib/logger';
 import { ApiError, rateLimited } from './lib/errors';
 import { formatZodError } from './lib/validation';
+import { resolveUpload, streamUpload } from './lib/uploads';
 import authPlugin from './plugins/auth';
 
 import { authRoutes } from './routes/auth';
@@ -181,6 +182,18 @@ async function registerRoutes() {
       uptime: Math.round(process.uptime()),
       timestamp: new Date().toISOString(),
     });
+  });
+
+  // Uploaded images — immutable keys, cached hard; the web app proxies /uploads here.
+  fastify.get('/uploads/*', { config: { rateLimit: false } }, async (request, reply) => {
+    const rel = (request.params as Record<string, string>)['*'] ?? '';
+    const resolved = await resolveUpload(rel);
+    if (!resolved) return sendError(reply, 404, 'NOT_FOUND', 'تصویر یافت نشد');
+    return reply
+      .header('Content-Type', resolved.contentType)
+      .header('Content-Length', resolved.size)
+      .header('Cache-Control', 'public, max-age=31536000, immutable')
+      .send(streamUpload(resolved.absolutePath));
   });
 
   await fastify.register(

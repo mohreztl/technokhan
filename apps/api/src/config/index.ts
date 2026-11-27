@@ -79,17 +79,6 @@ export const config = {
     vendorId: env.BASALAM_VENDOR_ID || '',
     timeoutMs: int(env.BASALAM_TIMEOUT_MS, 15_000),
   },
-  /** S3-compatible object storage (Parspack) for uploaded images */
-  s3: {
-    endpoint: (env.S3_ENDPOINT || '').replace(/\/$/, ''),
-    region: env.S3_REGION || 'us-east-1',
-    bucket: env.S3_BUCKET || '',
-    prefix: (env.S3_PREFIX || '').replace(/^\/+|\/+$/g, ''),
-    accessKey: env.S3_ACCESS_KEY || '',
-    secretKey: env.S3_SECRET_KEY || '',
-    forcePathStyle: bool(env.S3_FORCE_PATH_STYLE, true),
-    publicUrl: (env.S3_PUBLIC_URL || '').replace(/\/$/, ''),
-  },
   /** Demo OTP accepted outside production (empty = disabled) */
   otpDevBypassCode: !isProduction ? env.OTP_DEV_BYPASS_CODE || '' : '',
   adminPhone: env.ADMIN_PHONE || '09120000000',
@@ -122,8 +111,3 @@ export const hasSepidarCredentials = (): boolean =>
   Boolean(config.sepidar.baseUrl && config.sepidar.username && config.sepidar.password);
 
 export const hasBasalamCredentials = (): boolean => Boolean(config.basalam.token);
-
-export const hasS3Credentials = (): boolean =>
-  Boolean(
-    config.s3.endpoint && config.s3.bucket && config.s3.accessKey && config.s3.secretKey && config.s3.publicUrl
-  );

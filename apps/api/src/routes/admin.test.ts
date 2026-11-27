@@ -1,9 +1,16 @@
 import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
 import { after, before, describe, it } from 'node:test';
 import Fastify, { type FastifyInstance } from 'fastify';
 import multipart from '@fastify/multipart';
 import { prisma } from '../lib/prisma';
+import { resolveUpload } from '../lib/uploads';
 import { adminRoutes } from './admin';
+
+process.env.UPLOAD_DIR = mkdtempSync(path.join(tmpdir(), 'tk-uploads-'));
 
 const ARTICLE_ROW = {
   id: 'art-1',
@@ -77,9 +84,31 @@ describe('adminRoutes uploads & articles', () => {
     assert.equal(res.statusCode, 400);
   });
 
-  it('reports 503 when S3 is not configured', async () => {
-    const res = await app.inject({ method: 'POST', url: '/admin/uploads', ...multipartBody('pic.png', 'image/png') });
-    assert.equal(res.statusCode, 503);
+  it('stores an uploaded image and resolves it for serving', async () => {
+    const content = 'fake-png-bytes-for-roundtrip';
+    const res = await app.inject({
+      method: 'POST',
+      url: '/admin/uploads',
+      ...multipartBody('test گرافیک.png', 'image/png', content),
+    });
+    assert.equal(res.statusCode, 201);
+    const body = res.json();
+    assert.match(body.data.url, /^\/uploads\/\d{4}\/\d{2}\/test-[a-f0-9]{8}\.png$/);
+    assert.equal(body.data.size, content.length);
+    // Persian filename parts are stripped; the key must stay ascii
+    assert.ok(!/[^\x20-\x7e]/.test(body.data.key));
+
+    const rel = body.data.url.replace(/^\/uploads\//, '');
+    const resolved = await resolveUpload(rel);
+    assert.ok(resolved);
+    assert.equal(resolved.contentType, 'image/png');
+    assert.equal(await readFile(resolved.absolutePath, 'utf8'), content);
+  });
+
+  it('rejects path traversal when resolving uploads', async () => {
+    assert.equal(await resolveUpload('../secret.env'), null);
+    assert.equal(await resolveUpload('..\\..\\secret.env'), null);
+    assert.equal(await resolveUpload('2026/11/missing-deadbeef.png'), null);
   });
 
   it('lists articles with pagination metadata', async () => {

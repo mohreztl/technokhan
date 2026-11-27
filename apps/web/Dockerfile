@@ -18,10 +18,13 @@ ARG NEXT_PUBLIC_API_URL=http://localhost:5000
 ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
 ARG NEXT_PUBLIC_DEMO_MODE=false
 ARG NEXT_PUBLIC_GA_MEASUREMENT_ID=
+# Server-side (in-cluster) API origin — used for the /uploads proxy rewrite
+ARG INTERNAL_API_URL=http://api:5000
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
     NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL \
     NEXT_PUBLIC_DEMO_MODE=$NEXT_PUBLIC_DEMO_MODE \
     NEXT_PUBLIC_GA_MEASUREMENT_ID=$NEXT_PUBLIC_GA_MEASUREMENT_ID \
+    INTERNAL_API_URL=$INTERNAL_API_URL \
     NEXT_TELEMETRY_DISABLED=1
 
 # Workspace manifests first (cached install layer); all workspace package.json
